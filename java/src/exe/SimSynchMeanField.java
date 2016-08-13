@@ -46,7 +46,7 @@ public class SimSynchMeanField {
         double hy = 69.0/200.0;
         double hx = 39.0/200.0;
 
-        ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(4, new EulerIntegratorFactory(h));
+        ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, new EulerIntegratorFactory(h));
         integrator.setQuietMode(false);
 
         double[][] r = new double[201][201];

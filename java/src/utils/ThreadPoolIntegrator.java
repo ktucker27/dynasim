@@ -67,8 +67,8 @@ public class ThreadPoolIntegrator {
      */
     public ThreadPoolIntegrator(int numThreads, IntegratorFactory intFactory) {
         super();
-        this.myNumThreads = numThreads;
-        myThreadPool = Executors.newFixedThreadPool(4);
+        myNumThreads = numThreads;
+        myThreadPool = Executors.newFixedThreadPool(numThreads);
         myNumIvps = 0;
         myNumFinished = 0;
         myQuietMode = true;
