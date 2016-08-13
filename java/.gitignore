@@ -1,0 +1,7 @@
+*~
+*.class
+.classpath
+.project
+.settings
+bin
+src/exe/TestApp.java
