@@ -24,31 +24,33 @@ public class ThreadPoolIntegrator {
         double t0;
         double[] y0;
         double t;
-        double[] y;
-
+        ODESolution soln;
+        
         /**
          * @param odes the odes to integrate
          * @param t0 initial time
          * @param y0 initial solution
          * @param t final time
-         * @param y solution
+         * @param soln solution
          */
         public ThreadPoolIVP(FirstOrderDifferentialEquations odes,
                 double t0, double[] y0,
-                double t, double[] y) {
+                double t, ODESolution soln) {
             super();
             this.myOdes = odes;
             this.t0 = t0;
             this.y0 = y0;
             this.t = t;
-            this.y = y;
+            this.soln = soln;
         }
 
         @Override
         public void run() {
             FirstOrderIntegrator integrator = myIntegrators.remove();
             
+            double[] y = new double[myOdes.getDimension()];
             integrator.integrate(myOdes, t0, y0, t, y);
+            soln.setSolution(y);
             
             myIntegrators.add(integrator);
             
@@ -79,8 +81,8 @@ public class ThreadPoolIntegrator {
         }
     }
     
-    public void addIvp(FirstOrderDifferentialEquations odes, double t0, double[] y0, double t, double[] y) {
-        myThreadPool.execute(new ThreadPoolIVP(odes, t0, y0, t, y));
+    public void addIvp(FirstOrderDifferentialEquations odes, double t0, double[] y0, double t, ODESolution soln) {
+        myThreadPool.execute(new ThreadPoolIVP(odes, t0, y0, t, soln));
         todo();
     }
     
