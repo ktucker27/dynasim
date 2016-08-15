@@ -4,7 +4,7 @@ import org.apache.commons.math3.complex.Complex;
 
 public class OrderParameterSolution implements ODESolution {
 
-    double r;
+    private double r;
     
     public OrderParameterSolution() {
         super();

@@ -5,8 +5,7 @@ import org.apache.commons.math3.ode.nonstiff.EulerIntegrator;
 
 public class EulerIntegratorFactory implements IntegratorFactory {
 
-    double h;
-    
+    private double h;
     
     /**
      * @param h the step size for Euler's method

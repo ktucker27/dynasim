@@ -8,11 +8,11 @@ import java.lang.Math;
 
 public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
 
-    int n;
-    double gamma;
-    double w;
-    double feff;
-    double[] d;
+    private int n;
+    private double gamma;
+    private double w;
+    private double feff;
+    private double[] d;
 
     /**
      * @param n number of oscillators

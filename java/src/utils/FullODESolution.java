@@ -2,7 +2,7 @@ package utils;
 
 public class FullODESolution implements ODESolution {
 
-    double[] y;
+    private double[] y;
     
     public FullODESolution() {
         super();

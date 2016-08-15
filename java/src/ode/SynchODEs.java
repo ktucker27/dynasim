@@ -8,11 +8,11 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import coupling.ComplexCoupling;
 
 public class SynchODEs implements FirstOrderDifferentialEquations {
-    int n;
-    double gamma;
-    double w;
-    ComplexCoupling coupling;
-    double[] d;
+    private int n;
+    private double gamma;
+    private double w;
+    private ComplexCoupling coupling;
+    private double[] d;
 
     /**
      * @param n number of oscillators

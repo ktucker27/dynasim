@@ -12,19 +12,18 @@ import org.apache.commons.math3.ode.FirstOrderIntegrator;
 
 public class ThreadPoolIntegrator {
 
-    int myNumThreads;
-    int myNumIvps;
-    int myNumFinished;
-    boolean myQuietMode;
-    ExecutorService myThreadPool;
-    ConcurrentLinkedQueue<FirstOrderIntegrator> myIntegrators;
+    private int myNumIvps;
+    private int myNumFinished;
+    private boolean myQuietMode;
+    private ExecutorService myThreadPool;
+    private ConcurrentLinkedQueue<FirstOrderIntegrator> myIntegrators;
 
     private class ThreadPoolIVP implements Runnable {
-        FirstOrderDifferentialEquations myOdes;
-        double t0;
-        double[] y0;
-        double t;
-        ODESolution soln;
+        private FirstOrderDifferentialEquations myOdes;
+        private double t0;
+        private double[] y0;
+        private double t;
+        private ODESolution soln;
         
         /**
          * @param odes the odes to integrate
@@ -69,7 +68,6 @@ public class ThreadPoolIntegrator {
      */
     public ThreadPoolIntegrator(int numThreads, IntegratorFactory intFactory) {
         super();
-        myNumThreads = numThreads;
         myThreadPool = Executors.newFixedThreadPool(numThreads);
         myNumIvps = 0;
         myNumFinished = 0;

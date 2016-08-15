@@ -4,12 +4,9 @@ import org.apache.commons.math3.complex.Complex;
 
 public class RingCoupling implements ComplexCoupling {
 
-    int n;
-    double a;
-    
-    double[] f;
-    double[] g;
-    Complex[] alpha;
+    private double[] f;
+    private double[] g;
+    private Complex[] alpha;
     
     /**
      * @param n the number of oscillators
@@ -17,8 +14,6 @@ public class RingCoupling implements ComplexCoupling {
      */
     public RingCoupling(int n, double a) {
         super();
-        this.n = n;
-        this.a = a;
         
         f = new double[n];
         g = new double[n];
