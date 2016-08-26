@@ -32,8 +32,8 @@ public class RingCoupling implements ComplexCoupling {
             double cosAm = Math.cos(am);
             
             f[m] = 1.5*(sinAm/am + cosAm/am2 - sinAm/am3);
-            //g[m] = 1.5*(-cosAm/am + sinAm/am2 + cosAm/am3);
-            g[m] = 0.0;
+            g[m] = 1.5*(-cosAm/am + sinAm/am2 + cosAm/am3);
+            //g[m] = 0.0;
             alpha[m] = new Complex(f[m], g[m]);
         }
     }

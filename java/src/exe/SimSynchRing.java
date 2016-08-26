@@ -1,6 +1,6 @@
 package exe;
 
-import integrator.EulerIntegratorFactory;
+import integrator.AdamsMoultonFactory;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -23,7 +23,7 @@ public class SimSynchRing {
         long startTime = System.nanoTime();
 
         int n = 103;
-        double h = 0.01;
+        double h = 0.001;
         double a = 0.01;
         
         double[] d = new double[n];
@@ -41,13 +41,14 @@ public class SimSynchRing {
         }
 
         double t0 = 0.0;
-        double t = 6.0;
+        double t = 8.0;
         
         double wStart = 1.0;
-        double hw = 99.0/200.0;
-        int numw = 201;
+        double hw = 63.0/100.0;
+        int numw = 25;
         
-        ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, new EulerIntegratorFactory(h));
+        //ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, new EulerIntegratorFactory(h));
+        ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, new AdamsMoultonFactory(h));
         integrator.setQuietMode(false);
 
         RingCoupling coupling = new RingCoupling(n,a);
@@ -58,7 +59,7 @@ public class SimSynchRing {
             integrator.addIvp(odes, t0, y0, t, soln[j]);
         }
 
-        boolean success = integrator.waitForFinished(3600);
+        boolean success = integrator.waitForFinished(12*3600);
 
         long endTime = System.nanoTime();
 
@@ -66,6 +67,7 @@ public class SimSynchRing {
             PrintWriter writer = new PrintWriter("/Users/kristophertucker/Google Drive/Research/Synch/output/r_vs_w.txt", "UTF-8");
             for(int j = 0; j < numw; ++j) {
                 writer.print(soln[j].getSolution()[n] + " ");
+                System.out.println(soln[j].getSolution()[n]);
             }
             writer.close();
         }
