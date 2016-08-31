@@ -18,7 +18,7 @@ public class AdamsMoultonFactory implements IntegratorFactory {
 
     @Override
     public FirstOrderIntegrator newIntegrator() {
-        return new AdamsMoultonIntegrator(2, 1.0e-14, h, 1.0e-3, 1.0e-3);
+        return new AdamsMoultonIntegrator(2, 1.0e-18, h, 1.0e-3, 1.0e-2);
     }
 
 }

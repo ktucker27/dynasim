@@ -48,8 +48,12 @@ public class ThreadPoolIntegrator {
             FirstOrderIntegrator integrator = myIntegrators.remove();
             
             double[] y = new double[myOdes.getDimension()];
-            integrator.integrate(myOdes, t0, y0, t, y);
-            soln.setSolution(y);
+            try {
+                integrator.integrate(myOdes, t0, y0, t, y);
+                soln.setSolution(y);
+            } catch(Exception ex) {
+                System.out.println(ex.getMessage());
+            }
             
             myIntegrators.add(integrator);
             

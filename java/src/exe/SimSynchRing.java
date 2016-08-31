@@ -23,8 +23,8 @@ public class SimSynchRing {
         long startTime = System.nanoTime();
 
         int n = 103;
-        double h = 0.001;
-        double a = 0.01;
+        double h = 0.0005;
+        double a = 0.05;
         
         double[] d = new double[n];
         for(int i = 0; i < n; ++i) {
@@ -41,7 +41,7 @@ public class SimSynchRing {
         }
 
         double t0 = 0.0;
-        double t = 8.0;
+        double t = 10.0;
         
         double wStart = 1.0;
         double hw = 63.0/100.0;
@@ -64,10 +64,14 @@ public class SimSynchRing {
         long endTime = System.nanoTime();
 
         if(success) {
-            PrintWriter writer = new PrintWriter("/Users/kristophertucker/Google Drive/Research/Synch/output/r_vs_w.txt", "UTF-8");
+            PrintWriter writer = new PrintWriter("/Users/kristophertucker/Google Drive/Research/Synch/output/r_vs_w3.txt", "UTF-8");
             for(int j = 0; j < numw; ++j) {
-                writer.print(soln[j].getSolution()[n] + " ");
-                System.out.println(soln[j].getSolution()[n]);
+                if(soln[j].getSolution() != null) {
+                    writer.print(soln[j].getSolution()[n] + " ");
+                    System.out.println(soln[j].getSolution()[n]);
+                } else {
+                    writer.print("0 ");
+                }
             }
             writer.close();
         }
