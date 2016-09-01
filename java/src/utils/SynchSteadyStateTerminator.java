@@ -12,12 +12,15 @@ public class SynchSteadyStateTerminator implements EventHandler {
 
     double myStopTime;
     SteadyStateDetector myDetector;
+    int myMaxIterations;
+    boolean myQuietMode;
     
     private class SteadyStateDetector implements StepHandler {
         int myNumSteps;
         int myTotalSteps;
         ArrayDeque<double[]> mySoln;
         int n;
+        int myMargin;
         
         public SteadyStateDetector(int numSteps) {
             myNumSteps = numSteps;
@@ -28,12 +31,21 @@ public class SynchSteadyStateTerminator implements EventHandler {
         public void init(double t0, double[] y0, double t) {
             mySoln = new ArrayDeque<double[]>(myNumSteps);
             n = y0.length/3;
+            myMargin = (int) (0.1*n) + 1;
         }
 
         @Override
         public void handleStep(StepInterpolator interpolator, boolean isLast) {
             ++myTotalSteps;
             
+            if(myStopTime >= 0) return;
+
+            if(myTotalSteps >= myMaxIterations) {
+                myStopTime = interpolator.getInterpolatedTime();
+                System.out.println("Maximum number of iterations (" + myMaxIterations + ") exceeded at time " + myStopTime);
+                return;
+            }
+
             // Copy the new state into the solution stack
             if(mySoln.size() >= myNumSteps) {
                 mySoln.pollLast();
@@ -54,21 +66,31 @@ public class SynchSteadyStateTerminator implements EventHandler {
                 int idx = 0;
                 while(iter.hasNext()) {
                     double[] currState = iter.next();
-                    //if(stdDev.evaluate(currState) > 1.0e-5) {
-                    //    isSteadyState = false;
-                    //    break;
-                    //}
                     
-                    rvals[idx] = currState[n];
+                    double[] rvec = new double[n - 2*myMargin];
+                    for(int i = 0; i < rvec.length; ++i) {
+                        rvec[i] = Math.abs(currState[n+i+myMargin]);
+                    }
+                    
+                    if(!myQuietMode && myTotalSteps % 1000 == 0 && idx % 100 == 0) {
+                        System.out.println("rvec: " + stdDev.evaluate(rvec));
+                    }
+                    
+                    if(stdDev.evaluate(rvec) > 5.0e-4) {
+                        isSteadyState = false;
+                        break;
+                    }
+                    
+                    rvals[idx] = currState[n+n/2];
                     ++idx;
                 }
                 
                 if(isSteadyState) {
-                    if(myTotalSteps % 1000 == 0) {
-                        System.out.println(stdDev.evaluate(rvals));
+                    if(!myQuietMode && myTotalSteps % 1000 == 0) {
+                        System.out.println("rvals: " + stdDev.evaluate(rvals));
                     }
                     
-                    if(myStopTime < 0 && stdDev.evaluate(rvals) < 1.0e-3) {
+                    if(stdDev.evaluate(rvals) < 1.0e-4) {
                         myStopTime = interpolator.getInterpolatedTime();
                         System.out.println("Steady state detected at time " + myStopTime);
                     }
@@ -77,9 +99,15 @@ public class SynchSteadyStateTerminator implements EventHandler {
         }        
     }
     
-    public SynchSteadyStateTerminator(int numSteps) {
+    public SynchSteadyStateTerminator(int numSteps, int maxIterations) {
        myStopTime = -1.0;
+       myMaxIterations = maxIterations;
+       myQuietMode = true;
        myDetector = new SteadyStateDetector(numSteps);
+    }
+    
+    public void setQuietMode(boolean quietMode) {
+        myQuietMode = quietMode;
     }
     
     public StepHandler getDetector() {

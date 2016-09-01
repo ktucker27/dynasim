@@ -38,7 +38,7 @@ public class SimSynchSingle {
         double[] y0 = new double[3*n];
         double[] y = new double[3*n];
         
-        Random rand = new Random(2);
+        Random rand = new Random(5);
         for(int i = 0; i < n; ++i) {
             y0[i] = rand.nextDouble();
             y0[n+i] = rand.nextDouble();
@@ -56,7 +56,7 @@ public class SimSynchSingle {
             @Override
             public void init(double t0, double[] y0, double t) {
                 int n = y0.length/3;
-                writer.print("0, " + y0[n] + "\n");
+                writer.print("0, " + y0[n+n/2] + "\n");
             }
             
             @Override
@@ -66,7 +66,7 @@ public class SimSynchSingle {
                 int n = y.length/3;
                 
                 writer.print(interpolator.getInterpolatedTime() + ", ");
-                writer.print(y[n]);
+                writer.print(y[n+n/2]);
                 writer.print("\n");
                 
                 if(!isLast) {
@@ -77,7 +77,8 @@ public class SimSynchSingle {
             }
         };
         
-        SynchSteadyStateTerminator term = new SynchSteadyStateTerminator(500);
+        SynchSteadyStateTerminator term = new SynchSteadyStateTerminator(500, 500000);
+        term.setQuietMode(false);
         
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, h, 1.0e-3, 1.0e-2);
         integrator.addStepHandler(writeHandler);
@@ -88,6 +89,11 @@ public class SimSynchSingle {
         SynchODEs odes = new SynchODEs(n, 1, w, coupling, d);
         try {
             integrator.integrate(odes, t0, y0, t, y);
+            System.out.println("R:");
+            for(int i = n; i < 2*n; ++i) {
+                System.out.print(y[i] + " ");
+            }
+            System.out.print("\n");
         } catch(Exception ex) {
             System.out.println(ex.getMessage());
         }
