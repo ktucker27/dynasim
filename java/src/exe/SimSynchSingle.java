@@ -1,19 +1,15 @@
 package exe;
 
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 import ode.SynchODEs;
 
-import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
-import org.apache.commons.math3.ode.sampling.StepHandler;
-import org.apache.commons.math3.ode.sampling.StepInterpolator;
 
 import utils.SynchSteadyStateTerminator;
-
+import utils.WriteHandler;
 import coupling.RingCoupling;
 
 public class SimSynchSingle {
@@ -38,7 +34,7 @@ public class SimSynchSingle {
         double[] y0 = new double[3*n];
         double[] y = new double[3*n];
         
-        Random rand = new Random(5);
+        Random rand = new Random(2);
         for(int i = 0; i < n; ++i) {
             y0[i] = rand.nextDouble();
             y0[n+i] = rand.nextDouble();
@@ -50,34 +46,9 @@ public class SimSynchSingle {
         
         double w = 10.0;
 
-        StepHandler writeHandler = new StepHandler() {
-            PrintWriter writer = new PrintWriter("/Users/kristophertucker/Google Drive/Research/Synch/output/r_vs_t.txt", "UTF-8");
-            
-            @Override
-            public void init(double t0, double[] y0, double t) {
-                int n = y0.length/3;
-                writer.print("0, " + y0[n+n/2] + "\n");
-            }
-            
-            @Override
-            public void handleStep(StepInterpolator interpolator, boolean isLast)
-                    throws MaxCountExceededException {
-                double[] y = interpolator.getInterpolatedState();
-                int n = y.length/3;
-                
-                writer.print(interpolator.getInterpolatedTime() + ", ");
-                writer.print(y[n+n/2]);
-                writer.print("\n");
-                
-                if(!isLast) {
-                    writer.flush();
-                } else {
-                    writer.close();
-                }
-            }
-        };
+        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/Google Drive/Research/Synch/output/r_vs_t.txt", n+n/2);
         
-        SynchSteadyStateTerminator term = new SynchSteadyStateTerminator(500, 500000);
+        SynchSteadyStateTerminator term = new SynchSteadyStateTerminator(500, 150000);
         term.setQuietMode(false);
         
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, h, 1.0e-3, 1.0e-2);

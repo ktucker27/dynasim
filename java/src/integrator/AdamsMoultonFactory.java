@@ -5,20 +5,23 @@ import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
 public class AdamsMoultonFactory implements IntegratorFactory {
 
-    double h;
+    double hmin;
+    double hmax;
     
     
     /**
-     * @param h the min and max step size for the method
+     * @param hmin the min step size for the method
+     * @param hmax the max step size for the method
      */
-    public AdamsMoultonFactory(double h) {
+    public AdamsMoultonFactory(double hmin, double hmax) {
         super();
-        this.h = h;
+        this.hmin = hmin;
+        this.hmax = hmax;
     }
 
     @Override
     public FirstOrderIntegrator newIntegrator() {
-        return new AdamsMoultonIntegrator(2, 1.0e-18, h, 1.0e-3, 1.0e-2);
+        return new AdamsMoultonIntegrator(2, hmin, hmax, 1.0e-3, 1.0e-2);
     }
 
 }
