@@ -1,37 +1,35 @@
 package utils;
 
 import java.util.ArrayDeque;
-import java.util.Iterator;
 
 import org.apache.commons.math3.ode.events.EventHandler;
 import org.apache.commons.math3.ode.sampling.StepHandler;
 import org.apache.commons.math3.ode.sampling.StepInterpolator;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 public class SynchSteadyStateTerminator implements EventHandler {
 
     double myStopTime;
     SteadyStateDetector myDetector;
     int myMaxIterations;
-    boolean myQuietMode;
     
     private class SteadyStateDetector implements StepHandler {
+        double myMinTime;
         int myNumSteps;
         int myTotalSteps;
         ArrayDeque<double[]> mySoln;
-        int n;
-        int myMargin;
+        SteadyStateTest myTest;
         
-        public SteadyStateDetector(int numSteps) {
+        public SteadyStateDetector(SteadyStateTest test, double minTime, int numSteps) {
+            myMinTime = minTime;
             myNumSteps = numSteps;
             myTotalSteps = 0;
+            myTest = test;
         }
         
         @Override
         public void init(double t0, double[] y0, double t) {
             mySoln = new ArrayDeque<double[]>(myNumSteps);
-            n = y0.length/3;
-            myMargin = (int) (0.1*n) + 1;
+            myTest.init(t0, y0, t);
         }
 
         @Override
@@ -51,63 +49,27 @@ public class SynchSteadyStateTerminator implements EventHandler {
                 mySoln.pollLast();
             }
             
-            double[] state = new double[3*n];
-            for(int i = 0; i < 3*n; ++i) {
+            int n = interpolator.getInterpolatedState().length;
+            double[] state = new double[n];
+            for(int i = 0; i < n; ++i) {
                 state[i] = interpolator.getInterpolatedState()[i];
             }
             mySoln.push(state);
 
-            if(myTotalSteps >= myNumSteps) {
-                // Determine if we have achieved steady state
-                boolean isSteadyState = true;
-                StandardDeviation stdDev = new StandardDeviation();
-                Iterator<double[]> iter = mySoln.descendingIterator();
-                double[] rvals = new double[myNumSteps];
-                int idx = 0;
-                while(iter.hasNext()) {
-                    double[] currState = iter.next();
-                    
-                    double[] rvec = new double[n - 2*myMargin];
-                    for(int i = 0; i < rvec.length; ++i) {
-                        rvec[i] = Math.abs(currState[n+i+myMargin]);
-                    }
-                    
-                    if(!myQuietMode && myTotalSteps % 1000 == 0 && idx % 100 == 0) {
-                        System.out.println("rvec: " + stdDev.evaluate(rvec));
-                    }
-                    
-                    if(stdDev.evaluate(rvec) > 5.0e-4) {
-                        isSteadyState = false;
-                        break;
-                    }
-                    
-                    rvals[idx] = currState[n+n/2];
-                    ++idx;
-                }
-                
-                if(isSteadyState) {
-                    if(!myQuietMode && myTotalSteps % 1000 == 0) {
-                        System.out.println("rvals: " + stdDev.evaluate(rvals));
-                    }
-                    
-                    if(stdDev.evaluate(rvals) < 1.0e-4) {
-                        myStopTime = interpolator.getInterpolatedTime();
-                        System.out.println("Steady state detected at time " + myStopTime);
-                    }
-                }
+            // Determine if we have achieved steady state
+            if(myTotalSteps >= myNumSteps && 
+               myTest.isSteadyState(mySoln, myTotalSteps) &&
+               interpolator.getInterpolatedTime() >= myMinTime) {
+                myStopTime = interpolator.getInterpolatedTime();
+                System.out.println("Steady state detected at time " + myStopTime);
             }
         }        
     }
     
-    public SynchSteadyStateTerminator(int numSteps, int maxIterations) {
+    public SynchSteadyStateTerminator(SteadyStateTest test, double minTime, int numSteps, int maxIterations) {
        myStopTime = -1.0;
        myMaxIterations = maxIterations;
-       myQuietMode = true;
-       myDetector = new SteadyStateDetector(numSteps);
-    }
-    
-    public void setQuietMode(boolean quietMode) {
-        myQuietMode = quietMode;
+       myDetector = new SteadyStateDetector(test, minTime, numSteps);
     }
     
     public StepHandler getDetector() {

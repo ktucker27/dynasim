@@ -12,6 +12,7 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
     private double gamma;
     private double w;
     private double feff;
+    private double geff;
     private double[] d;
 
     /**
@@ -21,12 +22,13 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
      * @param feff effective mean field coupling
      * @param d size n vector of natural frequencies
      */
-    public SynchMeanFieldODEs(int n, double gamma, double w, double feff, double[] d) {
+    public SynchMeanFieldODEs(int n, double gamma, double w, double feff, double geff, double[] d) {
         super();
         this.n = n;
         this.gamma = gamma;
         this.w = w;
         this.feff = feff;
+        this.geff = geff;
         this.d = d;
     }
 
@@ -59,9 +61,9 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
         
         // Compute ydot
         for(int i = 0; i < n; ++i) {
-            ydot[i] = -feff*r*y[n+i]*Math.cos(psi - y[2*n+i]) - gamma*(0.5 + y[i]) + w*(0.5 - y[i]);
-            ydot[n+i] = feff*r*y[i]*Math.cos(psi - y[2*n+i]) - 0.5*(gamma + w)*y[n+i];
-            ydot[2*n+i] = d[i] + feff*r*((y[i]/y[n+i])*Math.sin(psi - y[2*n+i]));
+            ydot[i] = r*y[n+i]*(-feff*Math.cos(psi - y[2*n+i]) + geff*Math.sin(psi - y[2*n+i])) - gamma*(0.5 + y[i]) + w*(0.5 - y[i]);
+            ydot[n+i] = r*y[i]*(feff*Math.cos(psi - y[2*n+i]) - geff*Math.sin(psi - y[2*n+i])) - 0.5*(gamma + w)*y[n+i];
+            ydot[2*n+i] = d[i] + r*((y[i]/y[n+i])*(feff*Math.sin(psi - y[2*n+i]) + geff*Math.cos(psi - y[2*n+i])));
         }
     }
 

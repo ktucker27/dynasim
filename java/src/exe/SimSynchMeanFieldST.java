@@ -26,7 +26,7 @@ public class SimSynchMeanFieldST {
         double[][] r = new double[201][201];
         for(int i = 0; i < 201; ++i) {
             for(int j = 0; j < 201; ++j) {
-                r[i][j] = runSim(1.0 + j*hx, 1.0 + i*hy);
+                r[i][j] = runSim(1.0 + j*hx, 1.0 + i*hy, 0.0);
             }
             System.out.println("Finished row " + i);
         }
@@ -45,14 +45,14 @@ public class SimSynchMeanFieldST {
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
     }
 
-    public static double runSim(double w, double feff) {
+    public static double runSim(double w, double feff, double geff) {
         int n = 70;
         double h = 0.01;
         double[] d = new double[n];
         for(int i = 0; i < n; ++i) {
             d[i] = 0.0;
         }
-        SynchMeanFieldODEs odes = new SynchMeanFieldODEs(n, 1, w, feff, d);
+        SynchMeanFieldODEs odes = new SynchMeanFieldODEs(n, 1, w, feff, geff, d);
         
         EulerIntegrator integrator = new EulerIntegrator(h);
         

@@ -8,6 +8,7 @@ import ode.SynchODEs;
 
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
+import utils.RingSteadyStateTest;
 import utils.SynchSteadyStateTerminator;
 import utils.WriteHandler;
 import coupling.RingCoupling;
@@ -34,7 +35,7 @@ public class SimSynchSingle {
         double[] y0 = new double[3*n];
         double[] y = new double[3*n];
         
-        Random rand = new Random(2);
+        Random rand = new Random(5);
         for(int i = 0; i < n; ++i) {
             y0[i] = rand.nextDouble();
             y0[n+i] = rand.nextDouble();
@@ -48,8 +49,9 @@ public class SimSynchSingle {
 
         WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/Google Drive/Research/Synch/output/r_vs_t.txt", n+n/2);
         
-        SynchSteadyStateTerminator term = new SynchSteadyStateTerminator(500, 150000);
-        term.setQuietMode(false);
+        RingSteadyStateTest test = new RingSteadyStateTest();
+        test.setQuietMode(false);
+        SynchSteadyStateTerminator term = new SynchSteadyStateTerminator(test, 0.5, 500, 1500000);
         
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, h, 1.0e-3, 1.0e-2);
         integrator.addStepHandler(writeHandler);
