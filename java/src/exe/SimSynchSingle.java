@@ -47,7 +47,7 @@ public class SimSynchSingle {
         
         double w = 10.0;
 
-        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/Google Drive/Research/Synch/output/r_vs_t.txt", n+n/2);
+        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/Google Drive/Research/Synch/output/r_vs_t.txt", new int[] {n+n/2});
         
         RingSteadyStateTest test = new RingSteadyStateTest();
         test.setQuietMode(false);
