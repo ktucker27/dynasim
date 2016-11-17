@@ -263,7 +263,7 @@ public class SynchCumulantlODEs implements ComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
-                    t2 = t2.add(coupling.getAlpha(b, j).multiply(cumulant(2, 1, 0, b, a, j, z)));
+                    t2 = t2.add(coupling.getAlpha(b, j).multiply(cumulant(2, 0, 1, b, a, j, z)));
                 }
                 t2 = t2.multiply(0.5*gamma);
                 
