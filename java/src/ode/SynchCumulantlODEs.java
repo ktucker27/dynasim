@@ -88,8 +88,8 @@ public class SynchCumulantlODEs implements ComplexODEs {
             i = t;
         }
         
-        //return n*(n-1)/2 - (n-i)*(n-i-1)/2 + j;
-        return n*i - i*(i+1)/2; // Simplified
+        //return n*(n-1)/2 - (n-i)*(n-i-1)/2 + j-1;
+        return n*i - i*(i+1)/2 + j - i - 1; // Simplified
     }
     
     private int getRecIdx(int i, int j) {
