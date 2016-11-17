@@ -219,7 +219,7 @@ public class SynchCumulantlODEs implements ComplexODEs {
                 }
                 t3 = t3.multiply(-1.0*gamma);
                 
-                zDot[idx] = z[idx].multiply(c2[b]).add(z[b].multiply(-diff_gw)).add(coupling.getAlpha(a, b).multiply(z[a]).multiply(0.5*gamma));
+                zDot[idx] = z[idx].multiply(c2[b]).add(z[b].multiply(-diff_gw)).add(coupling.getAlpha(a, b).multiply(z[a]).multiply(-0.5*gamma));
                 zDot[idx] = zDot[idx].add(z[n+getRecIdx(b,a)].multiply(coupling.getF(a, b)).multiply(-gamma));
                 zDot[idx] = zDot[idx].add(t1).add(t2).add(t3);
                 ++idx;
@@ -267,7 +267,7 @@ public class SynchCumulantlODEs implements ComplexODEs {
                 }
                 t2 = t2.multiply(0.5*gamma);
                 
-                zDot[idx] = z[idx].multiply(c3[a][b]).subtract(migamma.multiply(0.25).multiply(coupling.getG(a,b)).multiply(z[startIdx[2] + a].subtract(z[startIdx[2] + b])));
+                zDot[idx] = z[idx].multiply(c3[a][b]).add(migamma.multiply(0.25).multiply(coupling.getG(a,b)).multiply(z[startIdx[2] + a].subtract(z[startIdx[2] + b])));
                 zDot[idx] = zDot[idx].add(cumulantDouble(2, 2, a, b, z).add((z[startIdx[2] + a].add(z[startIdx[2] + b])).multiply(0.5)).multiply(0.5*gamma*coupling.getF(a,b)));
                 zDot[idx] = zDot[idx].add(t1).add(t2);
                 ++idx;
