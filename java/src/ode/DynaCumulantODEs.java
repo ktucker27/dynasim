@@ -21,9 +21,9 @@ public class DynaCumulantODEs implements DynaComplexODEs {
     private DynaComplex[][] c3;
     private DynaComplex[][] c4;
     
-    private DynaComplex t1, t2;
+    private DynaComplex t1, t2, t3;
     private DynaComplex ct1, ct2, ct3;
-    private DynaComplex sum1, sum2, sum3, sum4;
+    private DynaComplex sum1, sum2, sum3;
     
     int[] startIdx;
     
@@ -53,15 +53,15 @@ public class DynaCumulantODEs implements DynaComplexODEs {
         sum1 = new DynaComplex(0, 0);
         sum2 = new DynaComplex(0, 0);
         sum3 = new DynaComplex(0, 0);
-        sum4 = new DynaComplex(0, 0);
         
         t1 = new DynaComplex(0, 0);
         t2 = new DynaComplex(0, 0);
+        t3 = new DynaComplex(0, 0);
 
         ct1 = new DynaComplex(0, 0);
         ct2 = new DynaComplex(0, 0);
         ct3 = new DynaComplex(0, 0);
-
+        
         initConstants();
     }
     
@@ -119,19 +119,18 @@ public class DynaCumulantODEs implements DynaComplexODEs {
     // In the following, for the superscript indices:
     // 0 = +, 1 = -, 2 = z
     private DynaComplex cumulantSingle(int al, int a, DynaComplex[] z, DynaComplex ans) {
-        switch(al) {
-        case 0:
-            return ans.set(z[a]);
-        case 1:
-            return ans.set(z[a]).conjugate();
-        case 2:
-            return ans.set(z[startIdx[2] + a]);
-        }
+//        switch(al) {
+//        case 0:
+//            return ans.set(z[a]);
+//        case 1:
+//            return ans.set(z[a]).conjugate();
+//        case 2:
+//            return ans.set(z[startIdx[2] + a]);
+//        }
         
-        // This should never happen
-        System.err.println("Invalid superscript passed to cumulantSingle: " + al);
-        
-        return null;
+        ans.set(z[a + startIdx[2]*(al/2)]);
+        if(al == 1) ans.conjugate();
+        return ans;
     }
 
     private DynaComplex cumulantDouble(int al, int bt, int a, int b, DynaComplex[] z, DynaComplex ans) {
@@ -210,11 +209,32 @@ public class DynaCumulantODEs implements DynaComplexODEs {
             for(int b = 0; b < n; ++b) {
                 if(a == b) continue;
                 
+                int recaj = a*(n-1);
+                int recbj = b*(n-1);
+                int triab = getTriIdx(a,b);
+                
                 sum1.set(0, 0);
                 for(int j = 0; j < n; ++j) {
-                    if(j == a || j == b) continue;
+                    //if(j == a || j == b) continue;
+                    if(j == a) {
+                        ++recbj;
+                        continue;
+                    }
                     
-                    sum1.add(t1.set(coupling.getAlpha(b, j)).conjugate().multiply(cumulant(2, 2, 0, a, b, j, z, t2)));
+                    if(j == b) {
+                        ++recaj;
+                        continue;
+                    }
+                    
+                    t2.set(z[startIdx[2]+a]).multiply(z[startIdx[2]+b]).multiply(z[j]).multiply(-2.0);
+                    t2.add(t3.set(z[j]).multiply(z[startIdx[4] + triab]));
+                    t2.add(t3.set(z[startIdx[2]+a]).multiply(z[startIdx[1] + recbj]));
+                    t2.add(t3.set(z[startIdx[2]+b]).multiply(z[startIdx[1] + recaj]));
+                    sum1.add(t1.set(coupling.getAlpha(b, j)).conjugate().multiply(t2));
+                    //sum1.add(t1.set(coupling.getAlpha(b, j)).conjugate().multiply(cumulant(2, 2, 0, a, b, j, z, t2)));
+                    
+                    ++recaj;
+                    ++recbj;
                 }
                 sum1.multiply(0.5*gamma);
                 
@@ -222,7 +242,23 @@ public class DynaCumulantODEs implements DynaComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
-                    sum2.add(t1.set(coupling.getAlpha(a, j)).multiply(cumulant(0, 0, 1, a, b, j, z, t2)));
+                    t2.set(z[j]).conjugate().multiply(z[a]).multiply(z[b]).multiply(-2.0);
+                    t2.add(t3.set(z[j]).conjugate().multiply(z[startIdx[5] + triab]));
+                    
+                    if(j > b) {
+                        t2.add(t3.set(z[a]).multiply(z[startIdx[3] + getTriIdx(b,j)]));
+                    } else {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(j,b)]).conjugate().multiply(z[a]));
+                    }
+                    
+                    if(j > a) {
+                        t2.add(t3.set(z[b]).multiply(z[startIdx[3] + getTriIdx(a,j)]));
+                    } else {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(a,j)]).conjugate().multiply(z[b]));
+                    }
+                    
+                    sum2.add(t1.set(coupling.getAlpha(a, j)).multiply(t2));
+                    //sum2.add(t1.set(coupling.getAlpha(a, j)).multiply(cumulant(0, 0, 1, a, b, j, z, t2)));
                 }
                 sum2.multiply(-1.0*gamma);
                 
@@ -230,7 +266,20 @@ public class DynaCumulantODEs implements DynaComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
-                    sum3.add(t1.set(coupling.getAlpha(a, j)).conjugate().multiply(cumulant(1, 0, 0, a, b, j, z, t2)));
+                    t2.set(z[a]).conjugate().multiply(z[b]).multiply(z[j]).multiply(-2.0);
+                    if(b > a) {
+                        t2.add(t3.set(z[startIdx[3] + triab]).conjugate().multiply(z[j]));
+                    } else {
+                        t2.add(t3.set(z[startIdx[3] + triab]).multiply(z[j]));
+                    }
+                    t2.add(t3.set(z[a]).conjugate().multiply(z[startIdx[5] + getTriIdx(b,j)]));
+                    if(j > a) {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(a,j)]).conjugate().multiply(z[b]));
+                    } else {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(j,a)]).multiply(z[b]));
+                    }
+                    sum3.add(t1.set(coupling.getAlpha(a, j)).conjugate().multiply(t2));
+                    //sum3.add(t1.set(coupling.getAlpha(a, j)).conjugate().multiply(cumulant(1, 0, 0, a, b, j, z, t2)));
                 }
                 sum3.multiply(-1.0*gamma);
                 
@@ -247,19 +296,17 @@ public class DynaCumulantODEs implements DynaComplexODEs {
             for(int b = 0; b < n; ++b) {
                 if(a == b) continue;
                 
-                sum1.add(cumulantDouble(0, 1, a, b, z, t1).subtract(cumulantDouble(1, 0, a, b, z, t2)).multiply(coupling.getG(a, b)));
+                t1.set(z[startIdx[3] + getTriIdx(a,b)]);
+                if(a > b) {
+                    t1.conjugate();
+                }
+                t1.multiply(coupling.getAlpha(a, b)).multiply(2.0);
+                t1.setImaginary(0);
+                sum1.add(t1);
             }
-            sum1.multiply(migamma);
+            sum1.multiply(-1.0*gamma);
             
-            sum2.set(0, 0);
-            for(int b = 0; b < n; ++b) {
-                if(a == b) continue;
-                
-                sum2.add(cumulantDouble(0, 1, a, b, z, t1).add(cumulantDouble(1, 0, a, b, z, t2)).multiply(coupling.getF(a, b)));
-            }
-            sum2.multiply(-gamma);
-            
-            zDot[startIdx[2] + a].set(z[startIdx[2] + a]).multiply(-(gamma + w)).add(w - gamma).add(sum1).add(sum2);
+            zDot[startIdx[2] + a].set(z[startIdx[2] + a]).multiply(-(gamma + w)).add(w - gamma).add(sum1);
         }
         
         // sigma_a^+ sigma_b^-
@@ -270,7 +317,16 @@ public class DynaCumulantODEs implements DynaComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
-                    sum1.add(t1.set(coupling.getAlpha(a, j)).conjugate().multiply(cumulant(2, 1, 0, a, b, j, z, t2)));
+                    t2.set(z[b]).conjugate().multiply(z[startIdx[2]+a]).multiply(z[j]).multiply(-2.0);
+                    t2.add(t3.set(z[startIdx[1] + getRecIdx(a,b)]).conjugate().multiply(z[j]));
+                    if(j > b) {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(b,j)]).conjugate().multiply(z[startIdx[2]+a]));
+                    } else {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(j,b)]).multiply(z[startIdx[2]+a]));
+                    }
+                    t2.add(t3.set(z[b]).conjugate().multiply(z[startIdx[1] + getRecIdx(a,j)]));
+                    sum1.add(t1.set(coupling.getAlpha(a, j)).conjugate().multiply(t2));
+                    //sum1.add(t1.set(coupling.getAlpha(a, j)).conjugate().multiply(cumulant(2, 1, 0, a, b, j, z, t2)));
                 }
                 sum1.multiply(0.5*gamma);
                 
@@ -278,12 +334,21 @@ public class DynaCumulantODEs implements DynaComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
-                    sum2.add(t1.set(coupling.getAlpha(b, j)).multiply(cumulant(2, 0, 1, b, a, j, z, t2)));
+                    t2.set(z[j]).conjugate().multiply(z[startIdx[2]+b]).multiply(z[a]).multiply(-2.0);
+                    t2.add(t3.set(z[j]).conjugate().multiply(z[startIdx[1] + getRecIdx(b,a)]));
+                    if(j > a) {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(a,j)]).multiply(z[startIdx[2]+b]));
+                    } else {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(j,a)]).conjugate().multiply(z[startIdx[2]+b]));
+                    }
+                    t2.add(t3.set(z[startIdx[1] + getRecIdx(b,j)]).conjugate().multiply(z[a]));
+                    sum2.add(t1.set(coupling.getAlpha(b, j)).multiply(t2));
+                    //sum2.add(t1.set(coupling.getAlpha(b, j)).multiply(cumulant(2, 0, 1, b, a, j, z, t2)));
                 }
                 sum2.multiply(0.5*gamma);
                 
                 zDot[idx].set(z[idx]).multiply(c3[a][b]).add(t1.set(migamma).multiply(0.25).multiply(coupling.getG(a,b)).multiply(t2.set(z[startIdx[2] + a]).subtract(z[startIdx[2] + b])));
-                zDot[idx].add(cumulantDouble(2, 2, a, b, z, t1).add((t2.set(z[startIdx[2] + a]).add(z[startIdx[2] + b])).multiply(0.5)).multiply(0.5*gamma*coupling.getF(a,b)));
+                zDot[idx].add(t1.set(z[startIdx[4] + getTriIdx(a,b)]).add((t2.set(z[startIdx[2] + a]).add(z[startIdx[2] + b])).multiply(0.5)).multiply(0.5*gamma*coupling.getF(a,b)));
                 zDot[idx].add(sum1).add(sum2);
                 ++idx;
             }
@@ -297,38 +362,44 @@ public class DynaCumulantODEs implements DynaComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
-                    sum1.add(cumulant(0, 2, 1, a, b, j, z, t1).subtract(cumulant(1, 2, 0, a, b, j, z, t2)).multiply(coupling.getG(a, j)));
+                    t2.set(z[j]).conjugate().multiply(z[a]).multiply(z[startIdx[2]+b]).multiply(-2.0);
+                    t2.add(t3.set(z[j]).conjugate().multiply(z[startIdx[1] + getRecIdx(b,a)]));
+                    t2.add(t3.set(z[startIdx[1] + getRecIdx(b,j)]).conjugate().multiply(z[a]));
+                    if(j > a) {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(a,j)]).multiply(z[startIdx[2]+b]));
+                    } else {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(j,a)]).conjugate().multiply(z[startIdx[2]+b]));
+                    }
+                    t2.multiply(coupling.getAlpha(a, j)).multiply(2.0);
+                    t2.setImaginary(0);
+                    sum1.add(t2);
                 }
-                sum1.multiply(migamma);
+                sum1.multiply(-1.0*gamma);
                 
                 sum2.set(0, 0);
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
-                    sum2.add(cumulant(0, 2, 1, b, a, j, z, t1).subtract(cumulant(1, 2, 0, b, a, j, z, t2)).multiply(coupling.getG(b, j)));
+                    t2.set(z[j]).conjugate().multiply(z[b]).multiply(z[startIdx[2]+a]).multiply(-2.0);
+                    t2.add(t3.set(z[j]).conjugate().multiply(z[startIdx[1] + getRecIdx(a,b)]));
+                    t2.add(t3.set(z[startIdx[1] + getRecIdx(a,j)]).conjugate().multiply(z[b]));
+                    if(j > b) {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(b,j)]).multiply(z[startIdx[2]+a]));
+                    } else {
+                        t2.add(t3.set(z[startIdx[3] + getTriIdx(j,b)]).conjugate().multiply(z[startIdx[2]+a]));
+                    }
+                    t2.multiply(coupling.getAlpha(b, j)).multiply(2.0);
+                    t2.setImaginary(0);
+                    sum2.add(t2);
                 }
-                sum2.multiply(migamma);
+                sum2.multiply(-1.0*gamma);
                 
-                sum3.set(0, 0);
-                for(int j = 0; j < n; ++j) {
-                    if(j == a || j == b) continue;
-                    
-                    sum3.add(cumulant(0, 2, 1, a, b, j, z, t1).add(cumulant(1, 2, 0, a, b, j, z, t2)).multiply(coupling.getF(a, j)));
-                }
-                sum3.multiply(-gamma);
-                
-                sum4.set(0, 0);
-                for(int j = 0; j < n; ++j) {
-                    if(j == a || j == b) continue;
-                    
-                    sum4.add(cumulant(0, 2, 1, b, a, j, z, t1).add(cumulant(1, 2, 0, b, a, j, z, t2)).multiply(coupling.getF(b, j)));
-                }
-                sum4.multiply(-gamma);
-                
-                zDot[idx].set(z[startIdx[2] + a]).add(z[startIdx[2] + b]).multiply(w - gamma);
-                zDot[idx].subtract(cumulantDouble(2, 2, a, b, z, t1).multiply(2*(gamma + w)));
-                zDot[idx].add(cumulantDouble(0, 1, a, b, z, t1).add(cumulantDouble(1, 0, a, b, z, t2)).multiply(2*gamma*coupling.getF(a, b)));
-                zDot[idx].add(sum1).add(sum2).add(sum3).add(sum4);
+                int triab = getTriIdx(a,b);
+                zDot[idx].set(z[startIdx[3] + triab]).multiply(4.0*gamma*coupling.getF(a, b));
+                zDot[idx].setImaginary(0);
+                zDot[idx].add(t1.set(z[startIdx[2] + a]).add(z[startIdx[2] + b]).multiply(w - gamma));
+                zDot[idx].subtract(t1.set(z[startIdx[4] + triab]).multiply(2*(gamma + w)));
+                zDot[idx].add(sum1).add(sum2);
                 ++idx;
             }
         }
@@ -341,6 +412,11 @@ public class DynaCumulantODEs implements DynaComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
+//                    t2.set(z[startIdx[2]+a]).multiply(z[b]).multiply(z[j]).multiply(-2.0);
+//                    t2.add(t3.set(z[j]).multiply(z[startIdx[1] + getRecIdx(a,b)]));
+//                    t2.add(t3.set(z[startIdx[2]+a]).multiply(z[startIdx[5] + getTriIdx(b,j)]));
+//                    t2.add(t3.set(z[b]).multiply(z[startIdx[1] + getRecIdx(a,j)]));
+//                    sum1.add(t1.set(coupling.getAlpha(a, j)).conjugate().multiply(t2));
                     sum1.add(cumulant(2, 0, 0, a, b, j, z, t1).multiply(t2.set(coupling.getAlpha(a, j)).conjugate()));
                 }
                 sum1.multiply(0.5*gamma);
@@ -349,6 +425,11 @@ public class DynaCumulantODEs implements DynaComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
+//                    t2.set(z[startIdx[2]+b]).multiply(z[a]).multiply(z[j]).multiply(-2.0);
+//                    t2.add(t3.set(z[j]).multiply(z[startIdx[1] + getRecIdx(b,a)]));
+//                    t2.add(t3.set(z[startIdx[2]+b]).multiply(z[startIdx[5] + getTriIdx(a,j)]));
+//                    t2.add(t3.set(z[a]).multiply(z[startIdx[1] + getRecIdx(b,j)]));
+//                    sum2.add(t1.set(coupling.getAlpha(b, j)).conjugate().multiply(t2));
                     sum2.add(cumulant(2, 0, 0, b, a, j, z, t1).multiply(t2.set(coupling.getAlpha(b, j)).conjugate()));
                 }
                 sum2.multiply(0.5*gamma);
