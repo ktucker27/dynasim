@@ -36,9 +36,10 @@ public class CumulantCompare {
         while(inputStream.hasNext()) {
             d[idx] = Double.parseDouble(inputStream.next());
             ++idx;
+            if(idx >= n) break;
         }
         
-        ConstCoupling coupling = new ConstCoupling(1.0, 0.2);
+        ConstCoupling coupling = new ConstCoupling(1.0, 2.0);
         
         SynchCumulantlODEs codes = new SynchCumulantlODEs(n, gamma, w, coupling, d);
         ComplexODEAdapter odes = new ComplexODEAdapter(codes);
@@ -49,9 +50,9 @@ public class CumulantCompare {
             z0[i] = new Complex(0, 0);
         }
         
-//        for(int i = 0; i < n; ++i) {
-//            z0[i] = new Complex(0.2, 0.0);
-//        }
+        for(int i = 0; i < n; ++i) {
+            z0[i] = new Complex(0.2, 0.0);
+        }
         
         double[] y0 = new double[2*dim];
         ComplexODEAdapter.toReal(z0, y0);
@@ -63,7 +64,7 @@ public class CumulantCompare {
                         codes.getStartIdx(4), codes.getStartIdx(4) + 1,
                         codes.getStartIdx(5), codes.getStartIdx(5) + 1};
         
-        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/compare_hp01_N32_g0p2_ic0.txt", out_col);
+        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/compare_hp01_N32_g2p0_ic0p2.txt", out_col);
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
@@ -74,7 +75,7 @@ public class CumulantCompare {
 
         long startTime = System.nanoTime();
 
-        integrator.integrate(odes, 0, y0, 20, y);
+        integrator.integrate(odes, 0, y0, 10, y);
         
         long endTime = System.nanoTime();
         

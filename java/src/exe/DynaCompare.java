@@ -1,14 +1,14 @@
 package exe;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
-import java.util.Scanner;
 
 import ode.DynaComplexODEAdapter;
 import ode.DynaCumulantODEs;
 
+import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
+import org.apache.commons.math3.random.Well19937c;
 
 import utils.DynaComplex;
 import utils.WriteHandler;
@@ -25,18 +25,26 @@ public class DynaCompare {
         
         int n = 32;
         double h = 0.01;
-        //double delta = 7.5;
+        double delta = 7.5;
         double w = 2.5;
         double gamma = 1.0;
         
         // Get natural frequencies from file
-        double[] d = new double[n];
-        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/data/dels.txt"));
-        int idx = 0;
-        while(inputStream.hasNext()) {
-            d[idx] = Double.parseDouble(inputStream.next());
-            ++idx;
-            if(idx >= n) break;
+//        double[] d = new double[n];
+//        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/data/dels.txt"));
+//        int idx = 0;
+//        while(inputStream.hasNext()) {
+//            d[idx] = Double.parseDouble(inputStream.next());
+//            ++idx;
+//            if(idx >= n) break;
+//        }
+        
+        // Get natural frequencies from Cauchy distribution
+        TDistribution tdist = new TDistribution(new Well19937c(1), 1);
+        double[] d = tdist.sample(n);
+        for(int i = 0; i < n; ++i) {
+            d[i] = d[i]*delta;
+            System.out.println(d[i]);
         }
         
         DynaConstCoupling coupling = new DynaConstCoupling(1.0, 2.0);
@@ -64,7 +72,7 @@ public class DynaCompare {
                         codes.getStartIdx(4), codes.getStartIdx(4) + 1,
                         codes.getStartIdx(5), codes.getStartIdx(5) + 1};
         
-        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/compare_hp01_N10_g2p0_ic0p2.txt", out_col);
+        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/compare_hp01_N32_g2p0_ic0p2.txt", out_col);
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
