@@ -78,4 +78,12 @@ public class DynaComplex {
         y -= z.y;
         return this;
     }
+    
+    public double mod() {
+        return Math.sqrt(x*x + y*y);
+    }
+    
+    public String toString() {
+        return x + " + j*" + y;
+    }
 }

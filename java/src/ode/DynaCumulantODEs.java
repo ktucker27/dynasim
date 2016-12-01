@@ -28,7 +28,7 @@ public class DynaCumulantODEs implements DynaComplexODEs {
     int[] startIdx;
     
     /**
-     * @param n number of oscillators
+     * @param n number of atoms
      * @param gamma spontaneous decay rate
      * @param w pumping rate
      * @param feff effective mean field coupling
