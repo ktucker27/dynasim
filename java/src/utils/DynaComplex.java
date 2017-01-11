@@ -11,6 +11,10 @@ public class DynaComplex {
         y = 0.0;
     }
     
+    public DynaComplex(DynaComplex z) {
+        set(z);
+    }
+    
     public DynaComplex(double x) {
         this.x = x;
         this.y = 0.0;

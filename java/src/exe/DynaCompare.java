@@ -12,6 +12,7 @@ import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.random.Well19937c;
 
 import utils.DynaComplex;
+import utils.SynchUtils;
 import utils.WriteHandler;
 import coupling.DynaConstCoupling;
 
@@ -24,9 +25,9 @@ public class DynaCompare {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 512;
+        int n = 14;
         double h = 0.01;
-        double w = 2.5;
+        double w = 5.0;
         double gamma = 1.0;
         boolean correlate = false;
         
@@ -41,21 +42,21 @@ public class DynaCompare {
 //        }
         
         // Get natural frequencies from Cauchy distribution
-//        double delta = 2.5;
-//        TDistribution tdist = new TDistribution(new Well19937c(1), 1);
-//        double[] d = tdist.sample(n);
-//        for(int i = 0; i < n; ++i) {
-//            d[i] = d[i]*delta;
-//            //System.out.println(d[i]);
-//        }
-        
-        // Set natural frequencies to zero
-        double[] d = new double[n];
+        double delta = 2.0;
+        TDistribution tdist = new TDistribution(new Well19937c(1), 1);
+        double[] d = tdist.sample(n);
         for(int i = 0; i < n; ++i) {
-            d[i] = 0.0;
+            d[i] = d[i]*delta;
+            //System.out.println(d[i]);
         }
         
-        DynaComplex alpha = new DynaComplex(0.2, 0.0);
+        // Set natural frequencies to zero
+//        double[] d = new double[n];
+//        for(int i = 0; i < n; ++i) {
+//            d[i] = 0.0;
+//        }
+        
+        DynaComplex alpha = new DynaComplex(1.0, 0.5);
         DynaConstCoupling coupling = new DynaConstCoupling(1.0, 2.0);
         //LinearCoupling coupling = new LinearCoupling(2.0, 0.5, n);
         
@@ -65,12 +66,17 @@ public class DynaCompare {
         int dim = codes.getDimension();
         
         DynaComplex[] z0 = new DynaComplex[dim];
-        for(int i = 0; i < dim; ++i) {
-            z0[i] = new DynaComplex(0, 0);
-        }
+//        for(int i = 0; i < dim; ++i) {
+//            z0[i] = new DynaComplex(0, 0);
+//        }
         
-        for(int i = 0; i < n; ++i) {
-            z0[i] = new DynaComplex(0.2, 0.0);
+//        for(int i = 0; i < n; ++i) {
+//            z0[i] = new DynaComplex(0.2, 0.0);
+//        }
+        
+        SynchUtils.initialize(z0, Math.PI/2.0, n);
+        for(int i = 0; i < dim; ++i) {
+            System.out.println(z0[i].toString());
         }
         
         double[] y0 = new double[2*dim];
@@ -83,8 +89,9 @@ public class DynaCompare {
                         codes.getStartIdx(4), codes.getStartIdx(4) + 1,
                         codes.getStartIdx(5), codes.getStartIdx(5) + 1};
         
-        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/sim_N512_D0_g0_ic0p2_2.txt", out_col);
-        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-2, h, 1.0e-3, 1.0e-2);
+        //WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/sim_N14_D2p5_g10_ic0p2.txt", out_col);
+        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/test.txt", out_col);
+        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-3, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h);
@@ -97,7 +104,12 @@ public class DynaCompare {
         integrator.integrate(odes, 0, y0, 10, y);
         
         long endTime = System.nanoTime();
-        
+
+        DynaComplexODEAdapter.toComplex(y, z0);
+        for(int i = 0; i < dim; ++i) {
+            System.out.println(z0[i].toString());
+        }
+
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
         
         // Compute the correlation function if requested
@@ -141,10 +153,10 @@ public class DynaCompare {
                 out_col2[i] = i;
             }
             
-            writeHandler = new WriteHandler("/Users/kristophertucker/output/correlation/corr_N32_al2p0_D7p5.txt", out_col2);
+            //writeHandler = new WriteHandler("/Users/kristophertucker/output/correlation/corr_N32_al2p0_D7p5.txt", out_col2);
             integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .001, 1.0e-3, 1.0e-2);
             integrator.clearStepHandlers();
-            integrator.addStepHandler(writeHandler);
+            //integrator.addStepHandler(writeHandler);
             
             double[] y02 = new double[2*n*n];
             DynaComplexODEAdapter.toReal(z02, y02);

@@ -116,6 +116,11 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
         }
     }
     
+    public void setW(double w) {
+        this.w = w;
+        initConstants();
+    }
+    
     private int getTriIdx(int i, int j) {
         if(i > j) {
             int t = j;
