@@ -1,6 +1,9 @@
 package utils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Random;
+import java.util.Scanner;
 
 public class SynchUtils {
 
@@ -24,10 +27,18 @@ public class SynchUtils {
         getStartIdx(startIdx, n);
         
         double[] phase = new double[n];
+        
+//        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/phase.txt"));
+//        int idx = 0;
+//        while(inputStream.hasNext()) {
+//            phase[idx] = Double.parseDouble(inputStream.next());
+//            ++idx;
+//            if(idx >= n) break;
+//        }
+        
         Random rg = new Random(1);
         for(int i = 0; i < n; ++i) {
             phase[i] = rg.nextDouble()*2.0*Math.PI;
-            System.out.println(phase[i]);
             
             // ps
             z0[i] = new DynaComplex(stip2*stip2*Math.cos(phase[i]),
@@ -36,7 +47,6 @@ public class SynchUtils {
             // zs
             z0[startIdx[2] + i] = new DynaComplex(Math.cos(tip), 0.0);
         }
-        System.out.println("---------------");
         
         int idx = 0;
         for(int i = 0; i < n; ++i) {
@@ -70,6 +80,26 @@ public class SynchUtils {
                 
                 ++idx;
             }
+        }
+    }
+    
+    public static void detuneFile(String filename, double[] d) throws FileNotFoundException {
+        int n = d.length;
+        Scanner inputStream = new Scanner(new File(filename));
+        int idx = 0;
+        while(inputStream.hasNext()) {
+            d[idx] = Double.parseDouble(inputStream.next());
+            ++idx;
+            if(idx >= n) break;
+        }
+    }
+    
+    public static void detuneGauss(double delta, double[] d) {
+        int n = d.length;
+        
+        Random rg = new Random(2);
+        for(int i = 0; i < n; ++i) {
+            d[i] = delta*rg.nextGaussian();
         }
     }
 }

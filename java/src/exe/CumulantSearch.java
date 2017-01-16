@@ -7,12 +7,11 @@ import java.io.UnsupportedEncodingException;
 import ode.CumulantAllToAllODEs;
 import ode.DynaComplexODEAdapter;
 
-import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
-import org.apache.commons.math3.random.Well19937c;
 
 import utils.DynaComplex;
 import utils.SynchUtils;
+import utils.WriteHandlerCorr;
 
 public class CumulantSearch {
 
@@ -22,21 +21,29 @@ public class CumulantSearch {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 14;
+        int n = 100;
         double h = 0.01;
-        double wmin = 0.5;
-        double wmax = 10.0;
+        double wmin = 4.0;
+        double wmax = 4.0;
         double dw = 0.5;
         double gamma = 1.0;
+        double tmax = 3.0;
+        double delta = 0.0;
+        
+        // Get natural frequencies from file
+        double[] d = new double[n];
+//        SynchUtils.detuneFile("/Users/kristophertucker/Google Drive/Research/Synch/data/dels_all.txt", d);
+
+        // Get natural frequencies from Gaussian distribution
+        SynchUtils.detuneGauss(delta, d);
         
         // Get natural frequencies from Cauchy distribution
-        double delta = 2.0;
-        TDistribution tdist = new TDistribution(new Well19937c(1), 1);
-        double[] d = tdist.sample(n);
-        for(int i = 0; i < n; ++i) {
-            d[i] = d[i]*delta;
-            //System.out.println(d[i]);
-        }
+//        TDistribution tdist = new TDistribution(new Well19937c(1), 1);
+//        double[] d = tdist.sample(n);
+//        for(int i = 0; i < n; ++i) {
+//            d[i] = d[i]*delta;
+//            //System.out.println(d[i]);
+//        }
         
         // Set natural frequencies to zero
 //        double[] d = new double[n];
@@ -44,7 +51,7 @@ public class CumulantSearch {
 //            d[i] = 1.0;
 //        }
         
-        DynaComplex alpha = new DynaComplex(1, 0.5);
+        DynaComplex alpha = new DynaComplex(1, 10.0);
         //DynaConstCoupling coupling = new DynaConstCoupling(1.0, 2.0);
         //LinearCoupling coupling = new LinearCoupling(2.0, 0.5, n);
         
@@ -67,10 +74,12 @@ public class CumulantSearch {
         double[] y0 = new double[2*dim];
         DynaComplexODEAdapter.toReal(z0, y0);
         
+        WriteHandlerCorr writeHandler = new WriteHandlerCorr("/Users/kristophertucker/output/corr/corrN100_D0_g10p0_2.txt", n); 
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h*1.0e-2);
+        integrator.addStepHandler(writeHandler);
         
         double[] y = new double[2*dim];
 
@@ -80,7 +89,7 @@ public class CumulantSearch {
         for(double w  = wmin; w <= wmax; w += dw) {
             System.out.println("w: " + w);
             codes.setW(w);
-            integrator.integrate(odes, 0, y0, 10, y);
+            integrator.integrate(odes, 0, y0, tmax, y);
 
             DynaComplexODEAdapter.toComplex(y, z0);
 
@@ -97,7 +106,7 @@ public class CumulantSearch {
             }
             csum.multiply(1.0/(double)n);
             
-            writer.print(w + " " + csum.mod() + "\n");
+            writer.print(w + " " + sum + "\n");
         }
         writer.close();
         
