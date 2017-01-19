@@ -102,4 +102,42 @@ public class SynchUtils {
             d[i] = delta*rg.nextGaussian();
         }
     }
+    
+    public static DynaComplex compCorr(double[] y0, int n) {
+        double sum = 0.0;
+        int startIdx = 2*(2*n + n*(n-1));
+        
+        for(int i = startIdx; i < startIdx + n*(n-1); i += 2) {
+            sum += 2.0*y0[i];
+        }
+        sum *= 1.0/(n*(n-1));
+        
+        return new DynaComplex(sum);
+    }
+    
+    public static double compSigmazAvg(double[] y0, int n) {
+        double sum = 0.0;
+        int startIdx = 2*n*n;
+        
+        for(int i = startIdx; i < startIdx + 2*n; i += 2) {
+            sum += y0[i];
+        }
+        sum *= 1.0/n;
+
+        return sum;
+    }
+    
+    public static DynaComplex compSigmapAvg(double[] y0, int n) {
+        DynaComplex sum = new DynaComplex(0.0);
+        DynaComplex z = new DynaComplex();
+        int startIdx = 0;
+        
+        for(int i = startIdx; i < startIdx + 2*n; i += 2) {
+            z.set(y0[i], y0[i+1]);
+            sum.add(z);
+        }
+        sum.multiply(1.0/n);
+
+        return sum;
+    }
 }

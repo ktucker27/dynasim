@@ -11,6 +11,7 @@ public class SynchSteadyStateTerminator implements EventHandler {
     double myStopTime;
     SteadyStateDetector myDetector;
     int myMaxIterations;
+    boolean myReturnOk;
     
     private class SteadyStateDetector implements StepHandler {
         double myMinTime;
@@ -41,6 +42,7 @@ public class SynchSteadyStateTerminator implements EventHandler {
             if(myTotalSteps >= myMaxIterations) {
                 myStopTime = interpolator.getInterpolatedTime();
                 System.out.println("Maximum number of iterations (" + myMaxIterations + ") exceeded at time " + myStopTime);
+                myReturnOk = false;
                 return;
             }
 
@@ -69,6 +71,7 @@ public class SynchSteadyStateTerminator implements EventHandler {
     public SynchSteadyStateTerminator(SteadyStateTest test, double minTime, int numSteps, int maxIterations) {
        myStopTime = -1.0;
        myMaxIterations = maxIterations;
+       myReturnOk = true;
        myDetector = new SteadyStateDetector(test, minTime, numSteps);
     }
     
@@ -102,6 +105,10 @@ public class SynchSteadyStateTerminator implements EventHandler {
 
     @Override
     public void resetState(double t, double[] y) {
+    }
+    
+    public boolean getReturnOk() {
+        return myReturnOk;
     }
 
 }

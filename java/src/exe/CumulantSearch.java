@@ -28,7 +28,7 @@ public class CumulantSearch {
         double dw = 0.5;
         double gamma = 1.0;
         double tmax = 3.0;
-        double delta = 0.0;
+        double delta = 7.5;
         
         // Get natural frequencies from file
         double[] d = new double[n];
@@ -51,7 +51,7 @@ public class CumulantSearch {
 //            d[i] = 1.0;
 //        }
         
-        DynaComplex alpha = new DynaComplex(1, 10.0);
+        DynaComplex alpha = new DynaComplex(1, 0.0);
         //DynaConstCoupling coupling = new DynaConstCoupling(1.0, 2.0);
         //LinearCoupling coupling = new LinearCoupling(2.0, 0.5, n);
         
@@ -74,7 +74,7 @@ public class CumulantSearch {
         double[] y0 = new double[2*dim];
         DynaComplexODEAdapter.toReal(z0, y0);
         
-        WriteHandlerCorr writeHandler = new WriteHandlerCorr("/Users/kristophertucker/output/corr/corrN100_D0_g10p0_2.txt", n); 
+        WriteHandlerCorr writeHandler = new WriteHandlerCorr("/Users/kristophertucker/output/corr/corrN100_D7p5_g0_2.txt", n); 
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);

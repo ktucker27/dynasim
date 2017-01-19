@@ -5,14 +5,16 @@ import java.util.Iterator;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
-public class MeanFieldSteadyStateTest implements SteadyStateTest {
+public class SpinCorrSteadyStateTest implements SteadyStateTest {
     
     double myTol;
     double mySum;
+    int n;
     
-    public MeanFieldSteadyStateTest(double tol) {
+    public SpinCorrSteadyStateTest(double tol, int n) {
         myTol = tol;
         mySum = 0.0;
+        this.n = n;
     }
     
     @Override
@@ -34,7 +36,7 @@ public class MeanFieldSteadyStateTest implements SteadyStateTest {
         while(iter.hasNext()) {
             double[] currState = iter.next();
             
-            double z = OrderParameterSolution.compOrderParam(currState);
+            double z = SynchUtils.compCorr(currState, n).getReal();
             zvals[idx] = z;
             mySum += z;
             ++idx;
@@ -42,6 +44,7 @@ public class MeanFieldSteadyStateTest implements SteadyStateTest {
         
         double mean = mySum/(double)totalSteps;
         
+//        System.out.println(stdDev.evaluate(zvals) + " " + mean + " " + stdDev.evaluate(zvals)/mean);
         if(stdDev.evaluate(zvals)/mean >= myTol) {
             isSteadyState = false;
         }
