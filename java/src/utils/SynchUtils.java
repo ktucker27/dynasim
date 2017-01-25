@@ -2,8 +2,11 @@ package utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 public class SynchUtils {
 
@@ -139,5 +142,33 @@ public class SynchUtils {
         sum.multiply(1.0/n);
 
         return sum;
+    }
+    
+    public static int getDimension(int n) {
+        return n*(n-1) + 3*n*(n-1)/2 + 2*n;
+    }
+    
+    public static boolean isSteadyState(ArrayList<Double> spinCorr, int numSteps, double tol) {
+        boolean isSteadyState = true;
+        
+        StandardDeviation stdDev = new StandardDeviation();
+        double[] zvals = new double[numSteps];
+        int idx = 0;
+        double sum = 0.0;
+        for(int i = spinCorr.size() - numSteps; i < spinCorr.size(); ++i) {
+            double corr = spinCorr.get(i);
+            
+            zvals[idx] = corr;
+            sum += corr;
+            ++idx;
+        }
+        
+        double mean = sum/(double)numSteps;
+        
+        if(Math.abs(stdDev.evaluate(zvals)/mean) >= tol) {
+            isSteadyState = false;
+        }
+        
+        return isSteadyState;
     }
 }
