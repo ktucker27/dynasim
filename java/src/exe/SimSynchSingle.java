@@ -1,5 +1,9 @@
 package exe;
 
+import handlers.RingSteadyStateTest;
+import handlers.SynchSteadyStateTerminator;
+import handlers.WriteHandler;
+
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
@@ -8,9 +12,6 @@ import ode.SynchODEs;
 
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
-import utils.RingSteadyStateTest;
-import utils.SynchSteadyStateTerminator;
-import utils.WriteHandler;
 import coupling.RingCoupling;
 
 public class SimSynchSingle {

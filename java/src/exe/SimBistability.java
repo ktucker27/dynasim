@@ -1,5 +1,9 @@
 package exe;
 
+import handlers.MeanFieldSteadyStateTest;
+import handlers.SynchSteadyStateTerminator;
+import handlers.WriteHandlerOP;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -11,10 +15,7 @@ import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.random.Well19937c;
 
-import utils.MeanFieldSteadyStateTest;
 import utils.OrderParameterSolution;
-import utils.SynchSteadyStateTerminator;
-import utils.WriteHandlerOP;
 
 public class SimBistability {
 

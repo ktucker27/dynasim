@@ -1,6 +1,7 @@
 package exe;
 
 import integrator.IntegratorFactory;
+import integrator.ThreadPoolIntegrator;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -13,7 +14,6 @@ import org.apache.commons.math3.ode.FirstOrderIntegrator;
 import org.apache.commons.math3.ode.nonstiff.AdamsBashforthIntegrator;
 
 import utils.OrderParameterSolution;
-import utils.ThreadPoolIntegrator;
 
 public class SimSynchMeanField {
 

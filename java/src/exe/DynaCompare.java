@@ -1,5 +1,7 @@
 package exe;
 
+import handlers.WriteHandler;
+
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 
@@ -13,7 +15,6 @@ import org.apache.commons.math3.random.Well19937c;
 
 import utils.DynaComplex;
 import utils.SynchUtils;
-import utils.WriteHandler;
 import coupling.DynaConstCoupling;
 
 public class DynaCompare {

@@ -1,4 +1,4 @@
-package utils;
+package handlers;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -7,6 +7,8 @@ import java.io.UnsupportedEncodingException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.sampling.StepHandler;
 import org.apache.commons.math3.ode.sampling.StepInterpolator;
+
+import utils.OrderParameterSolution;
 
 public class WriteHandlerOP implements StepHandler {
     PrintWriter myWriter;

@@ -1,6 +1,5 @@
-package utils;
+package integrator;
 
-import integrator.IntegratorFactory;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -9,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
+
+import utils.ODESolution;
 
 public class ThreadPoolIntegrator {
 

@@ -1,6 +1,7 @@
 package exe;
 
 import integrator.AdamsMoultonFactory;
+import integrator.ThreadPoolIntegrator;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -9,7 +10,6 @@ import java.util.Random;
 
 import ode.SynchODEs;
 import utils.FullODESolution;
-import utils.ThreadPoolIntegrator;
 import coupling.RingCoupling;
 
 public class SimSynchRing {

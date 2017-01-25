@@ -1,5 +1,7 @@
 package exe;
 
+import handlers.WriteHandlerCorr;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -11,7 +13,6 @@ import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
 import utils.DynaComplex;
 import utils.SynchUtils;
-import utils.WriteHandlerCorr;
 
 public class CumulantSearch {
 

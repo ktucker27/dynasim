@@ -1,20 +1,20 @@
-package utils;
+package handlers;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
-public class SpinCorrSteadyStateTest implements SteadyStateTest {
+import utils.OrderParameterSolution;
+
+public class MeanFieldSteadyStateTest implements SteadyStateTest {
     
     double myTol;
     double mySum;
-    int n;
     
-    public SpinCorrSteadyStateTest(double tol, int n) {
+    public MeanFieldSteadyStateTest(double tol) {
         myTol = tol;
         mySum = 0.0;
-        this.n = n;
     }
     
     @Override
@@ -36,7 +36,7 @@ public class SpinCorrSteadyStateTest implements SteadyStateTest {
         while(iter.hasNext()) {
             double[] currState = iter.next();
             
-            double z = SynchUtils.compCorr(currState, n).getReal();
+            double z = OrderParameterSolution.compOrderParam(currState);
             zvals[idx] = z;
             mySum += z;
             ++idx;
@@ -44,7 +44,6 @@ public class SpinCorrSteadyStateTest implements SteadyStateTest {
         
         double mean = mySum/(double)totalSteps;
         
-//        System.out.println(stdDev.evaluate(zvals) + " " + mean + " " + stdDev.evaluate(zvals)/mean);
         if(stdDev.evaluate(zvals)/mean >= myTol) {
             isSteadyState = false;
         }
