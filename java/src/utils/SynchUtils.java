@@ -171,4 +171,12 @@ public class SynchUtils {
         
         return isSteadyState;
     }
+    
+    public static double getW(int n) {
+        if(n == 10) {
+            return 1.55591;
+        }
+        
+        return 1.515622000024700 + 0.024796919999851*n;
+    }
 }

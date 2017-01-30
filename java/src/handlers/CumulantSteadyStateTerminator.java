@@ -120,5 +120,9 @@ public class CumulantSteadyStateTerminator implements EventHandler {
     public boolean getSteadyStateReached() {
         return mySteadyStateReached;
     }
+    
+    public double getStopTime() {
+        return myStopTime;
+    }
 
 }
