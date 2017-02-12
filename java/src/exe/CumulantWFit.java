@@ -21,15 +21,16 @@ public class CumulantWFit {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 10;
+        int n = 250;
         double h = 0.01;
-        double wmin = 1.0;
-        double wmax = 10.0;
+        double wmin = 8.0;
+        double wmax = 9.0;
         double gamma = 1.0;
-        double tmax = 3.0;
-        double delta = 7.5;
+        double tmax = 3.5;
+        double delta = 0.0;
         
-        double target = 0.01224;
+        //double target = 0.01224;
+        double target = 0.01424976105006944;
         double tol = 1.0e-5;
         
         // Get natural frequencies from Gaussian distribution

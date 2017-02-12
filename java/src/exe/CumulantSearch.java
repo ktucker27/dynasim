@@ -23,17 +23,17 @@ public class CumulantSearch {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 10;
+        int n = 150;
         double h = 0.005;
         double gamma = 1.0;
         double tmax = 15.0;
-        double delta = 7.5;
+        double delta = 0.0;
         
         double gmin = 0.0;
-        double gmax = 10.0;
-        double dg = 0.1;
+        double gmax = 20.0;
+        double dg = 0.5;
         
-        double w = SynchUtils.getW(n);
+        double w = SynchUtils.getW_D0(n);
         
         System.out.println("w: " + w);
         
@@ -57,7 +57,7 @@ public class CumulantSearch {
 
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/corr/N" + n + "/"; 
+        String dir = "/Users/kristophertucker/output/corrD0/N" + n + "/"; 
         PrintWriter writer = new PrintWriter(dir + "search_out.txt", "UTF-8");
         for(double g = gmin; g <= gmax; g += dg) {
             DynaComplex alpha = new DynaComplex(1, g);
@@ -68,7 +68,7 @@ public class CumulantSearch {
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
             
             CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(1.0, 0.015, 50, 1000000, 0.001, n);
-            WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "corrN" + n + "_D7p5_g" + gStr + ".txt", n);
+            WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "corrN" + n + "_g" + gStr + ".txt", n);
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             integrator.addStepHandler(writeHandler);
             integrator.addStepHandler(term.getDetector());
@@ -76,11 +76,13 @@ public class CumulantSearch {
 
             integrator.integrate(odes, 0, y0, tmax, y);
             
+            double outVal = SynchUtils.compCorr(y, n).getReal();
             if(!term.getSteadyStateReached()) {
                 System.out.println("WARNING: Failed to reach steady state for g = " + g);
+                outVal = -1.0;
             }
 
-            writer.print(g + ", " + SynchUtils.compCorr(y, n).getReal() + ", " + term.getStopTime() + "\n");
+            writer.print(g + ", " + outVal + ", " + term.getStopTime() + "\n");
             writer.flush();
         }
         writer.close();

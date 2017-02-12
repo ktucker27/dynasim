@@ -179,4 +179,8 @@ public class SynchUtils {
         
         return 1.515622000024700 + 0.024796919999851*n;
     }
+    
+    public static double getW_D0(int n) {
+        return 1.063413853798558 + 0.029364107193489*n;
+    }
 }
