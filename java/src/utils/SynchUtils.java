@@ -144,6 +144,60 @@ public class SynchUtils {
         return sum;
     }
     
+    public static DynaComplex compSigmazpAvg(double[] y0, int n) {
+        int[] startIdxArray = new int[6];
+        getStartIdx(startIdxArray, n);
+        
+        int startIdx = 2*startIdxArray[1];
+        int endIdx = 2*startIdxArray[2];
+        
+        DynaComplex sum = new DynaComplex(0.0);
+        DynaComplex z = new DynaComplex();
+        
+        for(int i = startIdx; i < endIdx; i += 2) {
+            z.set(y0[i], y0[i+1]);
+            sum.add(z);
+        }
+        sum.multiply(2.0/(endIdx - startIdx));
+
+        return sum;
+    }
+    
+    public static double compSigmazzAvg(double[] y0, int n) {
+        int[] startIdxArray = new int[6];
+        getStartIdx(startIdxArray, n);
+        
+        double sum = 0.0;
+        int startIdx = 2*startIdxArray[4];
+        int endIdx = 2*startIdxArray[5];
+        
+        for(int i = startIdx; i < endIdx; i += 2) {
+            sum += y0[i];
+        }
+        sum *= 2.0/(endIdx - startIdx);
+
+        return sum;
+    }
+    
+    public static DynaComplex compSigmappAvg(double[] y0, int n) {
+        int[] startIdxArray = new int[6];
+        getStartIdx(startIdxArray, n);
+        
+        int startIdx = 2*startIdxArray[5];
+        int endIdx = y0.length;
+        
+        DynaComplex sum = new DynaComplex(0.0);
+        DynaComplex z = new DynaComplex();
+        
+        for(int i = startIdx; i < endIdx; i += 2) {
+            z.set(y0[i], y0[i+1]);
+            sum.add(z);
+        }
+        sum.multiply(2.0/(endIdx - startIdx));
+
+        return sum;
+    }
+    
     public static int getDimension(int n) {
         return n*(n-1) + 3*n*(n-1)/2 + 2*n;
     }
