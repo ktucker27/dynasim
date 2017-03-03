@@ -1,21 +1,18 @@
 package exe;
 
-import handlers.WriteHandler;
+import handlers.CumulantSteadyStateTerminator;
 
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
-import ode.CorrelationODEs;
 import ode.CumulantAllToAllODEs;
 import ode.DynaComplexODEAdapter;
 
-import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
-import org.apache.commons.math3.random.Well19937c;
 
 import utils.DynaComplex;
 import utils.SynchUtils;
-import coupling.DynaConstCoupling;
 
 public class DynaCompare {
 
@@ -26,11 +23,24 @@ public class DynaCompare {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 14;
-        double h = 0.01;
-        double w = 5.0;
+        int n = 150;
+        double h = 0.005;
         double gamma = 1.0;
-        boolean correlate = false;
+        double tmax = 20.0;
+        double delta = 0.0;
+        double f = 1.0;
+        double g = 0.0;
+        //boolean correlate = false;
+
+        double wmin = 2.5;
+        double wmax = 120.0;
+        double dw = 1.25;
+
+        double w = SynchUtils.getW_D0(n);
+        
+        // Get natural frequencies from Gaussian distribution
+        double[] d = new double[n];
+        SynchUtils.detuneGauss(delta, d);
         
         // Get natural frequencies from file
 //        double[] d = new double[n];
@@ -43,13 +53,13 @@ public class DynaCompare {
 //        }
         
         // Get natural frequencies from Cauchy distribution
-        double delta = 2.0;
-        TDistribution tdist = new TDistribution(new Well19937c(1), 1);
-        double[] d = tdist.sample(n);
-        for(int i = 0; i < n; ++i) {
-            d[i] = d[i]*delta;
-            //System.out.println(d[i]);
-        }
+//        double delta = 2.0;
+//        TDistribution tdist = new TDistribution(new Well19937c(1), 1);
+//        double[] d = tdist.sample(n);
+//        for(int i = 0; i < n; ++i) {
+//            d[i] = d[i]*delta;
+//            //System.out.println(d[i]);
+//        }
         
         // Set natural frequencies to zero
 //        double[] d = new double[n];
@@ -57,16 +67,28 @@ public class DynaCompare {
 //            d[i] = 0.0;
 //        }
         
-        DynaComplex alpha = new DynaComplex(1.0, 0.5);
-        DynaConstCoupling coupling = new DynaConstCoupling(1.0, 2.0);
+        DynaComplex alpha = new DynaComplex(f, g);
+        //DynaConstCoupling coupling = new DynaConstCoupling(f, g);
         //LinearCoupling coupling = new LinearCoupling(2.0, 0.5, n);
         
         //DynaCumulantODEs codes = new DynaCumulantODEs(n, gamma, w, coupling, d);
-        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, w, alpha, d);
+        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, 0, alpha, d);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
         int dim = codes.getDimension();
         
         DynaComplex[] z0 = new DynaComplex[dim];
+        SynchUtils.initialize(z0, Math.PI/2.0, n);
+        
+        // Get initial conditions from a file
+//        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/info/wruns_chao/g20/info_out_w120p0.txt"));
+//        inputStream.useDelimiter("\n");
+//        int idx = 0;
+//        while(inputStream.hasNext()) {
+//            String[] line = inputStream.next().split(",");
+//            z0[idx] = new DynaComplex(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
+//            ++idx;
+//        }
+
 //        for(int i = 0; i < dim; ++i) {
 //            z0[i] = new DynaComplex(0, 0);
 //        }
@@ -75,45 +97,72 @@ public class DynaCompare {
 //            z0[i] = new DynaComplex(0.2, 0.0);
 //        }
         
-        SynchUtils.initialize(z0, Math.PI/2.0, n);
-        for(int i = 0; i < dim; ++i) {
-            System.out.println(z0[i].toString());
-        }
-        
         double[] y0 = new double[2*dim];
         DynaComplexODEAdapter.toReal(z0, y0);
         
-        int[] out_col = {0, 1, 2, 3,
-                        codes.getStartIdx(1), codes.getStartIdx(1) + 1, codes.getStartIdx(1) + 2, codes.getStartIdx(1) + 3, 
-                        codes.getStartIdx(2), codes.getStartIdx(2) + 1, codes.getStartIdx(2) + 2, codes.getStartIdx(2) + 3,
-                        codes.getStartIdx(3), codes.getStartIdx(3) + 1,
-                        codes.getStartIdx(4), codes.getStartIdx(4) + 1,
-                        codes.getStartIdx(5), codes.getStartIdx(5) + 1};
+        System.out.println("init corr: " + SynchUtils.compCorr(y0, n));
         
-        //WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/sim_N14_D2p5_g10_ic0p2.txt", out_col);
-        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/test.txt", out_col);
-        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-3, h, 1.0e-3, 1.0e-2);
-        //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
-        //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
-        //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h);
-        integrator.addStepHandler(writeHandler);
-        
-        double[] y = new double[2*dim];
+//        int[] out_col = {0, 1, 2, 3,
+//                        codes.getStartIdx(1), codes.getStartIdx(1) + 1, codes.getStartIdx(1) + 2, codes.getStartIdx(1) + 3, 
+//                        codes.getStartIdx(2), codes.getStartIdx(2) + 1, codes.getStartIdx(2) + 2, codes.getStartIdx(2) + 3,
+//                        codes.getStartIdx(3), codes.getStartIdx(3) + 1,
+//                        codes.getStartIdx(4), codes.getStartIdx(4) + 1,
+//                        codes.getStartIdx(5), codes.getStartIdx(5) + 1};
 
+        double[] y = new double[2*dim];
+        
         long startTime = System.nanoTime();
 
-        integrator.integrate(odes, 0, y0, 10, y);
+        String dir = "/Users/kristophertucker/output/corr_opt/D0/N150/";
+        PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
+        boolean success = true;
+        for(w = wmin; w <= wmax; w +=dw) {
+            codes.setW(w);
+            
+            //WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "full.txt", n);
+            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(1.0, 0.015, 50, 1000000, 0.0025, n);
+            AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
+            //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
+            //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
+            //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h);
+            //integrator.addStepHandler(writeHandler);
+            integrator.addStepHandler(term.getDetector());
+            integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
+
+            System.out.println("w: " + w);
+            integrator.integrate(odes, 0, y0, tmax, y);
+            
+            // Copy solution to initial conditions
+//            for(int i = 0; i < y.length; ++i) {
+//                y0[i] = y[i];
+//            }
+
+            DynaComplexODEAdapter.toComplex(y, z0);
+            String wStr = Double.toString(w).replace('.', 'p');
+            PrintWriter writer = new PrintWriter(dir + "final_w" + wStr + ".txt", "UTF-8");
+            for(int i = 0; i < dim; ++i) {
+                writer.write(z0[i].getReal() + ", " + z0[i].getImaginary() + "\n");
+            }
+            writer.close();
+            
+            if(!term.getSteadyStateReached()) {
+                System.out.println("WARNING: Failed to reach steady state for w = " + w);
+                corrWriter.print(w + ", " + -1.0 + ", " + term.getStopTime() + "\n");
+                success = false;
+            } else {
+                corrWriter.print(w + ", " + SynchUtils.compCorr(y, n).getReal() + ", " + term.getStopTime() + "\n");
+            }
+            corrWriter.flush();
+        }
+        corrWriter.close();
         
         long endTime = System.nanoTime();
 
-        DynaComplexODEAdapter.toComplex(y, z0);
-        for(int i = 0; i < dim; ++i) {
-            System.out.println(z0[i].toString());
-        }
-
+        System.out.println(success);
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
         
         // Compute the correlation function if requested
+        /*
         if(correlate) {
             DynaComplex[] z = new DynaComplex[dim];
             for(int i = 0; i < dim; ++i) {
@@ -155,7 +204,7 @@ public class DynaCompare {
             }
             
             //writeHandler = new WriteHandler("/Users/kristophertucker/output/correlation/corr_N32_al2p0_D7p5.txt", out_col2);
-            integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .001, 1.0e-3, 1.0e-2);
+            AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .001, 1.0e-3, 1.0e-2);
             integrator.clearStepHandlers();
             //integrator.addStepHandler(writeHandler);
             
@@ -172,6 +221,7 @@ public class DynaCompare {
             
             System.out.println("Correlation time: " + (endTime - startTime)/1.0e9 + " seconds");
         }
+        */
     }
 
 }

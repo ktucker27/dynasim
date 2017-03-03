@@ -1,5 +1,6 @@
 package exe;
 
+import handlers.CumulantSteadyStateTerminator;
 import handlers.WriteHandlerCorr;
 
 import java.io.FileNotFoundException;
@@ -21,16 +22,17 @@ public class CumulantWFit {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 250;
-        double h = 0.01;
-        double wmin = 8.0;
-        double wmax = 9.0;
+        int n = 10;
+        double h = 0.005;
+        double wmin = 30.0;
+        double wmax = 60.0;
         double gamma = 1.0;
         double tmax = 3.5;
         double delta = 0.0;
         
         //double target = 0.01224;
-        double target = 0.01424976105006944;
+        //double target = 0.01424976105006944;
+        double target = 0.121507968654545;
         double tol = 1.0e-5;
         
         // Get natural frequencies from Gaussian distribution
@@ -63,9 +65,12 @@ public class CumulantWFit {
         while(!initMin || !initMax || Math.abs(corr - target) > tol) {
             System.out.println("w range: " + wmin + ", " + wmax);
 
-            WriteHandlerCorr writeHandler = new WriteHandlerCorr("/Users/kristophertucker/output/corr/fit.txt", n);
+            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(1.0, 0.015, 50, 1000000, 0.0025, n);
+            WriteHandlerCorr writeHandler = new WriteHandlerCorr("/Users/kristophertucker/output/corr_opt/fit.txt", n);
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             integrator.addStepHandler(writeHandler);
+            integrator.addStepHandler(term.getDetector());
+            integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
           
 //            SpinCorrSteadyStateTest test = new SpinCorrSteadyStateTest(1.0e-5, n);
 //            SynchSteadyStateTerminator term = new SynchSteadyStateTerminator(test, 3.0, 200, 5000000);
@@ -84,10 +89,10 @@ public class CumulantWFit {
             codes.setW(w);
             integrator.integrate(odes, 0, y0, tmax, y);
             
-//            if(!term.getReturnOk()) {
-//                System.out.println("Failed to find steady state for w = " + w);
-//                break;
-//            }
+            if(!term.getSteadyStateReached()) {
+                System.out.println("Failed to find steady state for w = " + w);
+                break;
+            }
             
             corr = SynchUtils.compCorr(y, n).getReal();
             System.out.println("w = " + w + ": " + corr);

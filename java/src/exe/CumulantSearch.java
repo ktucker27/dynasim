@@ -27,14 +27,14 @@ public class CumulantSearch {
         double h = 0.005;
         double gamma = 1.0;
         double tmax = 15.0;
-        double delta = 0.0;
+        double delta = 7.5;
         
         double gmin = 0.0;
-        double gmax = 20.0;
-        double dg = 0.5;
+        double gmax = 50.0;
+        double dg = 1.0;
         
-        double w = SynchUtils.getW_D0(n);
-        
+        double w = SynchUtils.getWOpt(n);
+
         System.out.println("w: " + w);
         
         // Get natural frequencies from file
@@ -57,7 +57,7 @@ public class CumulantSearch {
 
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/corrD0/N" + n + "/"; 
+        String dir = "/Users/kristophertucker/output/corr_opt/D7p5/run2/N" + n + "/"; 
         PrintWriter writer = new PrintWriter(dir + "search_out.txt", "UTF-8");
         for(double g = gmin; g <= gmax; g += dg) {
             DynaComplex alpha = new DynaComplex(1, g);
@@ -76,13 +76,14 @@ public class CumulantSearch {
 
             integrator.integrate(odes, 0, y0, tmax, y);
             
-            double outVal = SynchUtils.compCorr(y, n).getReal();
             if(!term.getSteadyStateReached()) {
                 System.out.println("WARNING: Failed to reach steady state for g = " + g);
-                outVal = -1.0;
+                writer.print(g + ", " + -1.0 + ", " + term.getStopTime() + "\n");
+            } else {
+                writer.print(g + ", " + SynchUtils.compCorr(y, n).getReal() + ", " + term.getStopTime() + "\n");
+                
             }
 
-            writer.print(g + ", " + outVal + ", " + term.getStopTime() + "\n");
             writer.flush();
         }
         writer.close();

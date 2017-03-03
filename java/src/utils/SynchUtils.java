@@ -237,4 +237,8 @@ public class SynchUtils {
     public static double getW_D0(int n) {
         return 1.063413853798558 + 0.029364107193489*n;
     }
+    
+    public static double getWOpt(int n) {
+        return 1.972347641309676 + 0.493905191750637*n;
+    }
 }
