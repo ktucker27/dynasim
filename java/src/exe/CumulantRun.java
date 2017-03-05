@@ -17,7 +17,7 @@ import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import utils.DynaComplex;
 import utils.SynchUtils;
 
-public class DynaCompare {
+public class CumulantRun {
 
     /**
      * @param args
