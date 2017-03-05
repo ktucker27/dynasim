@@ -31,6 +31,21 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
     int[] startIdx;
     
     /**
+     * @param params input object specifying parameters
+     */
+    public CumulantAllToAllODEs(CumulantParams params) {
+        super();
+        this.n = params.getN();
+        this.gamma = params.getGamma();
+        this.w = params.getW();
+        this.alpha = new DynaComplex(params.getAlpha());
+        this.alpha_bar = new DynaComplex(alpha.getReal(), -alpha.getImaginary());
+        this.d = params.getD();
+        
+        init();
+    }
+    
+    /**
      * @param n number of atoms
      * @param gamma spontaneous decay rate
      * @param w pumping rate
@@ -46,6 +61,10 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
         this.alpha_bar = new DynaComplex(alpha.getReal(), -alpha.getImaginary());
         this.d = d;
         
+        init();
+    }
+    
+    private void init() {
         startIdx = new int[6];
         startIdx[0] = 0;
         startIdx[1] = n;

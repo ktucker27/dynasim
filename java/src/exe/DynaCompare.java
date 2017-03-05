@@ -2,11 +2,14 @@ package exe;
 
 import handlers.CumulantSteadyStateTerminator;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 import ode.CumulantAllToAllODEs;
+import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
 
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
@@ -23,7 +26,7 @@ public class DynaCompare {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 150;
+        int n = 16;
         double h = 0.005;
         double gamma = 1.0;
         double tmax = 20.0;
@@ -31,13 +34,13 @@ public class DynaCompare {
         double f = 1.0;
         double g = 0.0;
         //boolean correlate = false;
-
-        double wmin = 2.5;
-        double wmax = 120.0;
-        double dw = 1.25;
-
-        double w = SynchUtils.getW_D0(n);
         
+        DynaComplex alpha = new DynaComplex(f, g);
+        
+        double wmin = 2.5;
+        double wmax = 40.0;
+        double dw = (wmax - wmin)/100;
+
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
@@ -67,13 +70,14 @@ public class DynaCompare {
 //            d[i] = 0.0;
 //        }
         
-        DynaComplex alpha = new DynaComplex(f, g);
-        //DynaConstCoupling coupling = new DynaConstCoupling(f, g);
-        //LinearCoupling coupling = new LinearCoupling(2.0, 0.5, n);
+        ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
+        for(double w = wmin; w <= wmax; w += dw) {
+            CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
+            params.add(p);
+        }
         
         //DynaCumulantODEs codes = new DynaCumulantODEs(n, gamma, w, coupling, d);
         CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, 0, alpha, d);
-        DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
         int dim = codes.getDimension();
         
         DynaComplex[] z0 = new DynaComplex[dim];
@@ -113,11 +117,15 @@ public class DynaCompare {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/corr_opt/D0/N150/";
+        String dir = "/Users/kristophertucker/output/vw/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        File fdir = new File(dir);
+        fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
         boolean success = true;
-        for(w = wmin; w <= wmax; w +=dw) {
-            codes.setW(w);
+        for(int idx = 0; idx < params.size(); ++idx) {
+            CumulantParams cparams = params.get(idx);
+            codes = new CumulantAllToAllODEs(cparams);
+            DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
             
             //WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "full.txt", n);
             CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(1.0, 0.015, 50, 1000000, 0.0025, n);
@@ -129,7 +137,7 @@ public class DynaCompare {
             integrator.addStepHandler(term.getDetector());
             integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
 
-            System.out.println("w: " + w);
+            System.out.println("w: " + cparams.getW());
             integrator.integrate(odes, 0, y0, tmax, y);
             
             // Copy solution to initial conditions
@@ -138,7 +146,7 @@ public class DynaCompare {
 //            }
 
             DynaComplexODEAdapter.toComplex(y, z0);
-            String wStr = Double.toString(w).replace('.', 'p');
+            String wStr = Double.toString(cparams.getW()).replace('.', 'p');
             PrintWriter writer = new PrintWriter(dir + "final_w" + wStr + ".txt", "UTF-8");
             for(int i = 0; i < dim; ++i) {
                 writer.write(z0[i].getReal() + ", " + z0[i].getImaginary() + "\n");
@@ -146,11 +154,11 @@ public class DynaCompare {
             writer.close();
             
             if(!term.getSteadyStateReached()) {
-                System.out.println("WARNING: Failed to reach steady state for w = " + w);
-                corrWriter.print(w + ", " + -1.0 + ", " + term.getStopTime() + "\n");
+                System.out.println("WARNING: Failed to reach steady state for w = " + cparams.getW());
+                corrWriter.print(cparams.getW() + ", " + -1.0 + ", " + term.getStopTime() + "\n");
                 success = false;
             } else {
-                corrWriter.print(w + ", " + SynchUtils.compCorr(y, n).getReal() + ", " + term.getStopTime() + "\n");
+                corrWriter.print(cparams.getW() + ", " + SynchUtils.compCorr(y, n).getReal() + ", " + term.getStopTime() + "\n");
             }
             corrWriter.flush();
         }
