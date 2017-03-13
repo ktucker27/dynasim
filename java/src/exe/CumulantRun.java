@@ -26,24 +26,25 @@ public class CumulantRun {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 16;
+        int n = 30;
         double h = 0.005;
         double gamma = 1.0;
-        double tmax = 20.0;
-        double delta = 0.0;
+        double tmax = 100.0;
+        double delta = 15.0;
         double f = 1.0;
-        double g = 0.0;
+        double g = 15.0;
         //boolean correlate = false;
         
         DynaComplex alpha = new DynaComplex(f, g);
         
         double wmin = 2.5;
         double wmax = 40.0;
-        double dw = (wmax - wmin)/100;
+        double dw = (wmax - wmin)/50;
 
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
+//        SynchUtils.detuneLor(delta, d);
         
         // Get natural frequencies from file
 //        double[] d = new double[n];
@@ -103,7 +104,8 @@ public class CumulantRun {
         
         double[] y0 = new double[2*dim];
         DynaComplexODEAdapter.toReal(z0, y0);
-        
+
+        System.out.println(params.get(0).toString());
         System.out.println("init corr: " + SynchUtils.compCorr(y0, n));
         
 //        int[] out_col = {0, 1, 2, 3,
@@ -117,7 +119,7 @@ public class CumulantRun {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/vw/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        String dir = "/Users/kristophertucker/output/vw/long/forward/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
@@ -128,7 +130,7 @@ public class CumulantRun {
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
             
             //WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "full.txt", n);
-            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(1.0, 0.015, 50, 1000000, 0.0025, n);
+            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(45.0, 0.015, 50, 1000000, 0.0025, n);
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
             //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
@@ -141,9 +143,9 @@ public class CumulantRun {
             integrator.integrate(odes, 0, y0, tmax, y);
             
             // Copy solution to initial conditions
-//            for(int i = 0; i < y.length; ++i) {
-//                y0[i] = y[i];
-//            }
+            for(int i = 0; i < y.length; ++i) {
+                y0[i] = y[i];
+            }
 
             DynaComplexODEAdapter.toComplex(y, z0);
             String wStr = Double.toString(cparams.getW()).replace('.', 'p');

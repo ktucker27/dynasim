@@ -106,6 +106,17 @@ public class SynchUtils {
         }
     }
     
+    public static void detuneLor(double delta, double[] d) {
+        int n = d.length;
+        
+        Random rg = new Random(2);
+        double uval;
+        for(int i = 0; i < n; ++i) {
+            uval = (2.0*rg.nextDouble() - 1.0)*Math.PI*0.5;
+            d[i] = delta*Math.tan(uval);
+        }
+    }
+    
     public static DynaComplex compCorr(double[] y0, int n) {
         double sum = 0.0;
         int startIdx = 2*(2*n + n*(n-1));

@@ -21,7 +21,7 @@ public class CumulantParams {
         this.alpha = new DynaComplex(alpha);
         this.d = d;
         
-        resDir = new File(String.format("/N%d/D%.1f/g%.2f", n, delta, alpha.getImaginary()).replace('.', 'p'));
+        resDir = new File(String.format("/N%d/D%.1f/g%.1f", n, delta, alpha.getImaginary()).replace('.', 'p'));
     }
 
     public int getN() {
@@ -50,5 +50,15 @@ public class CumulantParams {
     
     public File getResultsDir() {
         return resDir;
+    }
+    
+    public String toString() {
+        String out = "N = " + n + "\n";
+        out += "Delta = " + delta + "\n";
+        out += "W = " + w + "\n";
+        out += "g = " + alpha.getImaginary() + "\n";
+        out += "f = " + alpha.getReal() + "\n";
+        out += "Gamma = " + gamma + "\n";
+        return out;
     }
 }
