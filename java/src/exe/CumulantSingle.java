@@ -26,7 +26,7 @@ public class CumulantSingle {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         int n = 30;
-        double h = 0.001;
+        double h = 0.005;
         double gamma = 1.0;
         double tmax = 50.0;
         double delta = 15.0;
