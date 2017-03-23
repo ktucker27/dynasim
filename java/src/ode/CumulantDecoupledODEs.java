@@ -10,7 +10,7 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
     private int n;
     private double gamma;
     private double w;
-    private double f;
+    private double[] f;
     private double[] g;
     private double[] d;
 
@@ -25,7 +25,7 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
     private DynaComplex ct1, ct2, ct3;
     private DynaComplex sum1, sum2, sum3;
     
-    private CumulantSums csums, wsums;
+    private CumulantSums fsums, gsums;
     
     int[] startIdx;
     
@@ -52,14 +52,14 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
             }
         }
         
-        public void compute(DynaComplex[] z) {
+        public void compute(DynaComplex[] z, double[] weights) {
             int idx;
             
             psum.set(0, 0);
             zsum.set(0, 0);
             for(int a = 0; a < n; ++a) {
-                psum.add(z[a]);
-                zsum.add(z[startIdx[2] + a]);
+                psum.add(t1.set(z[a]).multiply(weights[a]));
+                zsum.add(t1.set(z[startIdx[2] + a]).multiply(weights[a]));
                 
                 zp_row_sum[a].set(0, 0);
                 zp_col_sum[a].set(0, 0);
@@ -69,46 +69,15 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
                 for(int b = 0; b < n; ++b) {
                     if(a == b) continue;
                     
-                    zp_row_sum[a].add(z[startIdx[1] + getRecIdx(a, b)]);
-                    zp_col_sum[a].add(z[startIdx[1] + getRecIdx(b, a)]);
+                    zp_row_sum[a].add(t1.set(z[startIdx[1] + getRecIdx(a, b)]).multiply(weights[b]));
+                    zp_col_sum[a].add(t1.set(z[startIdx[1] + getRecIdx(b, a)]).multiply(weights[b]));
                     idx = getTriIdx(a,b);
-                    zzsum[a].add(z[startIdx[4] + idx]);
-                    ppsum[a].add(z[startIdx[5] + idx]);
+                    zzsum[a].add(t1.set(z[startIdx[4] + idx]).multiply(weights[b]));
+                    ppsum[a].add(t1.set(z[startIdx[5] + idx]).multiply(weights[b]));
                     if(b > a) {
-                        pmsum[a].add(z[startIdx[3] + idx]);
+                        pmsum[a].add(t1.set(z[startIdx[3] + idx]).multiply(weights[b]));
                     } else {
-                        pmsum[a].add(t1.set(z[startIdx[3] + idx]).conjugate());
-                    }
-                }
-            }
-        }
-        
-        public void compute(DynaComplex[] z, double[] g) {
-            int idx;
-            
-            psum.set(0, 0);
-            zsum.set(0, 0);
-            for(int a = 0; a < n; ++a) {
-                psum.add(t1.set(z[a]).multiply(g[a]));
-                zsum.add(t1.set(z[startIdx[2] + a]).multiply(g[a]));
-                
-                zp_row_sum[a].set(0, 0);
-                zp_col_sum[a].set(0, 0);
-                pmsum[a].set(0, 0);
-                zzsum[a].set(0, 0);
-                ppsum[a].set(0, 0);
-                for(int b = 0; b < n; ++b) {
-                    if(a == b) continue;
-                    
-                    zp_row_sum[a].add(t1.set(z[startIdx[1] + getRecIdx(a, b)]).multiply(g[b]));
-                    zp_col_sum[a].add(t1.set(z[startIdx[1] + getRecIdx(b, a)]).multiply(g[b]));
-                    idx = getTriIdx(a,b);
-                    zzsum[a].add(t1.set(z[startIdx[4] + idx]).multiply(g[b]));
-                    ppsum[a].add(t1.set(z[startIdx[5] + idx]).multiply(g[b]));
-                    if(b > a) {
-                        pmsum[a].add(t1.set(z[startIdx[3] + idx]).multiply(g[b]));
-                    } else {
-                        pmsum[a].add(t1.set(t1.set(z[startIdx[3] + idx]).conjugate()).multiply(g[b]));
+                        pmsum[a].add(t1.set(t1.set(z[startIdx[3] + idx]).conjugate()).multiply(weights[b]));
                     }
                 }
             }
@@ -123,8 +92,7 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
         this.n = params.getN();
         this.gamma = params.getGamma();
         this.w = params.getW();
-        this.f = params.getAlpha().getReal();
-        // TODO - g
+        // TODO - f, g
         this.d = params.getD();
         
         init();
@@ -137,7 +105,7 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
      * @param feff effective mean field coupling
      * @param d size n vector of natural frequencies
      */
-    public CumulantDecoupledODEs(int n, double gamma, double w, double f, double[] g, double[] d) {
+    public CumulantDecoupledODEs(int n, double gamma, double w, double[] f, double[] g, double[] d) {
         super();
         this.n = n;
         this.gamma = gamma;
@@ -169,8 +137,8 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
         ct2 = new DynaComplex(0, 0);
         ct3 = new DynaComplex(0, 0);
         
-        csums = new CumulantSums();
-        wsums = new CumulantSums();
+        fsums = new CumulantSums();
+        gsums = new CumulantSums();
         
         initConstants();
     }
@@ -353,8 +321,8 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
         int idx;
         
         // Start by computing the sums that we need.  This is O(n^2)
-        csums.compute(z);
-        wsums.compute(z, g);
+        fsums.compute(z, f);
+        gsums.compute(z, g);
         
         // sigma_a^+
         for(int a = 0; a < n; ++a) {
@@ -363,7 +331,7 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
             for(int b = 0; b < n; ++b) {
                 if(a == b) continue;
                 
-                sum1.add(t1.set(f, -1.0*g[a]*g[b]).multiply(z[idx]));
+                sum1.add(t1.set(f[a]*f[b], -1.0*g[a]*g[b]).multiply(z[idx]));
                 ++idx;
             }
             sum1.multiply(0.5*gamma);
@@ -378,31 +346,31 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
                 if(a == b) continue;
                 
                 // z z +
-                cumulantSum(2, 2, 0, a, b, z, csums, sum1);
-                sum1.multiply(f);
-                cumulantSum(2, 2, 0, a, b, z, wsums, t1);
+                cumulantSum(2, 2, 0, a, b, z, fsums, sum1);
+                sum1.multiply(f[b]);
+                cumulantSum(2, 2, 0, a, b, z, gsums, t1);
                 t1.multiply(t2.set(0, -g[b]));
                 sum1.add(t1);
                 sum1.multiply(0.5*gamma);
                 
                 // + + -
-                cumulantSum(0, 0, 1, a, b, z, csums, sum2);
-                sum2.multiply(f);
-                cumulantSum(0, 0, 1, a, b, z, wsums, t1);
+                cumulantSum(0, 0, 1, a, b, z, fsums, sum2);
+                sum2.multiply(f[a]);
+                cumulantSum(0, 0, 1, a, b, z, gsums, t1);
                 t1.multiply(t2.set(0, g[a]));
                 sum2.add(t1);
                 sum2.multiply(-gamma);
                 
                 // - + +
-                cumulantSum(1, 0, 0, a, b, z, csums, sum3);
-                sum3.multiply(f);
-                cumulantSum(1, 0, 0, a, b, z, wsums, t1);
+                cumulantSum(1, 0, 0, a, b, z, fsums, sum3);
+                sum3.multiply(f[a]);
+                cumulantSum(1, 0, 0, a, b, z, gsums, t1);
                 t1.multiply(t2.set(0, -g[a]));
                 sum3.add(t1);
                 sum3.multiply(-gamma);
                 
-                zDot[idx].set(z[idx]).multiply(c2[b]).add(t1.set(z[b]).multiply(-diff_gw)).add(t1.set(f, g[a]*g[b]).multiply(z[a]).multiply(-0.5*gamma));
-                zDot[idx].add(t1.set(z[n+getRecIdx(b,a)]).multiply(f).multiply(-gamma));
+                zDot[idx].set(z[idx]).multiply(c2[b]).add(t1.set(z[b]).multiply(-diff_gw)).add(t1.set(f[a]*f[b], g[a]*g[b]).multiply(z[a]).multiply(-0.5*gamma));
+                zDot[idx].add(t1.set(z[n+getRecIdx(b,a)]).multiply(f[a]*f[b]).multiply(-gamma));
                 zDot[idx].add(sum1).add(sum2).add(sum3);
                 ++idx;
             }
@@ -418,7 +386,7 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
                 if(a > b) {
                     t1.conjugate();
                 }
-                t1.multiply(t2.set(f, g[a]*g[b])).multiply(2.0);
+                t1.multiply(t2.set(f[a]*f[b], g[a]*g[b])).multiply(2.0);
                 t1.setImaginary(0);
                 sum1.add(t1);
             }
@@ -432,23 +400,23 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
         for(int a = 0; a < n; ++a) {
             for(int b = a+1; b < n; ++b) {
                 // z - +
-                cumulantSum(2, 1, 0, a, b, z, csums, sum1);
-                sum1.multiply(f);
-                cumulantSum(2, 1, 0, a, b, z, wsums, t1);
+                cumulantSum(2, 1, 0, a, b, z, fsums, sum1);
+                sum1.multiply(f[a]);
+                cumulantSum(2, 1, 0, a, b, z, gsums, t1);
                 t1.multiply(t2.set(0, -g[a]));
                 sum1.add(t1);
                 sum1.multiply(0.5*gamma);
                 
                 // z + -; b a j
-                cumulantSum(2, 0, 1, b, a, z, csums, sum2);
-                sum2.multiply(f);
-                cumulantSum(2, 0, 1, b, a, z, wsums, t1);
+                cumulantSum(2, 0, 1, b, a, z, fsums, sum2);
+                sum2.multiply(f[b]);
+                cumulantSum(2, 0, 1, b, a, z, gsums, t1);
                 t1.multiply(t2.set(0, g[b]));
                 sum2.add(t1);
                 sum2.multiply(0.5*gamma);
                 
                 zDot[idx].set(z[idx]).multiply(c3[a][b]).add(t1.set(migamma).multiply(0.25).multiply(g[a]*g[b]).multiply(t2.set(z[startIdx[2] + a]).subtract(z[startIdx[2] + b])));
-                zDot[idx].add(t1.set(z[startIdx[4] + getTriIdx(a,b)]).add((t2.set(z[startIdx[2] + a]).add(z[startIdx[2] + b])).multiply(0.5)).multiply(0.5*gamma*f));
+                zDot[idx].add(t1.set(z[startIdx[4] + getTriIdx(a,b)]).add((t2.set(z[startIdx[2] + a]).add(z[startIdx[2] + b])).multiply(0.5)).multiply(0.5*gamma*f[a]*f[b]));
                 zDot[idx].add(sum1).add(sum2);
                 ++idx;
             }
@@ -459,25 +427,25 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
         for(int a = 0; a < n; ++a) {
             for(int b = a+1; b < n; ++b) {
                 // + z -
-                cumulantSum(0, 2, 1, a, b, z, csums, sum1);
-                sum1.multiply(f);
-                cumulantSum(0, 2, 1, a, b, z, wsums, t1);
+                cumulantSum(0, 2, 1, a, b, z, fsums, sum1);
+                sum1.multiply(f[a]);
+                cumulantSum(0, 2, 1, a, b, z, gsums, t1);
                 t1.multiply(t2.set(0, g[a]));
                 sum1.add(t1);
                 sum1.multiply(-2.0*gamma);
                 sum1.setImaginary(0.0);
                 
                 // + z -; b a j
-                cumulantSum(0, 2, 1, b, a, z, csums, sum2);
-                sum2.multiply(f);
-                cumulantSum(0, 2, 1, b, a, z, wsums, t1);
+                cumulantSum(0, 2, 1, b, a, z, fsums, sum2);
+                sum2.multiply(f[b]);
+                cumulantSum(0, 2, 1, b, a, z, gsums, t1);
                 t1.multiply(t2.set(0, g[b]));
                 sum2.add(t1);
                 sum2.multiply(-2.0*gamma);
                 sum2.setImaginary(0.0);
                 
                 int triab = getTriIdx(a,b);
-                zDot[idx].set(z[startIdx[3] + triab]).multiply(4.0*gamma*f);
+                zDot[idx].set(z[startIdx[3] + triab]).multiply(4.0*gamma*f[a]*f[b]);
                 zDot[idx].setImaginary(0);
                 zDot[idx].add(t1.set(z[startIdx[2] + a]).add(z[startIdx[2] + b]).multiply(w - gamma));
                 zDot[idx].subtract(t1.set(z[startIdx[4] + triab]).multiply(2*(gamma + w)));
@@ -491,17 +459,17 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
         for(int a = 0; a < n; ++a) {
             for(int b = a+1; b < n; ++b) {
                 // z + +
-                cumulantSum(2, 0, 0, a, b, z, csums, sum1);
-                sum1.multiply(f);
-                cumulantSum(2, 0, 0, a, b, z, wsums, t1);
+                cumulantSum(2, 0, 0, a, b, z, fsums, sum1);
+                sum1.multiply(f[a]);
+                cumulantSum(2, 0, 0, a, b, z, gsums, t1);
                 t1.multiply(t2.set(0, -g[a]));
                 sum1.add(t1);
                 sum1.multiply(0.5*gamma);
                 
                 // z + +; b a j
-                cumulantSum(2, 0, 0, b, a, z, csums, sum2);
-                sum2.multiply(f);
-                cumulantSum(2, 0, 0, b, a, z, wsums, t1);
+                cumulantSum(2, 0, 0, b, a, z, fsums, sum2);
+                sum2.multiply(f[b]);
+                cumulantSum(2, 0, 0, b, a, z, gsums, t1);
                 t1.multiply(t2.set(0, -g[b]));
                 sum2.add(t1);
                 sum2.multiply(0.5*gamma);
