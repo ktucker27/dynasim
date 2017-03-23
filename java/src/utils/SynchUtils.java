@@ -44,11 +44,11 @@ public class SynchUtils {
             phase[i] = rg.nextDouble()*2.0*Math.PI;
             
             // ps
-            z0[i] = new DynaComplex(stip2*stip2*Math.cos(phase[i])*Math.sqrt(2),
-                                    stip2*stip2*Math.sin(phase[i])*Math.sqrt(2));
+            z0[i] = new DynaComplex(stip2*stip2*Math.cos(phase[i]),
+                                    stip2*stip2*Math.sin(phase[i]));
             
             // zs
-            z0[startIdx[2] + i] = new DynaComplex(Math.cos(tip)*Math.sqrt(2), 0.0);
+            z0[startIdx[2] + i] = new DynaComplex(Math.cos(tip), 0.0);
         }
         
         int idx = 0;
