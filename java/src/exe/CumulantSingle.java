@@ -3,13 +3,11 @@ package exe;
 import handlers.CumulantSteadyStateTerminator;
 import handlers.WriteHandlerCorr;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Scanner;
 
-import ode.CumulantAllToAllODEs;
+import ode.CumulantDecoupledODEs;
 import ode.DynaComplexODEAdapter;
 
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
@@ -29,12 +27,12 @@ public class CumulantSingle {
         double h = 0.005;
         double gamma = 1.0;
         double tmax = 10.0;
-        double delta = 15.0;
-        double f = 1.0;
-        double g = 2.0;
+        double delta = 0.0;
+        double f = 0.5;
+        double g = 0.5;
 
         double w = SynchUtils.getW_D0(n);
-        w = 10;
+        w = 0.0;
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
@@ -42,12 +40,20 @@ public class CumulantSingle {
         
         DynaComplex alpha = new DynaComplex(f, g);
         
-        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, w, alpha, d);
+        double[] fvec = new double[n];
+        double[] gvec = new double[n];
+        for(int i = 0; i < n; ++i) {
+            fvec[i] = f*Math.cos(7.0*Math.PI*i/6.0);
+            gvec[i] = g*Math.cos(7.0*Math.PI*i/6.0);
+        }
+        
+//        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, w, alpha, d);
+        CumulantDecoupledODEs codes = new CumulantDecoupledODEs(n, gamma, w, fvec, gvec, d);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
         int dim = codes.getDimension();
         
         DynaComplex[] z0 = new DynaComplex[dim];
-        SynchUtils.initialize(z0, Math.PI/2.0, n);
+        SynchUtils.initializeInhomogeneous(z0, Math.PI/2.0, n);
 
         // Get initial conditions from a file
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/vw/long/forward/N30/D15p0/g20p0/final_w13p0.txt"));
@@ -69,7 +75,7 @@ public class CumulantSingle {
         long startTime = System.nanoTime();
 
         String dir = "/Users/kristophertucker/output/temp/";
-        WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "corr_v_time3.txt", n);
+        WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "corr_v_time.txt", n);
         CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(1.0, 0.015, 50, 1000000, 0.002, n);
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
@@ -85,7 +91,7 @@ public class CumulantSingle {
         long endTime = System.nanoTime();
         
         DynaComplexODEAdapter.toComplex(y, z0);
-        PrintWriter writer = new PrintWriter(dir + "final_answer3.txt", "UTF-8");
+        PrintWriter writer = new PrintWriter(dir + "final_answer.txt", "UTF-8");
         for(int i = 0; i < dim; ++i) {
             writer.write(z0[i].getReal() + ", " + z0[i].getImaginary() + "\n");
         }
