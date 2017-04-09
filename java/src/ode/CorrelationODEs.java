@@ -15,7 +15,7 @@ public class CorrelationODEs implements DynaComplexODEs {
     
     DynaComplex[] c1;
     
-    DynaComplex t1;
+    DynaComplex t1, t2;
     DynaComplex sum;
     
     /**
@@ -37,6 +37,7 @@ public class CorrelationODEs implements DynaComplexODEs {
         this.szs = szs;
         
         t1 = new DynaComplex(0, 0);
+        t2 = new DynaComplex(0, 0);
         
         sum = new DynaComplex(0, 0);
         
@@ -65,13 +66,13 @@ public class CorrelationODEs implements DynaComplexODEs {
                 for(int j = 0; j < n; ++j) {
                     if(j == a || j == b) continue;
                     
-                    t1.set(szs[a]).multiply(z[j*n + b]).multiply(coupling.getF(a, j));
+                    t1.set(szs[a]).multiply(z[j*n + b]).multiply(t2.set(coupling.getAlpha(a, j)).conjugate());
                     sum.add(t1);
                 }
-                sum.multiply(0.5);
+                sum.multiply(gamma*0.5);
                 
                 zDot[idx].set(c1[a]).multiply(z[idx]);
-                zDot[idx].add(t1.set(szs[a]).multiply(z[b*n + b]).multiply(coupling.getF(a, b)).multiply(0.5));
+                zDot[idx].add(t1.set(szs[a]).multiply(z[b*n + b]).multiply(t2.set(coupling.getAlpha(a, b)).conjugate()).multiply(gamma*0.5));
                 zDot[idx].add(sum);
                 ++idx;
             }
