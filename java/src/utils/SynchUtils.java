@@ -19,7 +19,7 @@ public class SynchUtils {
         startIdx[5] = startIdx[4] + n*(n-1)/2;
     }
     
-    public static int getDim(int n) {
+    public static int getDimension(int n) {
         return n*(n-1) + 3*n*(n-1)/2 + 2*n;
     }
     
@@ -307,9 +307,57 @@ public class SynchUtils {
 
         return sum;
     }
-    
-    public static int getDimension(int n) {
-        return n*(n-1) + 3*n*(n-1)/2 + 2*n;
+
+    public static void reduceDim(double[] y1, double[] y2, int n1, int n2) {
+        int[] startIdxArray1 = new int[6];
+        int[] startIdxArray2 = new int[6];
+        getStartIdx(startIdxArray1, n1);
+        getStartIdx(startIdxArray2, n2);
+        
+        // sigma^+/z
+        for(int i = 0; i < n2; ++i) {
+            y2[2*i] = y1[2*i];
+            y2[2*i+1] = y1[2*i+1];
+            y2[2*startIdxArray2[2] + 2*i] = y1[2*startIdxArray1[2] + 2*i];
+            y2[2*startIdxArray2[2] + 2*i + 1] = y1[2*startIdxArray1[2] + 2*i + 1];
+        }
+        
+        // sigma^+/+/z sigma^+/-/z
+        int idx1 = 0;
+        int idx2 = 0;
+        for(int i = 0; i < n1; ++i) {
+            if(i >= n2) break;
+            for(int j = i + 1; j < n1; ++j, idx1 += 2) {
+                if(j >= n2) continue;
+                
+                for(int k = 3; k <= 5; ++k) {
+                    y2[2*startIdxArray2[k] + idx2] = y1[2*startIdxArray1[k] + idx1];
+                    y2[2*startIdxArray2[k] + idx2 + 1] = y1[2*startIdxArray1[k] + idx1 + 1];
+                }
+                
+                idx2 += 2;
+            }
+        }
+        
+        // sigma^z sigma^+
+        idx1 = 0;
+        idx2 = 0;
+        for(int i = 0; i < n1; ++i) {
+            if(i >= n2) break;
+            for(int j = 0; j < n1; ++j, idx1 += 2) {
+                if(j >= n2) continue;
+                
+                if(i == j) {
+                    idx1 -= 2;
+                    continue;
+                }
+                
+                y2[2*startIdxArray2[1] + idx2] = y1[2*startIdxArray1[1] + idx1];
+                y2[2*startIdxArray2[1] + idx2 + 1] = y1[2*startIdxArray1[1] + idx1 + 1];
+                
+                idx2 += 2;
+            }
+        }
     }
     
     public static boolean isSteadyState(ArrayList<Double> spinCorr, int numSteps, double tol) {
