@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
@@ -308,14 +309,23 @@ public class SynchUtils {
         return sum;
     }
 
-    public static void reduceDim(double[] y1, double[] y2, int n1, int n2) {
+    public static void changeDim(double[] y1, double[] y2, int n1, int n2) {
         int[] startIdxArray1 = new int[6];
         int[] startIdxArray2 = new int[6];
         getStartIdx(startIdxArray1, n1);
         getStartIdx(startIdxArray2, n2);
         
+        int nmin, nmax;
+        if(n1 < n2) {
+            nmin = n1;
+            nmax = n2;
+        } else {
+            nmin = n2;
+            nmax = n1;
+        }
+        
         // sigma^+/z
-        for(int i = 0; i < n2; ++i) {
+        for(int i = 0; i < nmin; ++i) {
             y2[2*i] = y1[2*i];
             y2[2*i+1] = y1[2*i+1];
             y2[2*startIdxArray2[2] + 2*i] = y1[2*startIdxArray1[2] + 2*i];
@@ -323,39 +333,113 @@ public class SynchUtils {
         }
         
         // sigma^+/+/z sigma^+/-/z
-        int idx1 = 0;
-        int idx2 = 0;
-        for(int i = 0; i < n1; ++i) {
-            if(i >= n2) break;
-            for(int j = i + 1; j < n1; ++j, idx1 += 2) {
-                if(j >= n2) continue;
+        AtomicInteger idx1 = new AtomicInteger(0);
+        AtomicInteger idx2 = new AtomicInteger(0);
+        AtomicInteger largerIdx;
+        AtomicInteger smallerIdx;
+        if(n1 < n2) {
+            largerIdx = idx2;
+            smallerIdx = idx1;
+        } else {
+            largerIdx = idx1;
+            smallerIdx = idx2;
+        }
+        
+        for(int i = 0; i < nmax; ++i) {
+            if(i >= nmin) break;
+            for(int j = i + 1; j < nmax; ++j, largerIdx.getAndAdd(2)) {
+                if(j >= nmin) continue;
                 
                 for(int k = 3; k <= 5; ++k) {
-                    y2[2*startIdxArray2[k] + idx2] = y1[2*startIdxArray1[k] + idx1];
-                    y2[2*startIdxArray2[k] + idx2 + 1] = y1[2*startIdxArray1[k] + idx1 + 1];
+                    y2[2*startIdxArray2[k] + idx2.get()] = y1[2*startIdxArray1[k] + idx1.get()];
+                    y2[2*startIdxArray2[k] + idx2.get() + 1] = y1[2*startIdxArray1[k] + idx1.get() + 1];
                 }
                 
-                idx2 += 2;
+                smallerIdx.getAndAdd(2);
             }
         }
         
         // sigma^z sigma^+
-        idx1 = 0;
-        idx2 = 0;
-        for(int i = 0; i < n1; ++i) {
-            if(i >= n2) break;
-            for(int j = 0; j < n1; ++j, idx1 += 2) {
-                if(j >= n2) continue;
+        idx1.set(0);
+        idx2.set(0);
+        for(int i = 0; i < nmax; ++i) {
+            if(i >= nmin) break;
+            for(int j = 0; j < nmax; ++j, largerIdx.getAndAdd(2)) {
+                if(j >= nmin) continue;
                 
                 if(i == j) {
-                    idx1 -= 2;
+                    largerIdx.getAndAdd(-2);
                     continue;
                 }
                 
-                y2[2*startIdxArray2[1] + idx2] = y1[2*startIdxArray1[1] + idx1];
-                y2[2*startIdxArray2[1] + idx2 + 1] = y1[2*startIdxArray1[1] + idx1 + 1];
+                y2[2*startIdxArray2[1] + idx2.get()] = y1[2*startIdxArray1[1] + idx1.get()];
+                y2[2*startIdxArray2[1] + idx2.get() + 1] = y1[2*startIdxArray1[1] + idx1.get() + 1];
                 
-                idx2 += 2;
+                smallerIdx.getAndAdd(2);
+            }
+        }
+        
+        // If we are increasing the dimension, we need to go through the new rows and
+        // columns and make sure the values are consistent
+        if(n2 > n1) {
+            DynaComplex z = new DynaComplex();
+            DynaComplex t1 = new DynaComplex();
+            
+            Random rg = new Random(0);
+            for(int i = n1; i < n2; ++i) {
+                double phase = rg.nextDouble()*2.0*Math.PI;
+                
+                // ps
+                y2[2*i] = 0.5*Math.cos(phase);
+                y2[2*i + 1] = 0.5*Math.sin(phase);
+                
+                // zs
+                y2[2*startIdxArray2[2] + 2*i] = 0.0;
+                y2[2*startIdxArray2[2] + 2*i + 1] = 0.0;
+            }
+            
+            int idx = 0;
+            for(int i = 0; i < n2; ++i) {
+                for(int j = 0; j < n2; ++j) {
+                    if(i == j) {
+                        continue;
+                    }
+                    
+                    // zps
+                    if(i >= n1 || j >= n1) {
+                        z.set(y2[2*startIdxArray2[2] + 2*i], y2[2*startIdxArray2[2] + 2*i + 1]);
+                        z.multiply(t1.set(y2[2*j], y2[2*j + 1]));
+                        y2[2*startIdxArray2[1] + 2*idx] = z.getReal();
+                        y2[2*startIdxArray2[1] + 2*idx + 1] = z.getImaginary();
+                    }
+                    ++idx;
+                }
+            }
+            
+            idx = 0;
+            for(int i = 0; i < n2; ++i) {
+                for(int j = i + 1; j < n2; ++j) {
+                    if(i >= n1 || j >= n1) {
+                        // pms
+                        z.set(y2[2*i], y2[2*i + 1]);
+                        z.multiply(t1.set(y2[2*j], y2[2*j + 1]).conjugate());
+                        y2[2*startIdxArray2[3] + 2*idx] = z.getReal();
+                        y2[2*startIdxArray2[3] + 2*idx + 1] = z.getImaginary();
+
+                        // zzs
+                        z.set(y2[2*startIdxArray2[2] + 2*i], y2[2*startIdxArray2[2] + 2*i + 1]);
+                        z.multiply(t1.set(y2[2*startIdxArray2[2] + 2*j], y2[2*startIdxArray2[2] + 2*j + 1]));
+                        y2[2*startIdxArray2[4] + 2*idx] = z.getReal();
+                        y2[2*startIdxArray2[4] + 2*idx + 1] = z.getImaginary();
+
+                        // pps
+                        z.set(y2[2*i], y2[2*i + 1]);
+                        z.multiply(t1.set(y2[2*j], y2[2*j + 1]));
+                        y2[2*startIdxArray2[5] + 2*idx] = z.getReal();
+                        y2[2*startIdxArray2[5] + 2*idx + 1] = z.getImaginary();
+                    }
+                    ++idx;
+                }
             }
         }
     }
