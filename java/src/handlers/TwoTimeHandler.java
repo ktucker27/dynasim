@@ -36,6 +36,12 @@ public class TwoTimeHandler implements StepHandler {
         myWriter.print(interpolator.getInterpolatedTime() + ", ");
         compBigOlSum(y);
         myWriter.print(mySum.getReal() + ", " + mySum.getImaginary() + "\n");
+        
+        if(!isLast) {
+            myWriter.flush();
+        } else {
+            myWriter.close();
+        }
     }
 
     private void compBigOlSum(double[] y) {

@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import ode.CorrelationODEs;
 import ode.CumulantAllToAllODEs;
@@ -30,17 +29,18 @@ public class CumulantRun {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 16;
+        int n = 30;
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 10.0;
         double delta = 15.0;
         double f = 1.0;
-        double g = 20.0;
-        boolean correlate = false;
+        double g = 5.0;
+        boolean correlate = true;
         
-        int nmax = 30;
-        int nmin = 16;
+        int nmax = n;
+//        int nmax = 30;
+//        int nmin = 16;
 
         DynaComplex alpha = new DynaComplex(f, g);
         
@@ -79,49 +79,47 @@ public class CumulantRun {
         
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
 
-//        double wmin = 2.5;
-//        double wmax = 40.0;
-//        double dw = (wmax - wmin)/50;
-//        for(double w = wmin; w <= wmax; w += dw) {
-//            CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
-//            params.add(p);
-//        }
-        
-        for(int nn = nmin; nn <= nmax; ++nn) {
-            CumulantParams p = new CumulantParams(nn, gamma, SynchUtils.getWOpt(nn), delta, alpha, d);
+        double wmin = 2.5;
+        double wmax = 40.0;
+        double dw = (wmax - wmin)/50;
+        for(double w = wmax; w >= wmin; w -= dw) {
+            CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
             params.add(p);
         }
+        
+//        for(int nn = nmin; nn <= nmax; ++nn) {
+//            CumulantParams p = new CumulantParams(nn, gamma, SynchUtils.getWOpt(nn), delta, alpha, d);
+//            params.add(p);
+//        }
         
         //DynaCumulantODEs codes = new DynaCumulantODEs(n, gamma, w, coupling, d);
 //        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, 0, alpha, d);
         int dim = SynchUtils.getDimension(nmax);
         
         DynaComplex[] z0 = new DynaComplex[dim];
-//        SynchUtils.initialize(z0, Math.PI/2.0, n);
+        SynchUtils.initialize(z0, Math.PI/2.0, n);
         
         // Get initial conditions from a file
-        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/twotime/long/backward/N30/D15p0/g20p0/final_w16p75.txt"));
-        inputStream.useDelimiter("\n");
-        int iidx = 0;
-        while(inputStream.hasNext()) {
-            String[] line = inputStream.next().split(",");
-            z0[iidx] = new DynaComplex(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
-            ++iidx;
-        }
-
-//        for(int i = 0; i < dim; ++i) {
-//            z0[i] = new DynaComplex(0, 0);
+//        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/twotime/long/backward/N30/D15p0/g20p0/final_w16p75.txt"));
+//        inputStream.useDelimiter("\n");
+//        int iidx = 0;
+//        while(inputStream.hasNext()) {
+//            String[] line = inputStream.next().split(",");
+//            z0[iidx] = new DynaComplex(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
+//            if(z0[iidx].mod() < 1.0e-10) {
+//                z0[iidx].set(0,0);
+//            }
+//            ++iidx;
 //        }
-        
-//        for(int i = 0; i < n; ++i) {
-//            z0[i] = new DynaComplex(0.2, 0.0);
-//        }
-        
-        double[] y00 = new double[2*dim];
-        DynaComplexODEAdapter.toReal(z0, y00);
 
-        double[] y0 = new double[2*SynchUtils.getDimension(params.get(0).getN())];
-        SynchUtils.changeDim(y00, y0, nmax, params.get(0).getN());
+        double[] y0 = new double[2*dim];
+        DynaComplexODEAdapter.toReal(z0, y0);
+        
+//        double[] y00 = new double[2*dim];
+//        DynaComplexODEAdapter.toReal(z0, y00);
+//
+//        double[] y0 = new double[2*SynchUtils.getDimension(params.get(0).getN())];
+//        SynchUtils.changeDim(y00, y0, nmax, params.get(0).getN());
 
 //        int n2 = n + 1;
 //        double[] y1 = new double[2*SynchUtils.getDimension(n2)];
@@ -147,7 +145,7 @@ public class CumulantRun {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/vn/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        String dir = "/Users/kristophertucker/output/twotime/long/backward/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
@@ -168,18 +166,19 @@ public class CumulantRun {
             integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
 
             double[] y = new double[2*SynchUtils.getDimension(cparams.getN())];
+            System.out.println("w: " + cparams.getW());
             System.out.println("corr: " + SynchUtils.compCorr(y0, cparams.getN()));
             integrator.integrate(odes, 0, y0, tmax, y);
             
             // Copy solution to initial conditions
-//            for(int i = 0; i < y.length; ++i) {
-//                y0[i] = y[i];
-//            }
-            
-            if(idx+1 < params.size()) {
-                y0 = new double[2*SynchUtils.getDimension(params.get(idx+1).getN())];
-                SynchUtils.changeDim(y00, y0, nmax, params.get(idx+1).getN());
+            for(int i = 0; i < y.length; ++i) {
+                y0[i] = y[i];
             }
+            
+//            if(idx+1 < params.size()) {
+//                y0 = new double[2*SynchUtils.getDimension(params.get(idx+1).getN())];
+//                SynchUtils.changeDim(y00, y0, nmax, params.get(idx+1).getN());
+//            }
             
             String wStr = Double.toString(cparams.getW()).replace('.', 'p');
 
@@ -188,19 +187,19 @@ public class CumulantRun {
                 compCorr(codes, cparams, y, dir + "time_corr_" + wStr + ".txt");
             }
 
-//            DynaComplexODEAdapter.toComplex(y, z0);
-//            PrintWriter writer = new PrintWriter(dir + "final_w" + wStr + ".txt", "UTF-8");
-//            for(int i = 0; i < SynchUtils.getDimension(cparams.getN()); ++i) {
-//                writer.write(z0[i].getReal() + ", " + z0[i].getImaginary() + "\n");
-//            }
-//            writer.close();
+            DynaComplexODEAdapter.toComplex(y, z0);
+            PrintWriter writer = new PrintWriter(dir + "final_w" + wStr + ".txt", "UTF-8");
+            for(int i = 0; i < SynchUtils.getDimension(cparams.getN()); ++i) {
+                writer.write(z0[i].getReal() + ", " + z0[i].getImaginary() + "\n");
+            }
+            writer.close();
             
             if(!term.getSteadyStateReached()) {
                 System.out.println("WARNING: Failed to reach steady state for w = " + cparams.getW());
-                corrWriter.print(cparams.getN() + ", " + -1.0 + ", " + term.getStopTime() + "\n");
+                corrWriter.print(cparams.getW() + ", " + -1.0 + ", " + term.getStopTime() + "\n");
                 success = false;
             } else {
-                corrWriter.print(cparams.getN() + ", " + SynchUtils.compCorr(y, cparams.getN()).getReal() + ", " + term.getStopTime() + "\n");
+                corrWriter.print(cparams.getW() + ", " + SynchUtils.compCorr(y, cparams.getN()).getReal() + ", " + term.getStopTime() + "\n");
             }
             corrWriter.flush();
         }
