@@ -12,6 +12,7 @@ public class CumulantParams {
     private DynaComplex alpha;
     private double[] d;
     File resDir;
+    String filename;
     
     public CumulantParams(int n, double gamma, double w, double delta, DynaComplex alpha, double[] d) {
         this.n = n;
@@ -22,6 +23,7 @@ public class CumulantParams {
         this.d = d;
         
         resDir = new File(String.format("/N%d/D%.1f/g%.1f", n, delta, alpha.getImaginary()).replace('.', 'p'));
+        filename = String.format("N%d_D%.1f_g%.1f_w%.2f", n, delta, alpha.getImaginary(), w).replace('.', 'p') + ".txt";
     }
 
     public int getN() {
@@ -50,6 +52,10 @@ public class CumulantParams {
     
     public File getResultsDir() {
         return resDir;
+    }
+    
+    public String getFilename() {
+        return filename;
     }
     
     public String toString() {
