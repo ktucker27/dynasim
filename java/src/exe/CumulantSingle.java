@@ -31,19 +31,20 @@ public class CumulantSingle {
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 20.0;
-        double delta = 4.0;
+        double delta = 12.0;
         double f = 1.0;
-        double g = 40.0;
-        boolean correlate = true;
+        double g = 10.0;
+        boolean correlate = false;
         boolean outputBloch = false;
+        boolean upper = true;
 
         double w = SynchUtils.getWOpt(n);
-        w = 19;
+        w = 13;
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
-//        SynchUtils.detuneGauss(delta, d);
-        SynchUtils.detuneLor(delta, d);
+        SynchUtils.detuneGauss(delta, d);
+//        SynchUtils.detuneLor(delta, d);
         
         // Get natural frequencies from file
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/even_delta_D100.txt"));
@@ -73,16 +74,18 @@ public class CumulantSingle {
         SynchUtils.initialize(z0, Math.PI/2.0, n);
         
         // Get initial conditions from a file
-        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/twotime/long/backward/N30/D15p0/g20p0/final_w16p75.txt"));
-        inputStream.useDelimiter("\n");
-        int idx = 0;
-        while(inputStream.hasNext()) {
-            String[] line = inputStream.next().split(",");
-            z0[idx] = new DynaComplex(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
-            if(z0[idx].mod() < 1.0e-10) {
-                z0[idx].set(0,0);
+        if(upper) {
+            Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/vw/N30/D0p0/g0p0/final_w16p75.txt"));
+            inputStream.useDelimiter("\n");
+            int idx = 0;
+            while(inputStream.hasNext()) {
+                String[] line = inputStream.next().split(",");
+                z0[idx] = new DynaComplex(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
+                if(z0[idx].mod() < 1.0e-10) {
+                    z0[idx].set(0,0);
+                }
+                ++idx;
             }
-            ++idx;
         }
         
 //        for(int i = 0; i < z0.length; ++i) {
@@ -100,13 +103,13 @@ public class CumulantSingle {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/dynamics/lor/upper/wopt/";
+        String dir = "/Users/kristophertucker/output/temp/";
         File fdir = new File(dir);
         fdir.mkdirs();
         WriteBlochVectors writeBloch = null;
         if(outputBloch) writeBloch = new WriteBlochVectors(dir + "bloch_" + params.getFilename(), n);
         WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + params.getFilename(), n);
-        CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(5.0, 0.015, 50, 1000000, 0.002, n);
+        CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(10.0, 0.015, 50, 1000000, 0.002, n);
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
