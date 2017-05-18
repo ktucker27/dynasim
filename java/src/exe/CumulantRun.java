@@ -30,10 +30,10 @@ public class CumulantRun {
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 20.0;
-        double delta = 12.0;
+        double delta = 10.0;
         double f = 1.0;
-        double g = 15.0;
-        boolean correlate = true;
+        double g = 10.0;
+        boolean correlate = false;
         
         int nmax = n;
 //        int nmax = 30;
@@ -43,8 +43,9 @@ public class CumulantRun {
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[nmax];
-//        SynchUtils.detuneGauss(delta, d);
-        SynchUtils.detuneLor(delta, d);
+        SynchUtils.detuneGauss(delta, d);
+//        SynchUtils.detuneLor(delta, d);
+//        SynchUtils.detuneDiscrete(delta, d);
         
         // Get natural frequencies from file
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/even_delta_D100.txt"));
@@ -142,7 +143,7 @@ public class CumulantRun {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/twotime/long/lor/rand/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        String dir = "/Users/kristophertucker/output/discrete/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
@@ -153,7 +154,7 @@ public class CumulantRun {
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
             
             //WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "full.txt", n);
-            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(15.0, 0.015, 50, 1000000, 0.0025, cparams.getN());
+            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(5.0, 0.015, 50, 1000000, 0.0025, cparams.getN());
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
             //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
@@ -164,8 +165,9 @@ public class CumulantRun {
 
             double[] y = new double[2*SynchUtils.getDimension(cparams.getN())];
             System.out.println("w: " + cparams.getW());
-            System.out.println("corr: " + SynchUtils.compCorr(y0, cparams.getN()));
+            System.out.println("init corr: " + SynchUtils.compCorr(y0, cparams.getN()));
             integrator.integrate(odes, 0, y0, tmax, y);
+            System.out.println("final corr: " + SynchUtils.compCorr(y, cparams.getN()));
             
             // Copy solution to initial conditions
 //            for(int i = 0; i < y.length; ++i) {

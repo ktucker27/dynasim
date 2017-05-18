@@ -31,20 +31,21 @@ public class CumulantSingle {
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 20.0;
-        double delta = 12.0;
+        double delta = 0.0;
         double f = 1.0;
-        double g = 10.0;
+        double g = 0.0;
         boolean correlate = false;
-        boolean outputBloch = false;
-        boolean upper = true;
+        boolean outputBloch = true;
+        boolean upper = false;
 
         double w = SynchUtils.getWOpt(n);
-        w = 13;
+        w = 16.75;
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
 //        SynchUtils.detuneLor(delta, d);
+//        SynchUtils.detuneDiscrete(delta, d);
         
         // Get natural frequencies from file
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/even_delta_D100.txt"));
@@ -75,7 +76,7 @@ public class CumulantSingle {
         
         // Get initial conditions from a file
         if(upper) {
-            Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/vw/N30/D0p0/g0p0/final_w16p75.txt"));
+            Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/grid/glow/upper/N30/D10p0/g10p0/final_w17p5.txt"));
             inputStream.useDelimiter("\n");
             int idx = 0;
             while(inputStream.hasNext()) {
@@ -103,7 +104,8 @@ public class CumulantSingle {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/temp/";
+        String dir = "/Users/kristophertucker/output/discrete/bloch/gauss/D0/";
+        if(upper) dir += "upper/";
         File fdir = new File(dir);
         fdir.mkdirs();
         WriteBlochVectors writeBloch = null;

@@ -42,7 +42,7 @@ public class CumulantGridCorr {
         
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
 
-        double dmin = 2.0;
+        double dmin = 0.0;
         double dmax = 20.0;
         double dd = 2.0;
         
@@ -50,16 +50,15 @@ public class CumulantGridCorr {
         double gmax = 40.0;
         double dg = 5.0;
         
-        Scanner wstream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/wopt_grid.txt"));
+        Scanner wstream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/wopt_grid_upper.txt"));
         wstream.useDelimiter("\n");
         for(double di = dmin; di <= dmax; di += dd) {
             SynchUtils.detuneGauss(di, d);
-            //String[] line = wstream.next().split("\\s+");
+            String[] line = wstream.next().split("\\s+");
             int gidx = 1;
             for(double gi = gmin; gi <= gmax; gi += dg) {
                 DynaComplex alpha = new DynaComplex(f, gi);
-                //double w = Double.parseDouble(line[gidx]);
-                double w = 16.75;
+                double w = Double.parseDouble(line[gidx]);
                 ++gidx;
                 System.out.print(w + " ");
                 CumulantParams p = new CumulantParams(n, gamma, w, di, alpha, d);
@@ -86,7 +85,7 @@ public class CumulantGridCorr {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/grid/twotime/";
+        String dir = "/Users/kristophertucker/output/grid/twotime/upper/";
         File fdir = new File(dir);
         fdir.mkdirs();
         boolean success = true;

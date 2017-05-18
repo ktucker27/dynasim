@@ -26,7 +26,7 @@ public class WriteBlochVectors implements StepHandler {
     public void init(double t0, double[] y0, double t) {
         myWriter.print("0, ");
         for(int i = 0; i < n; ++i) {
-            myWriter.print(2*y0[2*i] + ", " + 2*y0[2*i+1] + ", " + y0[2*startIdxArray[2]]);
+            myWriter.print(2*y0[2*i] + ", " + 2*y0[2*i+1] + ", " + y0[2*(i+startIdxArray[2])]);
             if(i < n - 1) {
                 myWriter.print(", ");
             }
@@ -41,7 +41,7 @@ public class WriteBlochVectors implements StepHandler {
         
         myWriter.print(interpolator.getInterpolatedTime() + ", ");
         for(int i = 0; i < n; ++i) {
-            myWriter.print(2*y[2*i] + ", " + 2*y[2*i+1] + ", " + y[2*startIdxArray[2]]);
+            myWriter.print(2*y[2*i] + ", " + 2*y[2*i+1] + ", " + y[2*(i+startIdxArray[2])]);
             if(i < n - 1) {
                 myWriter.print(", ");
             }

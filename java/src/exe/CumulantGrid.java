@@ -46,13 +46,13 @@ public class CumulantGrid {
         double wmax = 40.0;
         double dw = (wmax - wmin)/50;
         
-        double dmin = 2.0;
-        double dmax = 10.0;
+        double dmin = 0.0;
+        double dmax = 0.0;
         double dd = 2.0;
         
-        double gmin = 0.0;
-        double gmax = 10.0;
-        double dg = 1.0;
+        double gmin = 5.0;
+        double gmax = 40.0;
+        double dg = 5.0;
         
         for(double di = dmin; di <= dmax; di += dd) {
             SynchUtils.detuneGauss(di, d);
@@ -100,9 +100,9 @@ public class CumulantGrid {
 
         String dir;
         if(upper) {
-            dir = "/Users/kristophertucker/output/grid/glow/upper/";
+            dir = "/Users/kristophertucker/output/grid/upper/";
         } else {
-            dir = "/Users/kristophertucker/output/grid/glow/lower/";
+            dir = "/Users/kristophertucker/output/grid/lower/";
         }
         String prevdir = "";
         PrintWriter corrWriter = null;

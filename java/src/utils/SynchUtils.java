@@ -227,6 +227,18 @@ public class SynchUtils {
         }
     }
     
+    public static void detuneDiscrete(double delta, double[] d) {
+        int n = d.length;
+        
+        for(int i = 0; i < n; ++i) {
+            if(i % 2 == 0) {
+                d[i] = delta;
+            } else {
+                d[i] = -1.0*delta;
+            }
+        }
+    }
+    
     public static DynaComplex compCorr(double[] y0, int n) {
         double sum = 0.0;
         int startIdx = 2*(2*n + n*(n-1));
