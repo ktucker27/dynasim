@@ -2,7 +2,7 @@ package exe;
 
 import handlers.CumulantSteadyStateTerminator;
 import handlers.WriteBlochVectors;
-import handlers.WriteHandlerCorr;
+import handlers.WriteHandler;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,14 +28,14 @@ public class CumulantSingle {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         int n = 30;
-        double h = 0.001;
+        double h = 0.0001;
         double gamma = 1.0;
         double tmax = 20.0;
         double delta = 0.0;
         double f = 1.0;
-        double g = 0.0;
+        double g = 10.0;
         boolean correlate = false;
-        boolean outputBloch = true;
+        boolean outputBloch = false;
         boolean upper = false;
 
         double w = SynchUtils.getWOpt(n);
@@ -76,7 +76,7 @@ public class CumulantSingle {
         
         // Get initial conditions from a file
         if(upper) {
-            Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/grid/glow/upper/N30/D10p0/g10p0/final_w17p5.txt"));
+            Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/grid/glow/upper/N30/D0p0/g10p0/final_w17p5.txt"));
             inputStream.useDelimiter("\n");
             int idx = 0;
             while(inputStream.hasNext()) {
@@ -102,15 +102,23 @@ public class CumulantSingle {
 
         double[] y = new double[2*dim];
         
+        int[] out_col = {0, 1, 2, 3,
+                codes.getStartIdx(1), codes.getStartIdx(1) + 1, codes.getStartIdx(1) + 2, codes.getStartIdx(1) + 3, 
+                codes.getStartIdx(2), codes.getStartIdx(2) + 1, codes.getStartIdx(2) + 2, codes.getStartIdx(2) + 3,
+                codes.getStartIdx(3), codes.getStartIdx(3) + 1,
+                codes.getStartIdx(4), codes.getStartIdx(4) + 1,
+                codes.getStartIdx(5), codes.getStartIdx(5) + 1};
+        
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/discrete/bloch/gauss/D0/";
+        String dir = "/Users/kristophertucker/output/temp/";
         if(upper) dir += "upper/";
         File fdir = new File(dir);
         fdir.mkdirs();
         WriteBlochVectors writeBloch = null;
         if(outputBloch) writeBloch = new WriteBlochVectors(dir + "bloch_" + params.getFilename(), n);
-        WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + params.getFilename(), n);
+//        WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + params.getFilename(), n);
+        WriteHandler writeHandler = new WriteHandler(dir + "upper_" + params.getFilename(), out_col);
         CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(10.0, 0.015, 50, 1000000, 0.002, n);
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);

@@ -22,9 +22,9 @@ public class CumulantJacobian {
         int n = 30;
         double h = 0.001;
         double gamma = 1.0;
-        double delta = 15.0;
+        double delta = 0.0;
         double f = 1.0;
-        double g = 20.0;
+        double g = 10.0;
         double w = 16.75;
         
         // Get natural frequencies from Gaussian distribution
@@ -41,7 +41,7 @@ public class CumulantJacobian {
 //        SynchUtils.initialize(z0, Math.PI/2.0, n);
 
         // Get initial conditions from a file
-        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/vw/long/backward/N30/D15p0/g20p0/final_w16p75.txt"));
+        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/grid/glow/upper/N30/D0p0/g0p0/final_w16p75.txt"));
         inputStream.useDelimiter("\n");
         int idx = 0;
         while(inputStream.hasNext()) {
