@@ -97,6 +97,53 @@ public class SynchUtils {
         }
     }
     
+    public static void initializeConst(DynaComplex[] z0, double tip, int n) {
+        int[] startIdx = new int[6];
+        getStartIdx(startIdx, n);
+        
+        for(int i = 0; i < n; ++i) {
+            // ps
+            z0[i] = new DynaComplex(0.5, 0.0);
+            
+            // zs
+            z0[startIdx[2] + i] = new DynaComplex(0.0, 0.0);
+        }
+        
+        int idx = 0;
+        for(int i = 0; i < n; ++i) {
+            for(int j = 0; j < n; ++j) {
+                if(i == j) {
+                    continue;
+                }
+                
+                // zps
+                z0[startIdx[1] + idx] = new DynaComplex(z0[startIdx[2] + i]);
+                z0[startIdx[1] + idx].multiply(z0[j]);
+                ++idx;
+            }
+        }
+        
+        idx = 0;
+        DynaComplex temp = new DynaComplex();
+        for(int i = 0; i < n; ++i) {
+            for(int j = i + 1; j < n; ++j) {
+                // pms
+                z0[startIdx[3] + idx] = new DynaComplex(z0[i]);
+                z0[startIdx[3] + idx].multiply(temp.set(z0[j]).conjugate());
+                
+                // zzs
+                z0[startIdx[4] + idx] = new DynaComplex(z0[startIdx[2] + i]);
+                z0[startIdx[4] + idx].multiply(z0[startIdx[2] + j]);
+                
+                // pps
+                z0[startIdx[5] + idx] = new DynaComplex(z0[i]);
+                z0[startIdx[5] + idx].multiply(z0[j]);
+                
+                ++idx;
+            }
+        }
+    }
+    
     public static void initializeHomogeneous(DynaComplex[] z0, double th0, int n) {
         double sth = Math.sin(Math.PI - th0);
         double cth = Math.cos(Math.PI - th0);
