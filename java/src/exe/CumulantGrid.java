@@ -33,7 +33,7 @@ public class CumulantGrid {
         double tmax = 20.0;
         double f = 1.0;
         boolean correlate = false;
-        boolean upper = false;
+        boolean upper = true;
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
@@ -46,13 +46,13 @@ public class CumulantGrid {
         double wmax = 40.0;
         double dw = (wmax - wmin)/50;
         
-        double dmin = 0.0;
-        double dmax = 0.0;
-        double dd = 2.0;
+        double dmin = 90.0;
+        double dmax = 100.0;
+        double dd = 10.0;
         
-        double gmin = 5.0;
-        double gmax = 40.0;
-        double dg = 5.0;
+        double gmin = 10.0;
+        double gmax = 10.0;
+        double dg = 10.0;
         
         for(double di = dmin; di <= dmax; di += dd) {
             SynchUtils.detuneGauss(di, d);
@@ -100,9 +100,9 @@ public class CumulantGrid {
 
         String dir;
         if(upper) {
-            dir = "/Users/kristophertucker/output/grid/upper/";
+            dir = "/Users/kristophertucker/output/grid2/upper/";
         } else {
-            dir = "/Users/kristophertucker/output/grid/lower/";
+            dir = "/Users/kristophertucker/output/grid2/lower/";
         }
         String prevdir = "";
         PrintWriter corrWriter = null;

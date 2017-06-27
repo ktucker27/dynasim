@@ -1,6 +1,7 @@
 package exe;
 
 import handlers.CumulantSteadyStateTerminator;
+import handlers.WriteHandlerCorr;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,9 +30,10 @@ public class CumulantRun {
         int n = 30;
         double h = 0.001;
         double gamma = 1.0;
-        double tmax = 20.0;
-        double delta = 10.0;
-        double f = 1.0;
+        double tmax = 200.0;
+        double tmin = 60.0;
+        double delta = 100.0;
+        double f = 1;
         double g = 10.0;
         boolean correlate = false;
         
@@ -80,7 +82,7 @@ public class CumulantRun {
         double wmin = 2.5;
         double wmax = 40.0;
         double dw = (wmax - wmin)/50;
-        for(double w = wmax; w >= wmin; w -= dw) {
+        for(double w = wmin; w <= wmax; w += dw) {
             CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
             params.add(p);
         }
@@ -143,7 +145,7 @@ public class CumulantRun {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/discrete/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        String dir = "/Users/kristophertucker/output/params/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
@@ -152,14 +154,17 @@ public class CumulantRun {
             CumulantParams cparams = params.get(idx);
             CumulantAllToAllODEs codes = new CumulantAllToAllODEs(cparams);
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
+
+            String wStr = Double.toString(cparams.getW()).replace('.', 'p');
             
-            //WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "full.txt", n);
-            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(5.0, 0.015, 50, 1000000, 0.0025, cparams.getN());
+            WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_w" + wStr + ".txt", n);
+            writeHandler.setMinTime(tmin - 5.0);
+            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.0025, cparams.getN());
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
             //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
             //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h);
-            //integrator.addStepHandler(writeHandler);
+            integrator.addStepHandler(writeHandler);
             integrator.addStepHandler(term.getDetector());
             integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
 
@@ -182,8 +187,6 @@ public class CumulantRun {
 //                y0 = new double[2*SynchUtils.getDimension(params.get(idx+1).getN())];
 //                SynchUtils.changeDim(y00, y0, nmax, params.get(idx+1).getN());
 //            }
-            
-            String wStr = Double.toString(cparams.getW()).replace('.', 'p');
 
             // Compute the correlation function if requested
             if(correlate) {

@@ -2,7 +2,7 @@ package exe;
 
 import handlers.CumulantSteadyStateTerminator;
 import handlers.WriteBlochVectors;
-import handlers.WriteHandler;
+import handlers.WriteHandlerCorr;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,16 +30,16 @@ public class CumulantSingle {
         int n = 30;
         double h = 0.001;
         double gamma = 1.0;
-        double tmax = 20.0;
+        double tmax = 230.0;
         double delta = 0.0;
         double f = 1.0;
-        double g = 10.0;
+        double g = 20.0;
         boolean correlate = false;
-        boolean outputBloch = true;
+        boolean outputBloch = false;
         boolean upper = false;
 
         double w = SynchUtils.getWOpt(n);
-        w = 16.75;
+        w = 20.5;
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
@@ -72,11 +72,11 @@ public class CumulantSingle {
         int dim = codes.getDimension();
         
         DynaComplex[] z0 = new DynaComplex[dim];
-        SynchUtils.initializeConst(z0, Math.PI/2.0, n);
+        SynchUtils.initialize(z0, Math.PI/2.0, n);
         
         // Get initial conditions from a file
         if(upper) {
-            Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/grid/glow/upper/N30/D0p0/g10p0/final_w17p5.txt"));
+            Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/grid/glow/upper/N30/D0p0/g10p0/final_w16p75.txt"));
             inputStream.useDelimiter("\n");
             int idx = 0;
             while(inputStream.hasNext()) {
@@ -98,6 +98,21 @@ public class CumulantSingle {
         double[] y0 = new double[2*dim];
         DynaComplexODEAdapter.toReal(z0, y0);
         
+        int startIdx[] = new int[6];
+        SynchUtils.getStartIdx(startIdx, n);
+        double kickval = 1.0e-21;
+        DynaComplex kick = new DynaComplex(0.182297,0.0334138);
+        kick.multiply(kickval);
+        for(int i = startIdx[0]; i < startIdx[1]; ++i) {
+            //y0[2*i] += kickval;
+        }
+        
+        for(int i = startIdx[1]; i < startIdx[2]; ++i) {
+            //y0[2*i] += kick.getReal();
+            //y0[2*i+1] += kick.getImaginary();
+            //System.out.println(y0[2*i] + " " + y0[2*i+1]);
+        }
+        
         System.out.println("init corr: " + SynchUtils.compCorr(y0, n));
 
         double[] y = new double[2*dim];
@@ -111,21 +126,21 @@ public class CumulantSingle {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/const/on/";
+        String dir = "/Users/kristophertucker/output/temp/";
         if(upper) dir += "upper/";
         File fdir = new File(dir);
         fdir.mkdirs();
         WriteBlochVectors writeBloch = null;
         if(outputBloch) writeBloch = new WriteBlochVectors(dir + "bloch_" + params.getFilename(), n);
-//        WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_" + params.getFilename(), n);
-        WriteHandler writeHandler = new WriteHandler(dir + params.getFilename(), out_col);
-        CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(10.0, 0.015, 50, 1000000, 0.002, n);
+        WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_" + params.getFilename(), n);
+//        WriteHandler writeHandler = new WriteHandler(dir + params.getFilename(), out_col);
+        CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(200.0, 0.015, 50, 1000000, 0.002, n);
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
         //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h);
         if(outputBloch) integrator.addStepHandler(writeBloch);
-        integrator.addStepHandler(writeHandler);
+//        integrator.addStepHandler(writeHandler);
         integrator.addStepHandler(term.getDetector());
         integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
 

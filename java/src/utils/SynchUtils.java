@@ -579,7 +579,7 @@ public class SynchUtils {
         CorrelationODEs c_corr_odes = new CorrelationODEs(n, params.getGamma(), params.getW(), coupling, params.getD(), szs);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
         
-        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .001, 1.0e-3, 1.0e-2);
+        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .0001, 1.0e-3, 1.0e-2);
         if(!filename.isEmpty()) {
 //            int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
 //            WriteHandler writeHandler = new WriteHandler(filename, out_col);
