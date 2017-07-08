@@ -64,7 +64,7 @@ public class CumulantSearch {
             System.out.println("g: " + g);
             String gStr = Double.toString(g).replace('.', 'p');
             
-            CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, w, alpha, d);
+            CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, w, 0.0, alpha, d);
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
             
             CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(1.0, 0.015, 50, 1000000, 0.001, n);

@@ -41,7 +41,7 @@ public class CumulantWFit {
         
         DynaComplex alpha = new DynaComplex(1, 0.0);
         
-        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, 0, alpha, d);
+        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, 0, 0.0, alpha, d);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
         int dim = codes.getDimension();
 

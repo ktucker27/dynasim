@@ -559,9 +559,11 @@ public class SynchUtils {
         
         double mod_sum = 0.0;
         DynaComplex[] z02 = new DynaComplex[n*n];
+        int idx1 = startIdx[2];
         idx2 = startIdx[3];
         for(int i = 0; i < n; ++i) {
-            z02[i*n + i] = new DynaComplex(1.0, 0);
+            z02[i*n + i] = new DynaComplex(0.5 + 0.5*z[idx1].getReal(), 0);
+            ++idx1;
             for(int j = i+1; j < n; ++j) {
                 z02[i*n + j] = new DynaComplex(z[idx2].getReal(), z[idx2].getImaginary());
                 z02[j*n + i] = new DynaComplex(z[idx2].getReal(), z[idx2].getImaginary());

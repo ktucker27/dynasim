@@ -33,7 +33,7 @@ public class CumulantJacobian {
         
         DynaComplex alpha = new DynaComplex(f, g);
         
-        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, w, alpha, d);
+        CumulantAllToAllODEs codes = new CumulantAllToAllODEs(n, gamma, w, 0.0, alpha, d);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
         int dim = codes.getDimension();
         

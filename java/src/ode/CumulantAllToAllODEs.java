@@ -10,6 +10,7 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
     private int n;
     private double gamma;
     private double w;
+    private double gel;
     private DynaComplex alpha;
     private DynaComplex alpha_bar;
     private double[] d;
@@ -38,6 +39,7 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
         this.n = params.getN();
         this.gamma = params.getGamma();
         this.w = params.getW();
+        this.gel = params.getGel();
         this.alpha = new DynaComplex(params.getAlpha());
         this.alpha_bar = new DynaComplex(alpha.getReal(), -alpha.getImaginary());
         this.d = params.getD();
@@ -52,11 +54,12 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
      * @param feff effective mean field coupling
      * @param d size n vector of natural frequencies
      */
-    public CumulantAllToAllODEs(int n, double gamma, double w, DynaComplex alpha, double[] d) {
+    public CumulantAllToAllODEs(int n, double gamma, double w, double gel, DynaComplex alpha, double[] d) {
         super();
         this.n = n;
         this.gamma = gamma;
         this.w = w;
+        this.gel = gel;
         this.alpha = new DynaComplex(alpha.getReal(), alpha.getImaginary());
         this.alpha_bar = new DynaComplex(alpha.getReal(), -alpha.getImaginary());
         this.d = d;
@@ -108,12 +111,12 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
         migamma = new DynaComplex(0,-gamma);
         c1 = new DynaComplex[n];
         for(int i = 0; i < n; ++i) {
-            c1[i] = new DynaComplex(-0.5*(gamma + w), -d[i]);
+            c1[i] = new DynaComplex(-0.5*(gamma + w + gel), -d[i]);
         }
         
         c2 = new DynaComplex[n];
         for(int i = 0; i < n; ++i) {
-            c2[i] = new DynaComplex(-1.5*(gamma + w), -d[i]);
+            c2[i] = new DynaComplex(-1.5*(gamma + w) - 0.5*gel, -d[i]);
         }
         
         c3 = new DynaComplex[n][n];
@@ -121,7 +124,7 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
             for(int j = i+1; j < n; ++j) {
                 if(i == j) continue;
                 
-                c3[i][j] = new DynaComplex(-(gamma + w), -(d[i] - d[j]));
+                c3[i][j] = new DynaComplex(-(gamma + w + gel), -(d[i] - d[j]));
             }
         }
         
@@ -130,7 +133,7 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
             for(int j = i+1; j < n; ++j) {
                 if(i == j) continue;
                 
-                c4[i][j] = new DynaComplex(-(gamma + w), -(d[i] + d[j]));
+                c4[i][j] = new DynaComplex(-(gamma + w + gel), -(d[i] + d[j]));
             }
         }
     }

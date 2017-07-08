@@ -30,11 +30,12 @@ public class CumulantRun {
         int n = 30;
         double h = 0.001;
         double gamma = 1.0;
-        double tmax = 200.0;
-        double tmin = 60.0;
-        double delta = 100.0;
+        double tmax = 10.0;
+        double tmin = 5.0;
+        double delta = 0.15;
         double f = 1;
-        double g = 10.0;
+        double g = 20.0;
+        double gel = 1.5;
         boolean correlate = false;
         
         int nmax = n;
@@ -84,6 +85,7 @@ public class CumulantRun {
         double dw = (wmax - wmin)/50;
         for(double w = wmin; w <= wmax; w += dw) {
             CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
+            p.setGel(gel);
             params.add(p);
         }
         
@@ -145,7 +147,7 @@ public class CumulantRun {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/params/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        String dir = "/Users/kristophertucker/output/gel/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
@@ -157,14 +159,14 @@ public class CumulantRun {
 
             String wStr = Double.toString(cparams.getW()).replace('.', 'p');
             
-            WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_w" + wStr + ".txt", n);
-            writeHandler.setMinTime(tmin - 5.0);
+            //WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_w" + wStr + ".txt", n);
+            //writeHandler.setMinTime(tmin - 5.0);
             CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.0025, cparams.getN());
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
             //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
             //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h);
-            integrator.addStepHandler(writeHandler);
+            //integrator.addStepHandler(writeHandler);
             integrator.addStepHandler(term.getDetector());
             integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
 
