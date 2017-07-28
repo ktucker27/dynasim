@@ -27,15 +27,15 @@ public class CumulantRun {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 30;
+        int n = 120;
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 10.0;
         double tmin = 5.0;
-        double delta = 0.15;
+        double delta = 0.0;
         double f = 1;
-        double g = 20.0;
-        double gel = 1.5;
+        double g = 0.0;
+        double gel = 0.0;
         boolean correlate = false;
         
         int nmax = n;
@@ -46,9 +46,9 @@ public class CumulantRun {
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[nmax];
-        SynchUtils.detuneGauss(delta, d);
+//        SynchUtils.detuneGauss(delta, d);
 //        SynchUtils.detuneLor(delta, d);
-//        SynchUtils.detuneDiscrete(delta, d);
+        SynchUtils.detuneDiscrete(delta, d);
         
         // Get natural frequencies from file
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/even_delta_D100.txt"));
@@ -81,7 +81,7 @@ public class CumulantRun {
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
 
         double wmin = 2.5;
-        double wmax = 40.0;
+        double wmax = 120.0;
         double dw = (wmax - wmin)/50;
         for(double w = wmin; w <= wmax; w += dw) {
             CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
@@ -147,7 +147,7 @@ public class CumulantRun {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/gel/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        String dir = "/Users/kristophertucker/output/vw/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
@@ -159,14 +159,14 @@ public class CumulantRun {
 
             String wStr = Double.toString(cparams.getW()).replace('.', 'p');
             
-            //WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_w" + wStr + ".txt", n);
-            //writeHandler.setMinTime(tmin - 5.0);
+            WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_w" + wStr + ".txt", n);
+            writeHandler.setMinTime(tmin - 5.0);
             CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.0025, cparams.getN());
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
             //DormandPrince54Integrator integrator = new DormandPrince54Integrator(1.0e-18, h, 1.0e-3, 1.0e-2);
             //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h);
-            //integrator.addStepHandler(writeHandler);
+            integrator.addStepHandler(writeHandler);
             integrator.addStepHandler(term.getDetector());
             integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
 

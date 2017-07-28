@@ -1,13 +1,13 @@
 package exe;
 
 import handlers.CumulantSteadyStateTerminator;
+import handlers.WriteHandlerCorr;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
@@ -27,13 +27,14 @@ public class CumulantGrid {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 30;
-        double h = 0.001;
+        int n = 70;
+        double h = 0.0001;
         double gamma = 1.0;
-        double tmax = 20.0;
+        double tmax = 7.0;
+        double tmin = 5.0;
         double f = 1.0;
         boolean correlate = false;
-        boolean upper = true;
+        boolean upper = false;
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
@@ -43,19 +44,20 @@ public class CumulantGrid {
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
 
         double wmin = 2.5;
-        double wmax = 40.0;
+        double wmax = 120.0;
         double dw = (wmax - wmin)/50;
         
-        double dmin = 90.0;
-        double dmax = 100.0;
-        double dd = 10.0;
+        double dmin = 0.0;
+        double dmax = 0.0;
+        double dd = 2.0;
         
-        double gmin = 10.0;
-        double gmax = 10.0;
-        double dg = 10.0;
-        
+        double gmin = 20.0;
+        double gmax = 20.0;
+        double dg = 2.0;
+                
         for(double di = dmin; di <= dmax; di += dd) {
-            SynchUtils.detuneGauss(di, d);
+//            SynchUtils.detuneGauss(di, d);
+            SynchUtils.detuneDiscrete(di, d);
             for(double gi = gmin; gi <= gmax; gi += dg) {
                 DynaComplex alpha = new DynaComplex(f, gi);
                 for(double w = wmax; w >= wmin; w -= dw) {
@@ -69,22 +71,7 @@ public class CumulantGrid {
         
         DynaComplex[] z0 = new DynaComplex[dim];
         
-        if(upper) {
-            // Get initial conditions from a file
-            Scanner inputStream = new Scanner(new File("/Users/kristophertucker/output/vw/N30/D0p0/g0p0/final_w16p75.txt"));
-            inputStream.useDelimiter("\n");
-            int idx = 0;
-            while(inputStream.hasNext()) {
-                String[] line = inputStream.next().split(",");
-                z0[idx] = new DynaComplex(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
-                if(z0[idx].mod() < 1.0e-10) {
-                    z0[idx].set(0,0);
-                }
-                ++idx;
-            }
-        } else {
-            SynchUtils.initialize(z0, Math.PI/2.0, n);
-        }
+        SynchUtils.initialize(z0, Math.PI/2.0, n);
         
         double[] y0 = new double[2*dim];
         DynaComplexODEAdapter.toReal(z0, y0);
@@ -100,10 +87,11 @@ public class CumulantGrid {
 
         String dir;
         if(upper) {
-            dir = "/Users/kristophertucker/output/grid2/upper/";
+            dir = "/Users/kristophertucker/output/discrete/grid2/upper/";
         } else {
-            dir = "/Users/kristophertucker/output/grid2/lower/";
+            dir = "/Users/kristophertucker/output/discrete/ctest";
         }
+
         String prevdir = "";
         PrintWriter corrWriter = null;
         boolean success = true;
@@ -121,10 +109,13 @@ public class CumulantGrid {
                 prevdir = resdir;
             }
             
+            String wStr = Double.toString(cparams.getW()).replace('.', 'p');
+            WriteHandlerCorr writeHandler = new WriteHandlerCorr(resdir + "avg_w" + wStr + ".txt", n);
+            writeHandler.setMinTime(tmin - 2.0);
             //WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "full.txt", n);
-            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(5.0, 0.015, 50, 1000000, 0.0025, cparams.getN());
+            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.0025, cparams.getN());
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
-            //integrator.addStepHandler(writeHandler);
+            integrator.addStepHandler(writeHandler);
             integrator.addStepHandler(term.getDetector());
             integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
 
@@ -145,8 +136,6 @@ public class CumulantGrid {
                 }
             }
             
-            String wStr = Double.toString(cparams.getW()).replace('.', 'p');
-
             // Compute the correlation function if requested
             if(correlate) {
                 SynchUtils.compCorr(cparams, y, resdir + "time_corr_" + wStr + ".txt");
@@ -164,7 +153,11 @@ public class CumulantGrid {
                 corrWriter.print(cparams.getW() + ", " + -1.0 + ", " + term.getStopTime() + "\n");
                 success = false;
             } else {
-                corrWriter.print(cparams.getW() + ", " + SynchUtils.compCorr(y, cparams.getN()).getReal() + ", " + term.getStopTime() + "\n");
+                DynaComplex sigmap = SynchUtils.compSigmapAvg(y, cparams.getN());
+                corrWriter.print(cparams.getW() + ", " + SynchUtils.compCorr(y, cparams.getN()).getReal());
+                corrWriter.print(", " + sigmap.getReal());
+                corrWriter.print(", " + sigmap.getImaginary());
+                corrWriter.print(", " + term.getStopTime() + "\n");
             }
             corrWriter.flush();
         }

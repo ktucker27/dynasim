@@ -1,14 +1,13 @@
 package exe;
 
 import handlers.CumulantSteadyStateTerminator;
-import handlers.WriteHandlerCorr;
+import handlers.WriteHandler;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
@@ -28,10 +27,12 @@ public class CumulantGridCorr {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 30;
-        double h = 0.001;
+        String dir = "/Users/kristophertucker/output/discrete/wronggrid3/";
+        int n = 70;
+        double h = 0.0001;
         double gamma = 1.0;
-        double tmax = 20.0;
+        double tmax = 7.0;
+        double tmin = 5.0;
         double f = 1.0;
         boolean correlate = true;
         
@@ -42,30 +43,48 @@ public class CumulantGridCorr {
         
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
 
-        double dmin = 12.0;
+        double dmin = 0.0;
         double dmax = 20.0;
-        double dd = 2.0;
+        double dd = 1.0;
         
-        double gmin = 21.0;
-        double gmax = 30.0;
+        double gmin = 0.0;
+        double gmax = 10.0;
         double dg = 1.0;
         
-        Scanner wstream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/wopt_grid_glow.txt"));
-        wstream.useDelimiter("\n");
+        // Override default values with command line arguments
+        if(args.length > 0) {
+            if(args.length != 7) {
+                System.out.println("Usage: CumulantGridCorr g0 dg gf d0 dd df outdir");
+                return;
+            }
+
+            gmin = Double.parseDouble(args[0]);
+            dg = Double.parseDouble(args[1]);
+            gmax = Double.parseDouble(args[2]);
+            
+            dmin = Double.parseDouble(args[3]);
+            dd = Double.parseDouble(args[4]);
+            dmax = Double.parseDouble(args[5]);
+            
+            dir = args[6];
+        }
+        
+//        Scanner wstream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/wopt_twoatom_dlo.txt"));
+//        wstream.useDelimiter("\n");
         for(double di = dmin; di <= dmax; di += dd) {
-            SynchUtils.detuneGauss(di, d);
-            String[] line = wstream.next().split("\\s+");
-            int gidx = 1;
+            SynchUtils.detuneDiscrete(di, d);
+//            String[] line = wstream.next().split("\\s+");
+//            int gidx = 1;
             for(double gi = gmin; gi <= gmax; gi += dg) {
                 DynaComplex alpha = new DynaComplex(f, gi);
-                //double w = Double.parseDouble(line[gidx]);
-                double w = 20.5;
-                ++gidx;
-                System.out.print(w + " ");
+//                double w = Double.parseDouble(line[gidx]);
+                double w = SynchUtils.getWOpt(n);
+//                ++gidx;
+//                System.out.print(w + " ");
                 CumulantParams p = new CumulantParams(n, gamma, w, di, alpha, d);
                 params.add(p);
             }
-            System.out.println("");
+//            System.out.println("");
         }
         
         int dim = SynchUtils.getDimension(n);
@@ -86,7 +105,6 @@ public class CumulantGridCorr {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/grid2/twotime/lower/";
         File fdir = new File(dir);
         fdir.mkdirs();
         boolean success = true;
@@ -95,8 +113,16 @@ public class CumulantGridCorr {
             CumulantAllToAllODEs codes = new CumulantAllToAllODEs(cparams);
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
             
-            WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "corr_" + cparams.getFilename(), n);
-            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(5.0, 0.015, 50, 1000000, 0.0025, cparams.getN());
+            int[] out_col = {0, 1, 2, 3,
+                    codes.getStartIdx(1), codes.getStartIdx(1) + 1, codes.getStartIdx(1) + 2, codes.getStartIdx(1) + 3, 
+                    codes.getStartIdx(2), codes.getStartIdx(2) + 1, codes.getStartIdx(2) + 2, codes.getStartIdx(2) + 3,
+                    codes.getStartIdx(3), codes.getStartIdx(3) + 1,
+                    codes.getStartIdx(4), codes.getStartIdx(4) + 1,
+                    codes.getStartIdx(5), codes.getStartIdx(5) + 1};
+            
+//            WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_" + cparams.getFilename(), n);
+            WriteHandler writeHandler = new WriteHandler(dir + cparams.getFilename(), out_col);
+            CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.0025, cparams.getN());
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             integrator.addStepHandler(writeHandler);
             integrator.addStepHandler(term.getDetector());
