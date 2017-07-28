@@ -19,7 +19,7 @@ for i=1:size(xp,1)
     idx = idx + 2;
 end
 
-fun = @(b,t)exp_comb(b,t);
+fun = @(b,t)exp_comb(b,t,t(1,1));
 
 try
     ops.MaxIter = 1000;
