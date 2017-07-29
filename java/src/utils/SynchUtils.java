@@ -585,7 +585,7 @@ public class SynchUtils {
         if(!filename.isEmpty()) {
 //            int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
 //            WriteHandler writeHandler = new WriteHandler(filename, out_col);
-            TwoTimeHandler writeHandler = new TwoTimeHandler(filename);
+            TwoTimeHandler writeHandler = new TwoTimeHandler(filename, false);
             integrator.addStepHandler(writeHandler);
         }
         
