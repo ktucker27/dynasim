@@ -121,7 +121,7 @@ public class CumulantGridCorr {
                     codes.getStartIdx(5), codes.getStartIdx(5) + 1};
             
 //            WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_" + cparams.getFilename(), n);
-            WriteHandler writeHandler = new WriteHandler(dir + cparams.getFilename(), out_col);
+            WriteHandler writeHandler = new WriteHandler(dir + cparams.getFilename(), out_col, true);
             CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.0025, cparams.getN());
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             integrator.addStepHandler(writeHandler);

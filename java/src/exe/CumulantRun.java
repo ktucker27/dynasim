@@ -28,13 +28,13 @@ public class CumulantRun {
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
         int n = 120;
-        double h = 0.001;
+        double h = 0.0001;
         double gamma = 1.0;
-        double tmax = 10.0;
+        double tmax = 7.0;
         double tmin = 5.0;
         double delta = 0.0;
         double f = 1;
-        double g = 0.0;
+        double g = 3.0;
         double gel = 0.0;
         boolean correlate = false;
         
