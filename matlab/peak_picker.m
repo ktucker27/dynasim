@@ -1,6 +1,6 @@
 function [xp,yp] = peak_picker(x,y)
 
-di = 20;
+di = 22;
 xp = [];
 yp = [];
 

@@ -32,9 +32,10 @@ public class WriteHandlerCorr implements StepHandler {
             myWriter.print(SynchUtils.compCorr(y0, n).getReal() + ", ");
             myWriter.print(sigmap.getReal() + ", ");
             myWriter.print(sigmap.getImaginary() + ", ");
-            myWriter.print(SynchUtils.compSigmazAvg(y0, n));
+            myWriter.print(SynchUtils.compSigmazAvg(y0, n) + ", ");
             myWriter.print(sigmazp.getReal() + ", ");
             myWriter.print(sigmazp.getImaginary() + ", ");
+            myWriter.print(SynchUtils.compSigmazzAvg(y0, n) + ", ");
             myWriter.print(sigmapp.getReal() + ", ");
             myWriter.print(sigmapp.getImaginary() + ", ");
             myWriter.print("\n");
@@ -55,9 +56,10 @@ public class WriteHandlerCorr implements StepHandler {
             myWriter.print(SynchUtils.compCorr(y, n).getReal() + ", ");
             myWriter.print(sigmap.getReal() + ", ");
             myWriter.print(sigmap.getImaginary() + ", ");
-            myWriter.print(SynchUtils.compSigmazAvg(y, n));
+            myWriter.print(SynchUtils.compSigmazAvg(y, n) + ", ");
             myWriter.print(sigmazp.getReal() + ", ");
             myWriter.print(sigmazp.getImaginary() + ", ");
+            myWriter.print(SynchUtils.compSigmazzAvg(y, n) + ", ");
             myWriter.print(sigmapp.getReal() + ", ");
             myWriter.print(sigmapp.getImaginary() + ", ");
             myWriter.print("\n");

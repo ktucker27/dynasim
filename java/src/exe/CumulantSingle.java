@@ -2,7 +2,7 @@ package exe;
 
 import handlers.CumulantSteadyStateTerminator;
 import handlers.WriteBlochVectors;
-import handlers.WriteHandler;
+import handlers.WriteHandlerCorr;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,25 +30,25 @@ public class CumulantSingle {
         int n = 70;
         double h = 0.0001;
         double gamma = 1.0;
-        double tmax = 2.0;
-        double tmin = 1.5;
+        double tmax = 7.0;
+        double tmin = 5.0;
         double delta = 0.0;
         double f = 1.0;
         double g = 20.0;
         double gel = 0.0;
         boolean correlate = false;
-        boolean outputBloch = false;
+        boolean outputBloch = true;
         boolean upper = false;
 
         double w = SynchUtils.getWOpt(n);
-        //w = 38.15;
+        w = 36.55;
         //w = 60.0;
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[n];
-//        SynchUtils.detuneGauss(delta, d);
+        SynchUtils.detuneGauss(delta, d);
 //        SynchUtils.detuneLor(delta, d);
-        SynchUtils.detuneDiscrete(delta, d);
+//        SynchUtils.detuneDiscrete(delta, d);
         
         // Get natural frequencies from file
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/even_delta_D100.txt"));
@@ -130,14 +130,14 @@ public class CumulantSingle {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/temp/";
+        String dir = "/Users/kristophertucker/output/discrete/bloch/";
         if(upper) dir += "upper/";
         File fdir = new File(dir);
         fdir.mkdirs();
         WriteBlochVectors writeBloch = null;
         if(outputBloch) writeBloch = new WriteBlochVectors(dir + "bloch_" + params.getFilename(), n);
-//        WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_" + params.getFilename(), n);
-        WriteHandler writeHandler = new WriteHandler(dir + params.getFilename(), out_col, false);
+        WriteHandlerCorr writeHandler = new WriteHandlerCorr(dir + "avg_" + params.getFilename(), n);
+//        WriteHandler writeHandler = new WriteHandler(dir + params.getFilename(), out_col, false);
         CumulantSteadyStateTerminator term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.002, n);
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         //GraggBulirschStoerIntegrator integrator = new GraggBulirschStoerIntegrator(1.0e-18, h, 1.0e-3, 1.0e-2);
