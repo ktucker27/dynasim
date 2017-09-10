@@ -620,4 +620,13 @@ public class SynchUtils {
     public static double getWOpt(int n) {
         return 1.972347641309676 + 0.493905191750637*n;
     }
+    
+    public static int pow(int base, int exp) {
+        int ans = 1;
+        for(int i = 0; i < exp; ++i) {
+            ans *= base;
+        }
+        
+        return ans;
+    }
 }

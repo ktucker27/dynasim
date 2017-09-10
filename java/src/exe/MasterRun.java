@@ -1,0 +1,99 @@
+package exe;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+
+import handlers.WriteHandlerMaster;
+
+import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
+
+import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
+import ode.MasterAllToAllODEs;
+import utils.DynaComplex;
+import utils.SynchUtils;
+import utils.TPSOperator;
+import utils.TPSOperator.PauliOp;
+
+public class MasterRun {
+
+    /**
+     * @param args
+     * @throws UnsupportedEncodingException 
+     * @throws FileNotFoundException 
+     */
+    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
+        int n = 2;
+        double h = 0.001;
+        double gamma = 1.0;
+        double tmax = 5.0;
+        double tmin = 5.0;
+        double delta = 5.0;
+        double f = 1;
+        double g = 5.0;
+        
+        DynaComplex alpha = new DynaComplex(f, g);
+        
+        double[] d = new double[n];
+        SynchUtils.detuneGauss(delta, d);
+        
+        ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
+        
+        double wmin = 2.0;
+        double wmax = 50.0;
+        double dw = (wmax - wmin)/50;
+        for(double w = wmin; w <= wmax; w += dw) {
+            CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
+            params.add(p);
+        }
+        
+        // Initialize everyone to spin-up along the x-direction
+        TPSOperator rho0 = new TPSOperator(n);
+        rho0.set(1.0/Math.pow(2,n));
+        
+        DynaComplex[] z0 = rho0.getVals();
+        double[] y0 = new double[2*z0.length];
+        DynaComplexODEAdapter.toReal(z0, y0);
+        
+        System.out.println(params.get(0).toString());
+        
+        long startTime = System.nanoTime();
+        
+        TPSOperator rho = new TPSOperator(n);
+        DynaComplex t1 = new DynaComplex(0,0);
+        String dir = "/Users/kristophertucker/output/temp/";
+        File fdir = new File(dir);
+        fdir.mkdirs();
+        PrintWriter corrWriter = new PrintWriter(dir + "master_corr_D5.txt", "UTF-8");
+        for(int idx = 0; idx < params.size(); ++idx) {
+            CumulantParams cparams = params.get(idx);
+            MasterAllToAllODEs modes = new MasterAllToAllODEs(cparams);
+            DynaComplexODEAdapter odes = new DynaComplexODEAdapter(modes);
+            
+            System.out.println("w: " + cparams.getW());
+            
+            //WriteHandlerMaster writeHandler = new WriteHandlerMaster("/Users/kristophertucker/output/temp/master_out.txt", n);
+            AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
+            //integrator.addStepHandler(writeHandler);
+        
+            double[] y = new double[2*z0.length];
+        
+            integrator.integrate(odes, 0, y0, tmax, y);
+            
+            DynaComplexODEAdapter.toComplex(y, rho.getVals());
+            rho.pauliLeft(PauliOp.MINUS, 1);
+            rho.pauliLeft(PauliOp.PLUS, 0);
+            rho.trace(t1);
+            corrWriter.print(cparams.getW() + ", " + t1.getReal() + ", " + t1.getImaginary() + "\n");
+            corrWriter.flush();
+        }
+        corrWriter.close();
+        
+        long endTime = System.nanoTime();
+        System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
+    }
+
+}
