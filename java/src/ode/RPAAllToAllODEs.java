@@ -84,7 +84,7 @@ public class RPAAllToAllODEs implements FirstOrderDifferentialEquations {
         for(int a = 0; a < n; ++a) {
             for(int b = a + 1; b < n; ++b) {
                 // s^x s^x
-                yDot[startIdx[3] + idx] = 0.5*gamma*(f*(myEval.evalTriple(2, 0, 2, a, b) - myEval.evalTriple(1, 0, 1, a, b) + myEval.evalTriple(0, 2, 2, a, b) - myEval.evalTriple(0, 1, 1, a, b)) 
+                yDot[startIdx[3] + idx] = 0.5*gamma*(f*(myEval.evalTriple(2, 0, 2, a, b) + myEval.evalTriple(1, 0, 1, a, b) + myEval.evalTriple(0, 2, 2, a, b) + myEval.evalTriple(0, 1, 1, a, b)) 
                                                    - g*(myEval.evalTriple(1, 0, 2, a, b) - myEval.evalTriple(2, 0, 1, a, b) + myEval.evalTriple(0, 1, 2, a, b) - myEval.evalTriple(0, 2, 1, a, b)))
                                           + (gamma - w)*(y[a] + y[b]) - 2*(gamma + w)*myEval.getDouble(0, 0, a, b, y)
                                           + gamma*f*(myEval.getDouble(2, 2, a, b, y) + myEval.getDouble(1, 1, a, b, y));
@@ -92,13 +92,13 @@ public class RPAAllToAllODEs implements FirstOrderDifferentialEquations {
                 // s^y s^y
                 yDot[startIdx[4] + idx] = -1.0*d[b]*myEval.getDouble(1, 2, a, b, y) + gamma*f*(myEval.getDouble(0, 0, a, b, y) - 0.5*(y[a] + y[b]))
                                           - (gamma + w)*myEval.getDouble(1, 1, a, b, y) - d[a]*myEval.getDouble(2, 1, a, b, y)
-                                          + 0.5*gamma*(f*(myEval.evalTriple(0, 1, 1, a, b) + myEval.evalTriple(1, 0, 1, a, b))
-                                                     + g*(myEval.evalTriple(0, 1, 2, a, b) + myEval.evalTriple(1, 0, 2, a, b)));
+                                          - 0.5*gamma*(f*(myEval.evalTriple(0, 1, 1, a, b) + myEval.evalTriple(1, 0, 1, a, b))
+                                                     - g*(myEval.evalTriple(0, 1, 2, a, b) + myEval.evalTriple(1, 0, 2, a, b)));
                 
                 // s^z s^z
                 yDot[startIdx[5] + idx] = d[a]*myEval.getDouble(1, 2, a, b, y) + gamma*f*(myEval.getDouble(0, 0, a, b, y) - 0.5*(y[a] + y[b]))
                         - (gamma + w)*myEval.getDouble(2, 2, a, b, y) + d[b]*myEval.getDouble(2, 1, a, b, y)
-                        + 0.5*gamma*(f*(myEval.evalTriple(0, 2, 2, a, b) + myEval.evalTriple(2, 0, 2, a, b))
+                        - 0.5*gamma*(f*(myEval.evalTriple(0, 2, 2, a, b) + myEval.evalTriple(2, 0, 2, a, b))
                                    + g*(myEval.evalTriple(0, 2, 1, a, b) + myEval.evalTriple(2, 0, 1, a, b)));
                 
                 ++idx;
@@ -120,7 +120,7 @@ public class RPAAllToAllODEs implements FirstOrderDifferentialEquations {
                 // s^x s^z
                 yDot[startIdx[7] + idx] = d[b]*myEval.getDouble(0, 1, a, b, y) - 1.5*(gamma + w)*myEval.getDouble(0, 2, a, b, y) + (gamma - w)*y[startIdx[2] + b]
                                           + 0.5*gamma*(f*y[startIdx[2] + a] - g*y[startIdx[1] + a]) - gamma*f*myEval.getDouble(2, 0, a, b, y)
-                                          + 0.5*gamma*(f*myEval.evalTriple(0, 0, 2, a, b) - g*myEval.evalTriple(0, 0, 1, a, b))
+                                          - 0.5*gamma*(f*myEval.evalTriple(0, 0, 2, a, b) + g*myEval.evalTriple(0, 0, 1, a, b))
                                           + 0.5*gamma*(f*(myEval.evalTriple(2, 2, 2, a, b) + myEval.evalTriple(1, 2, 1, a, b))
                                                      - g*(myEval.evalTriple(1, 2, 2, a, b) - myEval.evalTriple(2, 2, 1, a, b)));
 

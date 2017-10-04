@@ -1,5 +1,9 @@
 package exe;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
 import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
 import ode.RPAAllToAllODEs;
@@ -10,9 +14,10 @@ public class RPATest {
 
     /**
      * @param args
+     * @throws FileNotFoundException 
      */
-    public static void main(String[] args) {
-        int n = 2;
+    public static void main(String[] args) throws FileNotFoundException {
+        int n = 3;
         double gamma = 1.0;
         double delta = 5.0;
         double f = 1;
@@ -52,6 +57,22 @@ public class RPATest {
                 
         DynaComplex[] z0 = new DynaComplex[codes.getDimension()];
         SynchUtils.initialize(z0, Math.PI/2.0, n);
+        
+        // Get initial conditions from a file
+        if(n > 0) {
+            Scanner inputStream = new Scanner(new File("/Users/tuckerkj/output/temp/final_answer_N3_D5p0_g5p0_w3p45.txt"));
+            inputStream.useDelimiter("\n");
+            idx = 0;
+            while(inputStream.hasNext()) {
+                String[] line = inputStream.next().split(",");
+                z0[idx] = new DynaComplex(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
+                if(z0[idx].mod() < 1.0e-10) {
+                    z0[idx].set(0,0);
+                }
+                ++idx;
+            }
+            inputStream.close();
+        }
         
         translate(z0, y0, codes, odes, n);
         
