@@ -15,7 +15,7 @@ import ode.SynchMeanFieldODEs;
 import utils.DynaComplex;
 import utils.SynchUtils;
 
-public class SimSynchSingle {
+public class MeanFieldSingle {
 
     /**
      * @param args
