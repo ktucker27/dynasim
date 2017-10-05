@@ -1,18 +1,19 @@
 package exe;
 
-import handlers.RingSteadyStateTest;
-import handlers.SynchSteadyStateTerminator;
-import handlers.WriteAllHandler;
-
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
-import ode.SynchODEs;
-
+import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
-import coupling.ConstCoupling;
+import handlers.RingSteadyStateTest;
+import handlers.SynchSteadyStateTerminator;
+import handlers.WriteHandlerMeanField;
+import ode.CumulantParams;
+import ode.SynchMeanFieldODEs;
+import utils.DynaComplex;
+import utils.SynchUtils;
 
 public class SimSynchSingle {
 
@@ -24,18 +25,19 @@ public class SimSynchSingle {
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         long startTime = System.nanoTime();
 
-        int n = 70;
+        int n = 100;
         double h = 0.001;
 //        double a = 0.025;
+        double delta = 8.0;
         double gamma = 1.0;
-        double f = 1.0;
-        double g = 20.0;
-        double w = 36.55;
+        double f = 0.3;
+        double g = 1.0;
+        double w = 14;
+//      double tmin = 0.0;
+        double tmax = 15.0;
         
         double[] d = new double[n];
-        for(int i = 0; i < n; ++i) {
-            d[i] = 0.0;
-        }
+        SynchUtils.detuneGauss(delta, d);
         
         double[] y0 = new double[3*n];
         double[] y = new double[3*n];
@@ -46,32 +48,43 @@ public class SimSynchSingle {
             y0[n+i] = 1.0;
             y0[2*n+i] = rand.nextDouble()*2*Math.PI - Math.PI;
         }
-
-        double t0 = 0.0;
-        double t = 5.0;
         
+        CumulantParams params = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
+
+        String dir = "/Users/tuckerkj/output/temp/";
 //        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/temp/.txt", new int[] {n+n/2}, true);
-        WriteAllHandler writeHandler = new WriteAllHandler("/Users/kristophertucker/output/temp/mf_all_N70_D0_g20_w36p55.txt", 3*n);
+//        WriteAllHandler writeHandler = new WriteAllHandler("/Users/tuckerkj/output/temp/mf_all_N100_D8_g1_w10.txt", 3*n);
+        WriteHandlerMeanField writeHandler = new WriteHandlerMeanField(dir + "mf_corr_" + params.getFilename(), n);
         
         RingSteadyStateTest test = new RingSteadyStateTest();
         test.setQuietMode(false);
         SynchSteadyStateTerminator term = new SynchSteadyStateTerminator(test, 0.5, 500, 1500000);
         
-        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, h, 1.0e-3, 1.0e-2);
+        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         integrator.addStepHandler(writeHandler);
 //        integrator.addStepHandler(term.getDetector());
 //        integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
         
         //RingCoupling coupling = new RingCoupling(n,a);
-        ConstCoupling coupling = new ConstCoupling(f, g);
-        SynchODEs odes = new SynchODEs(n, gamma, w, coupling, d);
+//        ConstCoupling coupling = new ConstCoupling(f, g);
+//        SynchODEs odes = new SynchODEs(n, gamma, w, coupling, d);
+        SynchMeanFieldODEs odes = new SynchMeanFieldODEs(n, gamma, w, f, g, d);
         try {
-            integrator.integrate(odes, t0, y0, t, y);
+            integrator.integrate(odes, 0, y0, tmax, y);
 //            System.out.println("R:");
 //            for(int i = n; i < 2*n; ++i) {
 //                System.out.print(y[i] + " ");
 //            }
 //            System.out.print("\n");
+
+            // Compute the order parameter (|avg_a(<sigma_a^+>)|)
+            Complex z = new Complex(0.0);
+            for(int i = 0; i < n; ++i) {
+                z = z.add(Complex.I.multiply(-y[2*n+i]).exp().multiply(y[n+i]));
+            }
+            z = z.multiply(1/(double)n);
+            
+            System.out.println("order: " + z.abs());
         } catch(Exception ex) {
             System.out.println(ex.getMessage());
         }

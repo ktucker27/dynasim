@@ -59,9 +59,9 @@ public class SynchODEs implements FirstOrderDifferentialEquations {
         // Compute ydot
         for(int i = 0; i < n; ++i) {
             Complex op = Complex.I.multiply(-y[2*n+i]).exp().multiply(z[i]);
-            ydot[i] = -gamma*y[n+i]*op.getReal() - gamma*(0.5+y[i]) + w*(0.5-y[i]);
-            ydot[n+i] = -0.5*(gamma + w)*y[n+i] + gamma*y[i]*op.getReal();
-            ydot[2*n+i] = -d[i] + (gamma*y[i]/y[n+i])*op.getImaginary();
+            ydot[i] = -2*gamma*y[n+i]*op.getReal() - gamma*(1+y[i]) + w*(1-y[i]);
+            ydot[n+i] = -0.5*(gamma + w)*y[n+i] + 0.5*gamma*y[i]*op.getReal();
+            ydot[2*n+i] = -d[i] + (0.5*gamma*y[i]/y[n+i])*op.getImaginary();
         }
     }
 
