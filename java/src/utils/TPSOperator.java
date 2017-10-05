@@ -74,6 +74,10 @@ public class TPSOperator {
         }
     }
     
+    public int getN() {
+        return n;
+    }
+    
     public DynaComplex getVal(int i, int j) {
         return vals[i*dim + j];
     }
