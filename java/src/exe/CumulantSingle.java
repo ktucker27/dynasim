@@ -1,21 +1,19 @@
 package exe;
 
-import handlers.CumulantSteadyStateTerminator;
-import handlers.WriteBlochVectors;
-import handlers.WriteHandlerCorr;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Scanner;
 
+import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
+
+import handlers.CumulantSteadyStateTerminator;
+import handlers.WriteBlochVectors;
+import handlers.WriteHandlerCorr;
 import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
-
-import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
-
 import utils.DynaComplex;
 import utils.SynchUtils;
 
@@ -27,21 +25,21 @@ public class CumulantSingle {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 70;
-        double h = 0.0001;
+        int n = 30;
+        double h = 0.001;
         double gamma = 1.0;
         double tmax = 7.0;
         double tmin = 5.0;
-        double delta = 0.0;
+        double delta = 5.0;
         double f = 1.0;
-        double g = 20.0;
+        double g = 5.0;
         double gel = 0.0;
         boolean correlate = false;
-        boolean outputBloch = true;
+        boolean outputBloch = false;
         boolean upper = false;
 
         double w = SynchUtils.getWOpt(n);
-        w = 36.55;
+        //w = 2.0;
         //w = 60.0;
         
         // Get natural frequencies from Gaussian distribution
@@ -130,7 +128,7 @@ public class CumulantSingle {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/discrete/bloch/";
+        String dir = "/Users/tuckerkj/output/temp/";
         if(upper) dir += "upper/";
         File fdir = new File(dir);
         fdir.mkdirs();

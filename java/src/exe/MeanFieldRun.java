@@ -23,16 +23,17 @@ public class MeanFieldRun {
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         long startTime = System.nanoTime();
 
-        int n = 100;
-        double delta = 8.0;
-        double f = 0.3;
-        double g = 1.0;
+        int n = 8;
+        double delta = 1.0;
+        double f = 1.0;
+        double g = 30.0;
         
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
+//        SynchUtils.detuneLor(delta, d);
         
-        double minw = 1.0;
-        double maxw = 25.0;
+        double minw = 2.0;
+        double maxw = 4.5;
         int numw = 25;
         double dw = (maxw - minw)/(double)(numw - 1);
 
@@ -40,16 +41,17 @@ public class MeanFieldRun {
         double[] wv = new double[numw];
         double w = minw;
         for(int wi = 0; wi < numw; ++wi) {
-            System.out.println("w = " + w);
             wv[wi] = w;
             r[wi] = runSim(w, f, g, d);
+            System.out.println("w = " + w + " " + r[wi]);
             w += dw;
         }
 
         long endTime = System.nanoTime();
 
         CumulantParams params = new CumulantParams(n, 1, 0, delta, new DynaComplex(f, g), d);
-        PrintWriter writer = new PrintWriter("/Users/tuckerkj/output/mf/wrun2_" + params.getFilename(), "UTF-8");
+//        PrintWriter writer = new PrintWriter("/Users/tuckerkj/output/mf/wrun_" + params.getFilename(), "UTF-8");
+        PrintWriter writer = new PrintWriter("/Users/tuckerkj/output/mf/wrun_temp.txt", "UTF-8");
         for(int i = 0; i < numw; ++i) {
                 writer.print(wv[i] + ", " + r[i] + "\n");
         }
@@ -74,10 +76,12 @@ public class MeanFieldRun {
         for(int i = 0; i < n; ++i) {
             y0[i] = 0.0;
             y0[n+i] = 1.0;
-            y0[2*n+i] = rand.nextDouble()*2*Math.PI - Math.PI;
+//            y0[2*n+i] = rand.nextDouble()*2*Math.PI - Math.PI;
+            y0[2*n+i] = 0.0;
+//            y0[2*n+i] = i*2*Math.PI/(double)n - Math.PI;
         }
         
-        double t = 6.0;
+        double t = 200.0;
         integrator.integrate(odes, 0, y0, t, y);
         
         // Compute the order parameter (|avg_a(<sigma_a^+>)|)

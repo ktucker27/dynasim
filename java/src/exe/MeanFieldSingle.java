@@ -25,19 +25,20 @@ public class MeanFieldSingle {
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         long startTime = System.nanoTime();
 
-        int n = 100;
+        int n = 8;
         double h = 0.001;
 //        double a = 0.025;
-        double delta = 8.0;
+        double delta = 1.0;
         double gamma = 1.0;
-        double f = 0.3;
-        double g = 1.0;
-        double w = 14;
+        double f = 1.0;
+        double g = 30.0;
+        double w = 3.042;
 //      double tmin = 0.0;
-        double tmax = 15.0;
+        double tmax = 200.0;
         
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
+//        SynchUtils.detuneLor(delta, d);
         
         double[] y0 = new double[3*n];
         double[] y = new double[3*n];
@@ -46,7 +47,9 @@ public class MeanFieldSingle {
         for(int i = 0; i < n; ++i) {
             y0[i] = 0.0;
             y0[n+i] = 1.0;
-            y0[2*n+i] = rand.nextDouble()*2*Math.PI - Math.PI;
+//            y0[2*n+i] = rand.nextDouble()*2*Math.PI - Math.PI;
+//            y0[2*n+i] = 0.0;
+            y0[2*n+i] = i*2*Math.PI/(double)n - Math.PI;
         }
         
         CumulantParams params = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
@@ -54,7 +57,7 @@ public class MeanFieldSingle {
         String dir = "/Users/tuckerkj/output/temp/";
 //        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/temp/.txt", new int[] {n+n/2}, true);
 //        WriteAllHandler writeHandler = new WriteAllHandler("/Users/tuckerkj/output/temp/mf_all_N100_D8_g1_w10.txt", 3*n);
-        WriteHandlerMeanField writeHandler = new WriteHandlerMeanField(dir + "mf_corr_" + params.getFilename(), n);
+        WriteHandlerMeanField writeHandler = new WriteHandlerMeanField(dir + "mf_corr2_" + params.getFilename(), n);
         
         RingSteadyStateTest test = new RingSteadyStateTest();
         test.setQuietMode(false);

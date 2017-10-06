@@ -3,12 +3,11 @@ package exe;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 
-import handlers.WriteHandler;
-import ode.CumulantParams;
-import ode.RPAAllToAllODEs;
-
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
+import handlers.WriteHandlerRPA;
+import ode.CumulantParams;
+import ode.RPAAllToAllODEs;
 import utils.DynaComplex;
 import utils.SynchUtils;
 
@@ -20,7 +19,7 @@ public class RPASingle {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 2;
+        int n = 30;
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 5.0;
@@ -30,7 +29,19 @@ public class RPASingle {
         double g = 5.0;
         
         double w = SynchUtils.getWOpt(n);
-        w = 2.0;
+        //w = 2.0;
+        
+        // Cooper
+        boolean cooper = true;
+        if(cooper) {
+            n = 2;
+            delta = 0;
+            f = 0;
+            w = 0;
+            g = 4*9*2*Math.PI*52;
+//            g = 50;
+        }
+        
         System.out.println("w = " + w);
         
         DynaComplex alpha = new DynaComplex(f, g);
@@ -66,7 +77,8 @@ public class RPASingle {
                          odes.getStartIdx(3), odes.getStartIdx(4), odes.getStartIdx(5),
                          odes.getStartIdx(6), odes.getStartIdx(7), odes.getStartIdx(8)};
         
-        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/temp/rpa_" + params.getFilename(), out_col, false);
+//        WriteHandler writeHandler = new WriteHandler("/Users/tuckerkj/output/temp/rpa_" + params.getFilename(), out_col, false);
+        WriteHandlerRPA writeHandler = new WriteHandlerRPA("/Users/tuckerkj/output/temp/rpa_corr_" + params.getFilename(), params.getN());
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         integrator.addStepHandler(writeHandler);
         

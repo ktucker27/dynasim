@@ -67,7 +67,7 @@ public class CumulantParams {
     }
     
     public String getFilename() {
-        String filename = String.format("N%d_D%.1f_g%.1f_w%.2f", n, delta, alpha.getImaginary(), w).replace('.', 'p');
+        String filename = String.format("N%d_D%.1f_g%.1f_w%.2f_f%.1f", n, delta, alpha.getImaginary(), w, alpha.getReal()).replace('.', 'p');
         if(gel != 0) {
             filename += String.format("_gel%.2f", gel).replace('.','p');
         }

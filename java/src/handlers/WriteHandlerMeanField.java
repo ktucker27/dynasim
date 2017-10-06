@@ -25,7 +25,8 @@ public class WriteHandlerMeanField implements StepHandler {
     public void init(double t0, double[] y0, double t) {
         if(myTmin == 0.0) {
             myWriter.print("0, ");
-            myWriter.print(compCorr(y0, n));
+            myWriter.print(compCorr(y0, n) + ", ");
+            myWriter.print(avgSigmaz(y0, n));
             myWriter.print("\n");
         }
     }
@@ -37,7 +38,8 @@ public class WriteHandlerMeanField implements StepHandler {
         
         if(t >= myTmin) {
             myWriter.print(t + ", ");
-            myWriter.print(compCorr(y, n));
+            myWriter.print(compCorr(y, n) + ", ");
+            myWriter.print(avgSigmaz(y, n));
             myWriter.print("\n");
 
             if(!isLast) {
@@ -59,5 +61,14 @@ public class WriteHandlerMeanField implements StepHandler {
         z = z.multiply(1/(double)n);
         
         return z.abs();
+    }
+    
+    public static double avgSigmaz(double[] y, int n) {
+        double sum = 0.0;
+        for(int i = 0; i < n; ++i) {
+            sum += y[i];
+        }
+        
+        return sum/(double)n;
     }
 }
