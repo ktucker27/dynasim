@@ -1,5 +1,7 @@
 package exe;
 
+import handlers.WriteHandlerMaster;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -22,25 +24,26 @@ public class MasterSingle {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 9;
+        int n = 8;
         double h = 0.001;
         double gamma = 1.0;
-        double tmax = 5.0;
+        double tmax = 10.0;
         //double tmin = 5.0;
-        double delta = 5.0;
+        double delta = 1.0;
         double f = 1;
-        double g = 5.0;
+        double g = 30.0;
         
         boolean outputZDist = true;
         
         double w = SynchUtils.getWOpt(n);
-        w = 2.0;
+        w = 3.0;
         System.out.println("w = " + w);
         
         DynaComplex alpha = new DynaComplex(f, g);
         
         double[] d = new double[n];
-        SynchUtils.detuneGauss(delta, d);
+//        SynchUtils.detuneGauss(delta, d);
+        SynchUtils.detuneLor(delta, d);
         
         CumulantParams params = new CumulantParams(n, gamma, w, delta, alpha, d);
         
@@ -57,10 +60,10 @@ public class MasterSingle {
         MasterAllToAllODEs modes = new MasterAllToAllODEs(params);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(modes);
         
-        String dir = "/Users/kristophertucker/output/temp/";
-        //WriteHandlerMaster writeHandler = new WriteHandlerMaster("/Users/kristophertucker/output/temp/master_" + params.getFilename(), n);
+        String dir = "/Users/kristophertucker/output/temp/lor/";
+        WriteHandlerMaster writeHandler = new WriteHandlerMaster(dir + "/master_" + params.getFilename(), n);
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
-        //integrator.addStepHandler(writeHandler);
+        integrator.addStepHandler(writeHandler);
         
         double[] y = new double[2*z0.length];
         

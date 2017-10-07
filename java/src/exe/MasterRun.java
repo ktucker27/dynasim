@@ -26,14 +26,14 @@ public class MasterRun {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 2;
+        int n = 6;
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 5.0;
         double tmin = 5.0;
-        double delta = 5.0;
+        double delta = 0.0;
         double f = 1;
-        double g = 5.0;
+        double g = 0.0;
         
         DynaComplex alpha = new DynaComplex(f, g);
         
@@ -43,8 +43,8 @@ public class MasterRun {
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
         
         double wmin = 2.0;
-        double wmax = 50.0;
-        double dw = (wmax - wmin)/50;
+        double wmax = 20.0;
+        double dw = (wmax - wmin)/20;
         for(double w = wmin; w <= wmax; w += dw) {
             CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
             params.add(p);
@@ -64,10 +64,10 @@ public class MasterRun {
         
         TPSOperator rho = new TPSOperator(n);
         DynaComplex t1 = new DynaComplex(0,0);
-        String dir = "/Users/kristophertucker/output/temp/";
+        String dir = "/Users/kristophertucker/output/master/vw/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
-        PrintWriter corrWriter = new PrintWriter(dir + "master_corr_D5.txt", "UTF-8");
+        PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
         for(int idx = 0; idx < params.size(); ++idx) {
             CumulantParams cparams = params.get(idx);
             MasterAllToAllODEs modes = new MasterAllToAllODEs(cparams);
@@ -84,10 +84,22 @@ public class MasterRun {
             integrator.integrate(odes, 0, y0, tmax, y);
             
             DynaComplexODEAdapter.toComplex(y, rho.getVals());
-            rho.pauliLeft(PauliOp.MINUS, 1);
-            rho.pauliLeft(PauliOp.PLUS, 0);
-            rho.trace(t1);
-            corrWriter.print(cparams.getW() + ", " + t1.getReal() + ", " + t1.getImaginary() + "\n");
+            
+            DynaComplex sum = new DynaComplex(0,0);
+            TPSOperator tmp = new TPSOperator(n);
+            for(int i = 0; i < n; ++i) {
+                for(int j = 0; j < n; ++j) {
+                    if(i == j) continue;
+                    tmp.set(rho);
+                    tmp.pauliLeft(PauliOp.MINUS, j);
+                    tmp.pauliLeft(PauliOp.PLUS, i);
+                    tmp.trace(t1);
+                    sum.add(t1);
+                }
+            }
+            sum.multiply(1.0/(n*(n-1)));
+            
+            corrWriter.print(cparams.getW() + ", " + sum.getReal() + ", " + sum.getImaginary() + "\n");
             corrWriter.flush();
         }
         corrWriter.close();

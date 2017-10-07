@@ -27,14 +27,14 @@ public class CumulantRun {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 120;
-        double h = 0.0001;
+        int n = 6;
+        double h = 0.001;
         double gamma = 1.0;
-        double tmax = 7.0;
+        double tmax = 6.0;
         double tmin = 5.0;
-        double delta = 0.0;
+        double delta = 5.0;
         double f = 1;
-        double g = 3.0;
+        double g = 5.0;
         double gel = 0.0;
         boolean correlate = false;
         
@@ -46,9 +46,9 @@ public class CumulantRun {
         
         // Get natural frequencies from Gaussian distribution
         double[] d = new double[nmax];
-//        SynchUtils.detuneGauss(delta, d);
+        SynchUtils.detuneGauss(delta, d);
 //        SynchUtils.detuneLor(delta, d);
-        SynchUtils.detuneDiscrete(delta, d);
+//        SynchUtils.detuneDiscrete(delta, d);
         
         // Get natural frequencies from file
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/even_delta_D100.txt"));
@@ -80,9 +80,9 @@ public class CumulantRun {
         
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
 
-        double wmin = 2.5;
-        double wmax = 120.0;
-        double dw = (wmax - wmin)/50;
+        double wmin = 2.0;
+        double wmax = 20.0;
+        double dw = (wmax - wmin)/20;
         for(double w = wmin; w <= wmax; w += dw) {
             CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
             p.setGel(gel);
@@ -207,7 +207,13 @@ public class CumulantRun {
                 corrWriter.print(cparams.getW() + ", " + -1.0 + ", " + term.getStopTime() + "\n");
                 success = false;
             } else {
-                corrWriter.print(cparams.getW() + ", " + SynchUtils.compCorr(y, cparams.getN()).getReal() + ", " + term.getStopTime() + "\n");
+                DynaComplex sigmap = SynchUtils.compSigmapAvg(y, cparams.getN());
+                corrWriter.print(cparams.getW() + ", " + SynchUtils.compCorr(y, cparams.getN()).getReal());
+                corrWriter.print(", " + sigmap.getReal());
+                corrWriter.print(", " + sigmap.getImaginary());
+                corrWriter.print(", " + SynchUtils.compSigmazAvg(y, cparams.getN()));
+                corrWriter.print(", " + SynchUtils.compSigmazzAvg(y, cparams.getN()));
+                corrWriter.print(", " + term.getStopTime() + "\n");
             }
             corrWriter.flush();
         }
