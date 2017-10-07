@@ -98,6 +98,22 @@ public class CumulantParams implements Comparable<CumulantParams> {
         out += "gel = " + gel + "\n";
         return out;
     }
+    
+    public static String getHeader() {
+        return "n, w, delta, f, g, gamma, gel";
+    }
+    
+    public String getLine() {
+        String out = n + ", ";
+        out += w + ", ";
+        out += delta + ", ";
+        out += alpha.getReal() + ", ";
+        out += alpha.getImaginary() + ", ";
+        out += gamma + ", ";
+        out += gel;
+        
+        return out;
+    }
 
     @Override
     public int compareTo(CumulantParams rhs) {

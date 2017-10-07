@@ -31,6 +31,16 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
         this.geff = geff;
         this.d = d;
     }
+    
+    public SynchMeanFieldODEs(CumulantParams params) {
+        super();
+        this.n = params.getN();
+        this.gamma = params.getGamma();
+        this.w = params.getW();
+        this.feff = params.getAlpha().getReal();
+        this.geff = params.getAlpha().getImaginary();
+        this.d = params.getD();
+    }
 
     /**
      * @param t the independent time variable (not used)
