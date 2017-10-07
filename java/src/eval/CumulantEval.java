@@ -30,6 +30,10 @@ public class CumulantEval implements SystemEval {
         }
     }
     
+    public int[] getStartIdx() {
+        return startIdx;
+    }
+    
     @Override
     public int getN() {
         return n;
