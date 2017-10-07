@@ -47,17 +47,18 @@ public class MeanFieldEval implements SystemEval {
 
     @Override
     public void initSpinUpX(double[] y0) {
-        initialize(y0, 0.5*Math.PI, 0, InitPhaseType.CONST);
+        initialize(y0, 0.5*Math.PI, 0.0, InitPhaseType.CONST);
     }
     
     public void initialize(double[] y0, double tip, double phase, InitPhaseType phaseType) {
         Random rand = new Random(5);
+        double stip = Math.sin(tip);
         double ctip = Math.cos(tip);
         
         for(int i = 0; i < n; ++i) {
             
             y0[i] = ctip;
-            y0[n+i] = 1.0;
+            y0[n+i] = stip;
 
             switch(phaseType) {
             case EQUAL_SPACING:

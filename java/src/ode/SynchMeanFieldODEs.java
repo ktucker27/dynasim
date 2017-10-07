@@ -62,7 +62,7 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
         // Compute the order parameter
         Complex z = new Complex(0.0);
         for(int i = 0; i < n; ++i) {
-            z = z.add(Complex.I.multiply(y[2*n+i]).exp().multiply(y[n+i]));
+            z = z.add(Complex.I.multiply(y[2*n+i]).exp().multiply(0.5*y[n+i]));
         }
         //z = z.multiply(1/(double)n);
         
@@ -71,9 +71,9 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
         
         // Compute ydot
         for(int i = 0; i < n; ++i) {
-            ydot[i] = 2*r*y[n+i]*(-feff*Math.cos(psi - y[2*n+i]) + geff*Math.sin(psi - y[2*n+i])) - gamma*(1 + y[i]) + w*(1 - y[i]);
-            ydot[n+i] = 0.5*gamma*r*y[i]*(feff*Math.cos(psi - y[2*n+i]) - geff*Math.sin(psi - y[2*n+i])) - 0.5*(gamma + w)*y[n+i];
-            ydot[2*n+i] = d[i] + 0.5*gamma*r*((y[i]/y[n+i])*(feff*Math.sin(psi - y[2*n+i]) + geff*Math.cos(psi - y[2*n+i])));
+            ydot[i] = 0.5*y[n+i]*(-feff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i]) + geff*2*r*Math.sin(psi - y[2*n+i])) - gamma*(1 + y[i]) + w*(1 - y[i]);
+            ydot[n+i] = 0.5*gamma*y[i]*(feff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i]) - geff*2*r*Math.sin(psi - y[2*n+i])) - 0.5*(gamma + w)*y[n+i];
+            ydot[2*n+i] = d[i] + 0.5*gamma*((y[i]/y[n+i])*(feff*2*r*Math.sin(psi - y[2*n+i]) + geff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i])));
         }
     }
 

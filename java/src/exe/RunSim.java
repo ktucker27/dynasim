@@ -1,11 +1,16 @@
 package exe;
 
 import handlers.SummaryWriter;
+import handlers.WriteHandlerCorr;
+import handlers.WriteHandlerMaster;
+import handlers.WriteHandlerMeanField;
 
 import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
@@ -21,6 +26,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
+import org.apache.commons.math3.ode.sampling.StepHandler;
 
 import utils.DynaComplex;
 import utils.SynchUtils;
@@ -44,6 +50,7 @@ public class RunSim {
         options.addOption("d", true, "Disorder sigma");
         options.addOption("f", true, "Elastic interaction term");
         options.addOption("g", true, "Inelastic interaction term");
+        options.addOption("t", false, "Output results versus time");
         options.addOption("h", false, "Print this help message");
         
         return options;
@@ -66,17 +73,39 @@ public class RunSim {
         }
     }
     
-    public static void main(String[] args) throws ParseException, FileNotFoundException {
+    public static void main(String[] args) throws ParseException, FileNotFoundException, UnsupportedEncodingException {
+        // Defaults
+        Simulator sim = Simulator.MEAN_FIELD;
+        String outdir = "/Users/kristophertucker/output/mf/";
+        int n = 2;
+        double h = 0.001;
+        double gamma = 1.0;
+        double f = 1.0;
+        double g = 30.0;
+        double delta = 0.0;
+        double w = 3.0;
+        
+        // TODO - Steady state detection and more general tmax
+        double tmax = 5;
+        
+        // TODO - Figure out a more general way to handle detunings
+        double[] d = new double[n];
+        generateDetunings(delta, d);
+        
+        CumulantParams dparams = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
+        
         // Parse the command line
         Options options = setupOptions();
         
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
         
-        if(cmd.hasOption("h") || cmd.getArgList().size() < 2) {
+        if(cmd.hasOption("h")) {
             printUsage(options);
             return;
         }
+        
+        boolean outputVsTime = cmd.hasOption("t");
         
         TreeMap<String, double[]> optMap = new TreeMap<String, double[]>();
         if(!parseOptions(options, args, cmd, optMap)) {
@@ -85,37 +114,24 @@ public class RunSim {
         }
         
         // Get the simulator type
-        Simulator sim;
-        try {
-            sim = Simulator.valueOf(cmd.getArgList().get(0));
-        } catch(IllegalArgumentException ex) {
-            System.err.println("Invalid simulator type.  Please choose from the following:");
-            for(int i = 0; i < Simulator.values().length; ++i) {
-                System.err.println(Simulator.values()[i].name());
+        if(cmd.getArgList().size() > 0) {
+            try {
+                sim = Simulator.valueOf(cmd.getArgList().get(0));
+            } catch(IllegalArgumentException ex) {
+                System.err.println("Invalid simulator type.  Please choose from the following:");
+                for(int i = 0; i < Simulator.values().length; ++i) {
+                    System.err.println(Simulator.values()[i].name());
+                }
+                return;
             }
-            return;
         }
         
         // Get the output directory
-        String outdir = cmd.getArgList().get(1);
+        if(cmd.getArgList().size() > 1) {
+            outdir = cmd.getArgList().get(1);
+        }
         
         // Create params list
-        int n = 70;
-        double h = 0.001;
-        double gamma = 1.0;
-        double f = 1.0;
-        double g = 5.0;
-        double delta = 1.0;
-        double w = 10.0;
-        
-        // TODO - Steady state detection and more general tmax
-        double tmax = 200;
-        
-        // TODO - Figure out a more general way to handle detunings
-        double[] d = new double[n];
-        generateDetunings(delta, d);
-        
-        CumulantParams dparams = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
         createParams(optMap, dparams, params);
         
@@ -130,19 +146,29 @@ public class RunSim {
             n = params.get(i).getN();
             
             // Initialize the ODE object
+            StepHandler writeHandler = null;
             SystemEval eval;
             FirstOrderDifferentialEquations odes;
             switch(sim) {
             case MEAN_FIELD:
+                if(outputVsTime) {
+                    writeHandler = new WriteHandlerMeanField(outdir + "/mf_" + params.get(i).getFilename(), n);
+                }
                 eval = new MeanFieldEval(n);
                 odes = new SynchMeanFieldODEs(params.get(i));
                 break;
             case CUMULANT:
+                if(outputVsTime) {
+                    writeHandler = new WriteHandlerCorr(outdir + "/cumulant_" + params.get(i).getFilename(), n);
+                }
                 eval = new CumulantEval(n);
                 CumulantAllToAllODEs codes = new CumulantAllToAllODEs(params.get(i));
                 odes = new DynaComplexODEAdapter(codes);
                 break;
             case MASTER:
+                if(outputVsTime) {
+                    writeHandler = new WriteHandlerMaster(outdir + "/master_" + params.get(i).getFilename(), n);
+                }
                 eval = new MasterEval(n);
                 MasterAllToAllODEs modes = new MasterAllToAllODEs(params.get(i));
                 odes = new DynaComplexODEAdapter(modes);
@@ -159,6 +185,11 @@ public class RunSim {
             // Perform the integration
             double[] y = new double[eval.getRealDimension()];
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
+            
+            if(writeHandler != null) {
+                integrator.addStepHandler(writeHandler);
+            }
+            
             integrator.integrate(odes, 0, y0, tmax, y);
             
             // Add the results to the summary writer
@@ -174,9 +205,14 @@ public class RunSim {
     }
     
     private static boolean parseOptions(Options options, String[] args, CommandLine cmd, TreeMap<String, double[]> optMap) {
+        TreeSet<String> ignore = new TreeSet<String>();
+        ignore.add("t");
+        
         Iterator<Option> iter = options.getOptions().iterator();
         while(iter.hasNext()) {
             Option opt = iter.next();
+            
+            if(ignore.contains(opt.getOpt())) continue;
 
             if(cmd.hasOption(opt.getOpt())) {
                 double[] dvals = parseOption(cmd.getOptionValue(opt.getOpt()), opt.getOpt());
