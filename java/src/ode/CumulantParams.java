@@ -4,7 +4,7 @@ import java.io.File;
 
 import utils.DynaComplex;
 
-public class CumulantParams {
+public class CumulantParams implements Comparable<CumulantParams> {
     private int n;
     private double gamma;
     private double w;
@@ -25,7 +25,20 @@ public class CumulantParams {
             this.d[i] = d[i];
         }
     }
-
+    
+    public CumulantParams(CumulantParams rhs) {
+        this.n = rhs.n;
+        this.gamma = rhs.gamma;
+        this.w = rhs.w;
+        this.gel = rhs.gel;
+        this.delta = rhs.delta;
+        this.alpha = new DynaComplex(rhs.alpha);
+        this.d = new double[rhs.d.length];
+        for(int i = 0; i < d.length; ++i) {
+            this.d[i] = rhs.d[i];
+        }
+    }
+    
     public int getN() {
         return n;
     }
@@ -84,5 +97,50 @@ public class CumulantParams {
         out += "Gamma = " + gamma + "\n";
         out += "gel = " + gel + "\n";
         return out;
+    }
+
+    @Override
+    public int compareTo(CumulantParams rhs) {
+        if(this.equals(rhs)) return 0;
+        
+        int sgn;
+        if((sgn = (int)Math.signum(this.n - rhs.n)) != 0) return sgn;
+        if((sgn = (int)Math.signum(this.gamma - rhs.gamma)) != 0) return sgn;
+        if((sgn = (int)Math.signum(this.w - rhs.w)) != 0) return sgn;
+        if((sgn = (int)Math.signum(this.gel - rhs.gel)) != 0) return sgn;
+        if((sgn = (int)Math.signum(this.delta - rhs.delta)) != 0) return sgn;
+        if((sgn = (int)Math.signum(this.alpha.getReal() - rhs.alpha.getReal())) != 0) return sgn;
+        if((sgn = (int)Math.signum(this.alpha.getImaginary() - rhs.alpha.getImaginary())) != 0) return sgn;
+        
+        for(int i = 0; i < this.n; ++i) {
+            if((sgn = (int)Math.signum(this.d[i] - rhs.d[i])) != 0) return sgn;
+        }
+        
+        // This should never happen
+        return 0;
+    }
+    
+    @Override
+    public boolean equals(Object arhs) {
+        if(arhs.getClass() != CumulantParams.class) return false;
+        
+        CumulantParams rhs = (CumulantParams)arhs;
+        if (this.n != rhs.n ||
+            this.gamma != rhs.gamma ||
+            this.w != rhs.w ||
+            this.gel != rhs.gel ||
+            this.delta != rhs.delta ||
+            this.alpha.getReal() != rhs.alpha.getReal() ||
+            this.alpha.getImaginary() != rhs.alpha.getImaginary()) {
+            return false;
+        }
+        
+        for(int i = 0; i < this.n; ++i) {
+            if(this.d[i] != rhs.d[i]) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }
