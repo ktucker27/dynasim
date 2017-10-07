@@ -44,7 +44,7 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
 
     /**
      * @param t the independent time variable (not used)
-     * @param y the 3*n dependent variables in the order (<sigma^z>, abs(<sigma^+>), -arg(<sigma^+>))
+     * @param y the 3*n dependent variables in the order (<sigma^z>, abs(<sigma^+>), arg(<sigma^+>))
      * @param ydot the time derivative of y
      */
     @Override
@@ -71,9 +71,9 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
         
         // Compute ydot
         for(int i = 0; i < n; ++i) {
-            ydot[i] = 0.5*y[n+i]*(-feff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i]) + geff*2*r*Math.sin(psi - y[2*n+i])) - gamma*(1 + y[i]) + w*(1 - y[i]);
-            ydot[n+i] = 0.5*gamma*y[i]*(feff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i]) - geff*2*r*Math.sin(psi - y[2*n+i])) - 0.5*(gamma + w)*y[n+i];
-            ydot[2*n+i] = d[i] + 0.5*gamma*((y[i]/y[n+i])*(feff*2*r*Math.sin(psi - y[2*n+i]) + geff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i])));
+            ydot[i] = -0.5*y[n+i]*(feff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i]) + geff*2*r*Math.sin(psi - y[2*n+i])) - gamma*(1 + y[i]) + w*(1 - y[i]);
+            ydot[n+i] = 0.5*gamma*y[i]*(feff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i]) + geff*2*r*Math.sin(psi - y[2*n+i])) - 0.5*(gamma + w)*y[n+i];
+            ydot[2*n+i] = -d[i] + 0.5*gamma*((y[i]/y[n+i])*(feff*2*r*Math.sin(psi - y[2*n+i]) - geff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i])));
         }
     }
 

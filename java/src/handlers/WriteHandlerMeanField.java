@@ -56,7 +56,7 @@ public class WriteHandlerMeanField implements StepHandler {
         // Compute the order parameter (|avg_a(<sigma_a^+>)|)
         Complex z = new Complex(0.0);
         for(int i = 0; i < n; ++i) {
-            z = z.add(Complex.I.multiply(-y[2*n+i]).exp().multiply(y[n+i]));
+            z = z.add(Complex.I.multiply(y[2*n+i]).exp().multiply(0.5*y[n+i]));
         }
         z = z.multiply(1/(double)n);
         
