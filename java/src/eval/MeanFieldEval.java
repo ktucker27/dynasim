@@ -44,6 +44,18 @@ public class MeanFieldEval implements SystemEval {
         
         return z.abs();
     }
+    
+    @Override
+    public double getAvgSigmaz(double[] y) {
+        double sum = 0.0;
+        
+        for(int i = 0; i < n; ++i) {
+            sum += y[i];
+        }
+        sum *= 1.0/n;
+
+        return sum;
+    }
 
     @Override
     public void initSpinUpX(double[] y0) {

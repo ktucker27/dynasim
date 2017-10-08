@@ -1,5 +1,8 @@
 package eval;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
 import ode.DynaComplexODEAdapter;
 import utils.DynaComplex;
 import utils.SynchUtils;
@@ -44,17 +47,66 @@ public class MasterEval implements SystemEval {
         DynaComplexODEAdapter.toComplex(y, z);
         TPSOperator rho = new TPSOperator(z);
         
-        myRho.set(rho);
-        myRho.pauliLeft(PauliOp.MINUS, 1);
-        myRho.pauliLeft(PauliOp.PLUS, 0);
-        myRho.trace(t1);
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            for(int b = a + 1; b < n; ++b) {
+                myRho.set(rho);
+                myRho.pauliLeft(PauliOp.MINUS, b);
+                myRho.pauliLeft(PauliOp.PLUS, a);
+                myRho.trace(t1);
+                sum += t1.getReal();
+            }
+        }
         
-        return t1.getReal();
+        return sum/(0.5*n*(n-1));
+    }
+    
+    @Override
+    public double getAvgSigmaz(double[] y) {
+        DynaComplexODEAdapter.toComplex(y, z);
+        TPSOperator rho = new TPSOperator(z);
+        
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            myRho.set(rho);
+            myRho.pauliLeft(PauliOp.Z, a);
+            myRho.trace(t1);
+            sum += t1.getReal();
+        }
+        
+        return sum/(double)n;
     }
 
     @Override
     public void initSpinUpX(double[] y0) {
         myRho.set(1.0/Math.pow(2,n));
         DynaComplexODEAdapter.toReal(myRho.getVals(), y0);
+    }
+    
+    public void writeZDist(double[] y, String filepath) throws FileNotFoundException {
+        DynaComplexODEAdapter.toComplex(y, z);
+        TPSOperator rho = new TPSOperator(z);
+        
+        double[] dist = new double[2*n + 1];
+        for(int i = 0; i < dist.length; ++i) {
+            dist[i] = 0.0;
+        }
+        
+        for(int i = 0; i < SynchUtils.pow(2, n); ++i) {
+            int k = 0;
+            int ii = i;
+            for(int j = 0; j < n; ++j) {
+                k += (ii % 2);
+                ii = ii >> 1;
+            }
+            int eval = n - 2*k;
+            dist[eval + n] += rho.getVal(i, i).getReal();
+        }
+        
+        PrintWriter writer = new PrintWriter(filepath);
+        for(int i = 0; i < dist.length; ++i) {
+            writer.write(dist[i] + "\n");
+        }
+        writer.close();
     }
 }

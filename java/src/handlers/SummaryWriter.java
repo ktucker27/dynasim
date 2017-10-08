@@ -12,9 +12,11 @@ public class SummaryWriter {
     
     private class SummaryVals {
         double orderParam;
+        double avgSigmaz;
 
         public SummaryVals() {
             orderParam = 0.0;
+            avgSigmaz = 0.0;
         }
     }
     
@@ -29,6 +31,7 @@ public class SummaryWriter {
     public void addVals(SystemEval eval, CumulantParams params, double[] y) {
         SummaryVals vals = new SummaryVals();
         vals.orderParam = eval.getOrderParam(y);
+        vals.avgSigmaz = eval.getAvgSigmaz(y);
         myVals.put(params, vals);
     }
     
@@ -42,13 +45,14 @@ public class SummaryWriter {
             CumulantParams params = iter.next();
             SummaryVals vals = myVals.get(params);
             myWriter.write(params.getLine() + ", ");
-            myWriter.write(vals.orderParam + "\n");
+            myWriter.write(vals.orderParam + ", ");
+            myWriter.write(vals.avgSigmaz + "\n");
         }
         
         myWriter.close();
     }
     
     private String getHeader() {
-        return "order_param";
+        return "order_param, avg_sigmaz";
     }
 }

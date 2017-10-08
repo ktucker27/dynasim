@@ -3,7 +3,6 @@ package eval;
 import java.util.Random;
 
 import ode.DynaComplexODEAdapter;
-
 import utils.DynaComplex;
 
 
@@ -59,6 +58,19 @@ public class CumulantEval implements SystemEval {
         }
         sum *= 1.0/(n*(n-1));
         
+        return sum;
+    }
+    
+    @Override
+    public double getAvgSigmaz(double[] y) {
+        double sum = 0.0;
+        int beginIdx = 2*startIdx[2];
+        
+        for(int i = beginIdx; i < beginIdx + 2*n; i += 2) {
+            sum += y[i];
+        }
+        sum *= 1.0/n;
+
         return sum;
     }
 

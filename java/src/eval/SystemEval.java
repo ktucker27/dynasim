@@ -19,5 +19,7 @@ public interface SystemEval {
     
     public double getOrderParam(double[] y);
     
+    public double getAvgSigmaz(double[] y);
+    
     public void initSpinUpX(double[] y0);
 }

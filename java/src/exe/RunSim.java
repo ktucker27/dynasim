@@ -1,10 +1,12 @@
 package exe;
 
+import handlers.CumulantSteadyStateTerminator;
 import handlers.SummaryWriter;
 import handlers.WriteHandlerCorr;
 import handlers.WriteHandlerMaster;
 import handlers.WriteHandlerMeanField;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -51,6 +53,7 @@ public class RunSim {
         options.addOption("f", true, "Elastic interaction term");
         options.addOption("g", true, "Inelastic interaction term");
         options.addOption("t", false, "Output results versus time");
+        options.addOption("zd", false, "Output collective z distribution when running MASTER");
         options.addOption("h", false, "Print this help message");
         
         return options;
@@ -69,7 +72,7 @@ public class RunSim {
         Iterator<Option> iter = options.getOptions().iterator();
         while(iter.hasNext()) {
             Option opt = iter.next();
-            System.out.println("    " + opt.getOpt() + ": " + opt.getDescription());
+            System.out.printf("%5s: %s\n", opt.getOpt(), opt.getDescription());
         }
     }
     
@@ -86,7 +89,8 @@ public class RunSim {
         double w = 3.0;
         
         // TODO - Steady state detection and more general tmax
-        double tmax = 5;
+        double tmin = 2;
+        double tmax = 20;
         
         // TODO - Figure out a more general way to handle detunings
         double[] d = new double[n];
@@ -106,6 +110,7 @@ public class RunSim {
         }
         
         boolean outputVsTime = cmd.hasOption("t");
+        boolean outputZdist = cmd.hasOption("zd");
         
         TreeMap<String, double[]> optMap = new TreeMap<String, double[]>();
         if(!parseOptions(options, args, cmd, optMap)) {
@@ -113,10 +118,17 @@ public class RunSim {
             return;
         }
         
-        // Get the simulator type
+        // Get the output directory
         if(cmd.getArgList().size() > 0) {
+            outdir = cmd.getArgList().get(0);
+        }
+        File fdir = new File(outdir);
+        fdir.mkdirs();
+        
+        // Get the simulator type
+        if(cmd.getArgList().size() > 1) {
             try {
-                sim = Simulator.valueOf(cmd.getArgList().get(0));
+                sim = Simulator.valueOf(cmd.getArgList().get(1));
             } catch(IllegalArgumentException ex) {
                 System.err.println("Invalid simulator type.  Please choose from the following:");
                 for(int i = 0; i < Simulator.values().length; ++i) {
@@ -126,17 +138,15 @@ public class RunSim {
             }
         }
         
-        // Get the output directory
-        if(cmd.getArgList().size() > 1) {
-            outdir = cmd.getArgList().get(1);
-        }
-        
         // Create params list
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
         createParams(optMap, dparams, params);
         
         // Initialize the summary writer
-        SummaryWriter summWriter = new SummaryWriter(outdir + "/summary.txt");
+        SummaryWriter summWriter = null;
+        if(params.size() > 1) {
+            summWriter = new SummaryWriter(outdir + "/" + sim.name().toLowerCase() + "_summary.txt");
+        }
         
         long startTime = System.nanoTime();
         
@@ -145,29 +155,33 @@ public class RunSim {
 
             n = params.get(i).getN();
             
+            String timefile = outdir + "/" + sim.name().toLowerCase() + "_" + params.get(i).getFilename();
+            
             // Initialize the ODE object
             StepHandler writeHandler = null;
+            CumulantSteadyStateTerminator term = null;
             SystemEval eval;
             FirstOrderDifferentialEquations odes;
             switch(sim) {
             case MEAN_FIELD:
                 if(outputVsTime) {
-                    writeHandler = new WriteHandlerMeanField(outdir + "/mf_" + params.get(i).getFilename(), n);
+                    writeHandler = new WriteHandlerMeanField(timefile, n);
                 }
                 eval = new MeanFieldEval(n);
                 odes = new SynchMeanFieldODEs(params.get(i));
                 break;
             case CUMULANT:
                 if(outputVsTime) {
-                    writeHandler = new WriteHandlerCorr(outdir + "/cumulant_" + params.get(i).getFilename(), n);
+                    writeHandler = new WriteHandlerCorr(timefile, n);
                 }
+                term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.0025, n);
                 eval = new CumulantEval(n);
                 CumulantAllToAllODEs codes = new CumulantAllToAllODEs(params.get(i));
                 odes = new DynaComplexODEAdapter(codes);
                 break;
             case MASTER:
                 if(outputVsTime) {
-                    writeHandler = new WriteHandlerMaster(outdir + "/master_" + params.get(i).getFilename(), n);
+                    writeHandler = new WriteHandlerMaster(timefile, n);
                 }
                 eval = new MasterEval(n);
                 MasterAllToAllODEs modes = new MasterAllToAllODEs(params.get(i));
@@ -182,18 +196,31 @@ public class RunSim {
             double[] y0 = new double[eval.getRealDimension()];
             eval.initSpinUpX(y0);
 
-            // Perform the integration
-            double[] y = new double[eval.getRealDimension()];
+            // Setup integrator
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
             
             if(writeHandler != null) {
                 integrator.addStepHandler(writeHandler);
             }
             
+            if(term != null) {
+                integrator.addStepHandler(term.getDetector());
+                integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
+            }
+            
+            // Perform the integration
+            double[] y = new double[eval.getRealDimension()];
             integrator.integrate(odes, 0, y0, tmax, y);
             
             // Add the results to the summary writer
-            summWriter.addVals(eval, params.get(i), y);
+            if(summWriter != null) {
+                summWriter.addVals(eval, params.get(i), y);
+            }
+            
+            // Post-processing
+            if(outputZdist && sim == Simulator.MASTER) {
+                ((MasterEval)eval).writeZDist(y, outdir + "zdist_" + params.get(i).getFilename());
+            }
         }
         
         long endTime = System.nanoTime();
@@ -201,12 +228,15 @@ public class RunSim {
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
         
         // Write the summary
-        summWriter.writeToFile();
+        if(summWriter != null) {
+            summWriter.writeToFile();
+        }
     }
     
     private static boolean parseOptions(Options options, String[] args, CommandLine cmd, TreeMap<String, double[]> optMap) {
         TreeSet<String> ignore = new TreeSet<String>();
         ignore.add("t");
+        ignore.add("zd");
         
         Iterator<Option> iter = options.getOptions().iterator();
         while(iter.hasNext()) {
@@ -269,7 +299,8 @@ public class RunSim {
     }
     
     private static void generateDetunings(double delta, double[] d) {
-        SynchUtils.detuneGauss(delta, d);
+//        SynchUtils.detuneGauss(delta, d);
+        SynchUtils.detuneLor(delta, d);
     }
     
     private static double[] parseOption(String opt, String name) {
