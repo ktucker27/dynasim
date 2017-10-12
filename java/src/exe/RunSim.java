@@ -1,24 +1,13 @@
 package exe;
 
-import handlers.CumulantSteadyStateTerminator;
-import handlers.SummaryWriter;
-import handlers.WriteHandlerCorr;
-import handlers.WriteHandlerMaster;
-import handlers.WriteHandlerMeanField;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
-import ode.DynaComplexODEAdapter;
-import ode.MasterAllToAllODEs;
-import ode.SynchMeanFieldODEs;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -30,12 +19,22 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.ode.sampling.StepHandler;
 
-import utils.DynaComplex;
-import utils.SynchUtils;
 import eval.CumulantEval;
 import eval.MasterEval;
 import eval.MeanFieldEval;
 import eval.SystemEval;
+import handlers.CumulantSteadyStateTerminator;
+import handlers.SummaryWriter;
+import handlers.WriteHandlerCorr;
+import handlers.WriteHandlerMaster;
+import handlers.WriteHandlerMeanField;
+import ode.CumulantAllToAllODEs;
+import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
+import ode.MasterAllToAllODEs;
+import ode.SynchMeanFieldODEs;
+import utils.DynaComplex;
+import utils.SynchUtils;
 
 public class RunSim {
     
@@ -54,6 +53,7 @@ public class RunSim {
         options.addOption("g", true, "Inelastic interaction term");
         options.addOption("t", false, "Output results versus time");
         options.addOption("zd", false, "Output collective z distribution when running MASTER");
+        options.addOption("df", true, "File of detunings to use");
         options.addOption("h", false, "Print this help message");
         
         return options;
@@ -112,6 +112,17 @@ public class RunSim {
         boolean outputVsTime = cmd.hasOption("t");
         boolean outputZdist = cmd.hasOption("zd");
         
+        boolean detuningsFromFile = cmd.hasOption("df");
+        ArrayList<Double> fileDetunings = null;
+        if(detuningsFromFile) {
+            fileDetunings = new ArrayList<Double>();
+            Scanner inputStream = new Scanner(new File(cmd.getOptionValue("df")));
+            while(inputStream.hasNext()) {
+                fileDetunings.add(Double.parseDouble(inputStream.next()));
+            }
+            inputStream.close();
+        }
+        
         TreeMap<String, double[]> optMap = new TreeMap<String, double[]>();
         if(!parseOptions(options, args, cmd, optMap)) {
             printUsage(options);
@@ -144,17 +155,29 @@ public class RunSim {
         
         // Initialize the summary writer
         SummaryWriter summWriter = null;
-        if(params.size() > 1) {
+        if(params.size() > 1 || !outputVsTime) {
             summWriter = new SummaryWriter(outdir + "/" + sim.name().toLowerCase() + "_summary.txt");
         }
         
         long startTime = System.nanoTime();
         
         for(int i = 0; i < params.size(); ++i) {
-            System.out.println(params.get(i).toString());
-
             n = params.get(i).getN();
             
+            // Override the detunings if provided in a file
+            if(detuningsFromFile) {
+                if(n != fileDetunings.size()) {
+                    System.err.println("Number of detunings in provided file does not match number of particles");
+                    break;
+                }
+                
+                for(int j = 0; j < fileDetunings.size(); ++j) {
+                    params.get(i).getD()[j] = fileDetunings.get(j);
+                }
+            }
+            
+            System.out.println(params.get(i).toString());
+
             String timefile = outdir + "/" + sim.name().toLowerCase() + "_" + params.get(i).getFilename();
             
             // Initialize the ODE object
@@ -237,6 +260,7 @@ public class RunSim {
         TreeSet<String> ignore = new TreeSet<String>();
         ignore.add("t");
         ignore.add("zd");
+        ignore.add("df");
         
         Iterator<Option> iter = options.getOptions().iterator();
         while(iter.hasNext()) {
