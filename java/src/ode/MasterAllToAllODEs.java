@@ -1,7 +1,5 @@
 package ode;
 
-import java.math.BigInteger;
-
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 

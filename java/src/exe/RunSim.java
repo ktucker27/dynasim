@@ -78,15 +78,15 @@ public class RunSim {
     
     public static void main(String[] args) throws ParseException, FileNotFoundException, UnsupportedEncodingException {
         // Defaults
-        Simulator sim = Simulator.MEAN_FIELD;
-        String outdir = "/Users/kristophertucker/output/mf/";
+        Simulator sim = Simulator.MASTER;
+        String outdir = "/Users/tuckerkj/output/temp/";
         int n = 2;
         double h = 0.001;
         double gamma = 1.0;
-        double f = 1.0;
-        double g = 30.0;
-        double delta = 0.0;
-        double w = 3.0;
+        double f = 0.0;
+        double g = 0.0;
+        double delta = 10.0;
+        double w = 0.0;
         
         // TODO - Steady state detection and more general tmax
         double tmin = 2;

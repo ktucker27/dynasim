@@ -11,7 +11,7 @@ public class MasterTest {
      * @throws InterruptedException 
      */
     public static void main(String[] args) throws InterruptedException {
-        int n = 9;
+        int n = 2;
         DynaComplex t1 = new DynaComplex(0,0);
         
         TPSOperator rho = new TPSOperator(n);
@@ -22,14 +22,17 @@ public class MasterTest {
         rho.trace(t1);
         System.out.println("trace: " + t1);
         
-        for(int i = 0; i < 100; ++i) {
-            Thread.sleep(1000);
-        }
+        rho.pauliLeft(PauliOp.Z, 0);
+        System.out.println(rho);
+        
+//        for(int i = 0; i < 100; ++i) {
+//            Thread.sleep(1000);
+//        }
         
 //        TPSOperator sum = new TPSOperator(n);
 //        sum.set(0);
 //        t1.set(1,0);
-//        sum.pauliLeft(PauliOp.MINUS, 0, t1, rho);
+//        sum.pauliLeft(PauliOp.Z, 1, t1, rho);
 //        System.out.println(sum);
     }
 
