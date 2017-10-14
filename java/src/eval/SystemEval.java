@@ -30,5 +30,5 @@ public interface SystemEval {
     
     public void initSpinUpX(double[] y0);
     
-    public void initialize(double[] y0, double zenith, double phase, InitAngleType phaseType, InitAngleType zenithType);
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType zenithType, InitAngleType phaseType);
 }

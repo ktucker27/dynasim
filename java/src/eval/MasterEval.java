@@ -84,7 +84,7 @@ public class MasterEval implements SystemEval {
     }
     
     @Override
-    public void initialize(double[] y0, double zenith, double phase, InitAngleType phaseType, InitAngleType zenithType) {
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType zenithType, InitAngleType phaseType) {
         throw new UnsupportedOperationException("Complete initialization functionality not yet implemented for the master solver");
     }
     

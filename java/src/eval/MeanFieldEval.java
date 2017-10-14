@@ -57,7 +57,7 @@ public class MeanFieldEval implements SystemEval {
     }
     
     @Override
-    public void initialize(double[] y0, double zenith, double phase, InitAngleType phaseType, InitAngleType zenithType) {
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType zenithType, InitAngleType phaseType) {
         Random rand = new Random(5);
         double tip = 0.0;
         double stip = 0.0;

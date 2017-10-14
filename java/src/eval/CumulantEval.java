@@ -80,7 +80,7 @@ public class CumulantEval implements SystemEval {
     }
     
     @Override
-    public void initialize(double[] y0, double zenith, double phase, InitAngleType phaseType, InitAngleType zenithType) {
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType zenithType, InitAngleType phaseType) {
         double zi = 0.0;
         double pi = 0.0;
         double szi = 0.0;

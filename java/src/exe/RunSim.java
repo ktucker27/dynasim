@@ -38,6 +38,7 @@ import eval.CumulantEval;
 import eval.MasterEval;
 import eval.MeanFieldEval;
 import eval.SystemEval;
+import eval.SystemEval.InitAngleType;
 
 public class RunSim {
     
@@ -45,6 +46,16 @@ public class RunSim {
         MEAN_FIELD,
         CUMULANT,
         MASTER
+    }
+    
+    public static class ICAngleParams {
+        public double initAngle;
+        public InitAngleType type;
+
+        public ICAngleParams() {
+            initAngle = 0.0;
+            type = InitAngleType.CONST;
+        }
     }
 
     private static Options setupOptions(TreeSet<String> ignore) {
@@ -60,6 +71,8 @@ public class RunSim {
         options.addOption("l", false, "Use Lorentzian detunings (default is Gaussian)");
         options.addOption("tmin", true, "Minimum simulation time");
         options.addOption("tmax", true, "Maximum simulation time");
+        options.addOption("iz", true, "Initial zenith angle (CONST value in degrees | EQUAL_SPACING | RANDOM)");
+        options.addOption("ip", true, "Initial phase angle (CONST value in degrees | EQUAL_SPACING | RANDOM)");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -69,6 +82,8 @@ public class RunSim {
         ignore.add("l");
         ignore.add("tmin");
         ignore.add("tmax");
+        ignore.add("iz");
+        ignore.add("ip");
         
         return options;
     }
@@ -92,8 +107,8 @@ public class RunSim {
     
     public static void main(String[] args) throws ParseException, FileNotFoundException, UnsupportedEncodingException {
         // Defaults
-        Simulator sim = Simulator.MASTER;
-        String outdir = "/Users/tuckerkj/output/temp/";
+        Simulator sim = Simulator.MEAN_FIELD;
+        String outdir = "/Users/kristophertucker/output/temp/";
         int n = 2;
         double h = 0.001;
         double gamma = 1.0;
@@ -104,6 +119,15 @@ public class RunSim {
         
         double tmin = 2;
         double tmax = 20;
+        
+        // Initial condition defaults
+        ICAngleParams izParams = new ICAngleParams();
+        izParams.initAngle = Math.PI/2.0;
+        izParams.type = InitAngleType.CONST;
+        
+        ICAngleParams ipParams = new ICAngleParams();
+        ipParams.initAngle = 0.0;
+        ipParams.type = InitAngleType.EQUAL_SPACING;
         
         // Parse the command line
         TreeSet<String> optIgnore = new TreeSet<String>();
@@ -121,6 +145,22 @@ public class RunSim {
         boolean outputZdist = cmd.hasOption("zd");
         boolean useLorDetunings = cmd.hasOption("l");
         
+        // Process initial condition overrides
+        if(cmd.hasOption("iz")) {
+            if(!parseInitAngle(cmd.getOptionValue("iz"), "iz", izParams)) {
+                return;
+            }
+        }
+        
+        if(cmd.hasOption("ip")) {
+            if(!parseInitAngle(cmd.getOptionValue("ip"), "ip", ipParams)) {
+                return;
+            }
+        }
+        
+        System.out.println("IC - zenith: " + izParams.type.name() + ", " + izParams.initAngle + 
+                           "; phase: " + ipParams.type.name() + ", " + ipParams.initAngle);
+
         // Override tmin/tmax
         if(cmd.hasOption("tmin")) {
             try {
@@ -255,7 +295,12 @@ public class RunSim {
             
             // Setup initial conditions
             double[] y0 = new double[eval.getRealDimension()];
-            eval.initSpinUpX(y0);
+            if(sim == Simulator.MASTER) {
+                // TODO - Remove this once MasterEval has implemented the initialize method
+                eval.initSpinUpX(y0);
+            } else {
+                eval.initialize(y0, izParams.initAngle, ipParams.initAngle, izParams.type, ipParams.type);
+            }
 
             // Setup integrator
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
@@ -392,5 +437,31 @@ public class RunSim {
         }
         
         return vals;
+    }
+    
+    private static boolean parseInitAngle(String optVal, String optName, ICAngleParams params) {
+        try {
+            params.initAngle = Double.parseDouble(optVal);
+            params.initAngle *= Math.PI/180.0;
+            params.type = InitAngleType.CONST;
+        } catch(NumberFormatException ex) {
+            params.initAngle = 0.0;
+            try {
+                params.type = InitAngleType.valueOf(optVal);
+            } catch(IllegalArgumentException ex2) {
+                System.err.println("Invalid value of option " + optName + ".  Choices are:");
+                for(int i = 0; i < InitAngleType.values().length; ++i) {
+                    if(InitAngleType.values()[i].equals(InitAngleType.valueOf("CONST"))) {
+                        System.err.println("Initial const value (in degrees)");
+                    } else {
+                        System.err.println(InitAngleType.values()[i]);
+                    }
+                }
+                
+                return false;
+            }
+        }
+        
+        return true;
     }
 }
