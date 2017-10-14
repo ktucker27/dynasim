@@ -55,6 +55,8 @@ public class RunSim {
         options.addOption("zd", false, "Output collective z distribution when running MASTER");
         options.addOption("df", true, "File of detunings to use");
         options.addOption("l", false, "Use Lorentzian detunings (default is Gaussian)");
+        options.addOption("tmin", true, "Minimum simulation time");
+        options.addOption("tmax", true, "Maximum simulation time");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -62,6 +64,8 @@ public class RunSim {
         ignore.add("zd");
         ignore.add("df");
         ignore.add("l");
+        ignore.add("tmin");
+        ignore.add("tmax");
         
         return options;
     }
@@ -95,7 +99,6 @@ public class RunSim {
         double delta = 10.0;
         double w = 0.0;
         
-        // TODO - Steady state detection and more general tmax
         double tmin = 2;
         double tmax = 20;
         
@@ -115,6 +118,26 @@ public class RunSim {
         boolean outputZdist = cmd.hasOption("zd");
         boolean useLorDetunings = cmd.hasOption("l");
         
+        // Override tmin/tmax
+        if(cmd.hasOption("tmin")) {
+            try {
+                tmin = Double.parseDouble(cmd.getOptionValue("tmin"));
+            } catch(NumberFormatException ex) {
+                System.err.println("Failed to parse tmin value " + cmd.getOptionValue("tmin"));
+                return;
+            }
+        }
+        
+        if(cmd.hasOption("tmax")) {
+            try {
+                tmax = Double.parseDouble(cmd.getOptionValue("tmax"));
+            } catch(NumberFormatException ex) {
+                System.err.println("Failed to parse tmax value " + cmd.getOptionValue("tmax"));
+                return;
+            }
+        }
+        
+        // Read detunings from a file if requested
         boolean detuningsFromFile = cmd.hasOption("df");
         ArrayList<Double> fileDetunings = null;
         if(detuningsFromFile) {
