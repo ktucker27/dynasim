@@ -44,7 +44,7 @@ public class RunSim {
         MASTER
     }
 
-    private static Options setupOptions() {
+    private static Options setupOptions(TreeSet<String> ignore) {
         Options options = new Options();
         options.addOption("n", true, "Number of particles");
         options.addOption("w", true, "Incoherent pumping");
@@ -54,13 +54,19 @@ public class RunSim {
         options.addOption("t", false, "Output results versus time");
         options.addOption("zd", false, "Output collective z distribution when running MASTER");
         options.addOption("df", true, "File of detunings to use");
+        options.addOption("l", false, "Use Lorentzian detunings (default is Gaussian)");
         options.addOption("h", false, "Print this help message");
+        
+        ignore.add("t");
+        ignore.add("zd");
+        ignore.add("df");
+        ignore.add("l");
         
         return options;
     }
     
     private static void printUsage(Options options) {
-        System.out.println("RunSim [options] SIMULATOR outdir\n");
+        System.out.println("RunSim [options] outdir SIMULATOR\n");
         System.out.println("Simulator types:");
         for(int i = 0; i < Simulator.values().length; ++i) {
             System.out.println(Simulator.values()[i]);
@@ -92,14 +98,9 @@ public class RunSim {
         double tmin = 2;
         double tmax = 20;
         
-        // TODO - Figure out a more general way to handle detunings
-        double[] d = new double[n];
-        generateDetunings(delta, d);
-        
-        CumulantParams dparams = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
-        
         // Parse the command line
-        Options options = setupOptions();
+        TreeSet<String> optIgnore = new TreeSet<String>();
+        Options options = setupOptions(optIgnore);
         
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
@@ -111,6 +112,7 @@ public class RunSim {
         
         boolean outputVsTime = cmd.hasOption("t");
         boolean outputZdist = cmd.hasOption("zd");
+        boolean useLorDetunings = cmd.hasOption("l");
         
         boolean detuningsFromFile = cmd.hasOption("df");
         ArrayList<Double> fileDetunings = null;
@@ -122,9 +124,15 @@ public class RunSim {
             }
             inputStream.close();
         }
+
+        // Default detunings
+        double[] d = new double[n];
+        generateDetunings(delta, d, useLorDetunings);
+        
+        CumulantParams dparams = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
         
         TreeMap<String, double[]> optMap = new TreeMap<String, double[]>();
-        if(!parseOptions(options, args, cmd, optMap)) {
+        if(!parseOptions(options, optIgnore, args, cmd, optMap)) {
             printUsage(options);
             return;
         }
@@ -151,7 +159,7 @@ public class RunSim {
         
         // Create params list
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
-        createParams(optMap, dparams, params);
+        createParams(optMap, dparams, params, useLorDetunings);
         
         // Initialize the summary writer
         SummaryWriter summWriter = null;
@@ -256,12 +264,7 @@ public class RunSim {
         }
     }
     
-    private static boolean parseOptions(Options options, String[] args, CommandLine cmd, TreeMap<String, double[]> optMap) {
-        TreeSet<String> ignore = new TreeSet<String>();
-        ignore.add("t");
-        ignore.add("zd");
-        ignore.add("df");
-        
+    private static boolean parseOptions(Options options, TreeSet<String> ignore, String[] args, CommandLine cmd, TreeMap<String, double[]> optMap) {
         Iterator<Option> iter = options.getOptions().iterator();
         while(iter.hasNext()) {
             Option opt = iter.next();
@@ -286,7 +289,7 @@ public class RunSim {
         return true;
     }
     
-    private static void createParams(TreeMap<String, double[]> optMap, CumulantParams dparams, ArrayList<CumulantParams> params) {
+    private static void createParams(TreeMap<String, double[]> optMap, CumulantParams dparams, ArrayList<CumulantParams> params, boolean useLorDetunings) {
         double[] nvals = getValList(optMap, "n", dparams.getN());
         double[] wvals = getValList(optMap, "w", dparams.getW());
         double[] dvals = getValList(optMap, "d", dparams.getDelta());
@@ -300,7 +303,7 @@ public class RunSim {
                         for(int gidx = 0; gidx < gvals.length; ++gidx) {
                             int n = (int)nvals[nidx];
                             double[] d = new double[n];
-                            generateDetunings(dvals[didx], d);
+                            generateDetunings(dvals[didx], d, useLorDetunings);
                             params.add(new CumulantParams(n, dparams.getGamma(),
                                                           wvals[widx], dvals[didx],
                                                           new DynaComplex(fvals[fidx], gvals[gidx]), d));
@@ -322,9 +325,12 @@ public class RunSim {
         return vals;
     }
     
-    private static void generateDetunings(double delta, double[] d) {
-//        SynchUtils.detuneGauss(delta, d);
-        SynchUtils.detuneLor(delta, d);
+    private static void generateDetunings(double delta, double[] d, boolean useLorDetunings) {
+        if(useLorDetunings) {
+            SynchUtils.detuneLor(delta, d);
+        } else {
+            SynchUtils.detuneGauss(delta, d);
+        }
     }
     
     private static double[] parseOption(String opt, String name) {
