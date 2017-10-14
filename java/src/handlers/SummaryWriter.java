@@ -28,10 +28,17 @@ public class SummaryWriter {
         myWriter = new PrintWriter(filepath);
     }
     
-    public void addVals(SystemEval eval, CumulantParams params, double[] y) {
+    public void addVals(CumulantParams params, SystemEval eval, double[] y) {
         SummaryVals vals = new SummaryVals();
         vals.orderParam = eval.getOrderParam(y);
         vals.avgSigmaz = eval.getAvgSigmaz(y);
+        myVals.put(params, vals);
+    }
+    
+    public void addVals(CumulantParams params, DataRecorder recorder) {
+        SummaryVals vals = new SummaryVals();
+        vals.orderParam = recorder.getMeanOrderParam();
+        vals.avgSigmaz = recorder.getMeanAvgZs();
         myVals.put(params, vals);
     }
     

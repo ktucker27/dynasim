@@ -1,5 +1,12 @@
 package exe;
 
+import handlers.CumulantSteadyStateTerminator;
+import handlers.DataRecorder;
+import handlers.SummaryWriter;
+import handlers.WriteHandlerCorr;
+import handlers.WriteHandlerMaster;
+import handlers.WriteHandlerMeanField;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
@@ -8,6 +15,12 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import ode.CumulantAllToAllODEs;
+import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
+import ode.MasterAllToAllODEs;
+import ode.SynchMeanFieldODEs;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -19,22 +32,12 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.ode.sampling.StepHandler;
 
+import utils.DynaComplex;
+import utils.SynchUtils;
 import eval.CumulantEval;
 import eval.MasterEval;
 import eval.MeanFieldEval;
 import eval.SystemEval;
-import handlers.CumulantSteadyStateTerminator;
-import handlers.SummaryWriter;
-import handlers.WriteHandlerCorr;
-import handlers.WriteHandlerMaster;
-import handlers.WriteHandlerMeanField;
-import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
-import ode.DynaComplexODEAdapter;
-import ode.MasterAllToAllODEs;
-import ode.SynchMeanFieldODEs;
-import utils.DynaComplex;
-import utils.SynchUtils;
 
 public class RunSim {
     
@@ -247,12 +250,16 @@ public class RunSim {
                 return;
             }
             
+            // Setup the data recorder
+            DataRecorder recorder = new DataRecorder(eval, 0.01, 1.0);
+            
             // Setup initial conditions
             double[] y0 = new double[eval.getRealDimension()];
             eval.initSpinUpX(y0);
 
             // Setup integrator
             AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
+            integrator.addStepHandler(recorder);
             
             if(writeHandler != null) {
                 integrator.addStepHandler(writeHandler);
@@ -269,7 +276,7 @@ public class RunSim {
             
             // Add the results to the summary writer
             if(summWriter != null) {
-                summWriter.addVals(eval, params.get(i), y);
+                summWriter.addVals(params.get(i), recorder);
             }
             
             // Post-processing
