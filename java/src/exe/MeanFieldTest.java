@@ -4,11 +4,13 @@ import org.apache.commons.math3.complex.Complex;
 
 import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
 import ode.SynchMeanFieldODEs;
 import utils.DynaComplex;
 import utils.SynchUtils;
 import eval.CumulantEval;
 import eval.MeanFieldEval;
+import eval.SystemEval.InitAngleType;
 
 public class MeanFieldTest {
 
@@ -34,6 +36,7 @@ public class MeanFieldTest {
         
         CumulantEval ceval = new CumulantEval(n);
         DynaComplex[] z = new DynaComplex[ceval.getDimension()];
+        double[] dz = new double[2*ceval.getDimension()];
         DynaComplex[] zDot = new DynaComplex[ceval.getDimension()];
         for(int i = 0; i < ceval.getDimension(); ++i) {
             z[i] = new DynaComplex();
@@ -45,11 +48,12 @@ public class MeanFieldTest {
         double maxVal = 0.0;
         for(double theta = 0.1; theta < Math.PI; theta += dtheta) {
             for(double phi = 0; phi <= 2*Math.PI; phi += dphi) {
-                meval.initialize(y, theta, phi, MeanFieldEval.InitPhaseType.CONST);
+                meval.initialize(y, theta, phi, InitAngleType.CONST, InitAngleType.CONST);
                 SynchMeanFieldODEs modes = new SynchMeanFieldODEs(dparams);
                 modes.computeDerivatives(0, y, yDot);
 
-                ceval.initialize(z, theta, phi, false);
+                ceval.initialize(dz, theta, phi, InitAngleType.CONST, InitAngleType.CONST);
+                DynaComplexODEAdapter.toComplex(dz, z);
                 CumulantAllToAllODEs codes = new CumulantAllToAllODEs(dparams);
                 codes.computeDerivatives(0, z, zDot);
 
