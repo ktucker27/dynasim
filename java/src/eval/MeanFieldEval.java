@@ -8,12 +8,6 @@ public class MeanFieldEval implements SystemEval {
     
     int n;
     
-    public enum InitPhaseType {
-        EQUAL_SPACING,
-        RANDOM,
-        CONST
-    }
-    
     public MeanFieldEval(int n) {
         this.n = n;
     }
@@ -59,15 +53,32 @@ public class MeanFieldEval implements SystemEval {
 
     @Override
     public void initSpinUpX(double[] y0) {
-        initialize(y0, 0.5*Math.PI, 0.0, InitPhaseType.CONST);
+        initialize(y0, 0.5*Math.PI, 0.0, InitAngleType.CONST, InitAngleType.CONST);
     }
     
-    public void initialize(double[] y0, double tip, double phase, InitPhaseType phaseType) {
+    @Override
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType phaseType, InitAngleType zenithType) {
         Random rand = new Random(5);
-        double stip = Math.sin(tip);
-        double ctip = Math.cos(tip);
+        double tip = 0.0;
+        double stip = 0.0;
+        double ctip = 0.0;
         
         for(int i = 0; i < n; ++i) {
+            
+            switch(zenithType) {
+            case EQUAL_SPACING:
+                tip = i*Math.PI/(double)n;
+                break;
+            case RANDOM:
+                tip = rand.nextDouble()*Math.PI;
+                break;
+            case CONST:
+                tip = zenith;
+                break;
+            }
+            
+            stip = Math.sin(tip);
+            ctip = Math.cos(tip);
             
             y0[i] = ctip;
             y0[n+i] = stip;

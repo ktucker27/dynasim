@@ -83,6 +83,11 @@ public class MasterEval implements SystemEval {
         DynaComplexODEAdapter.toReal(myRho.getVals(), y0);
     }
     
+    @Override
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType phaseType, InitAngleType zenithType) {
+        throw new UnsupportedOperationException("Complete initialization functionality not yet implemented for the master solver");
+    }
+    
     public void writeZDist(double[] y, String filepath) throws FileNotFoundException {
         DynaComplexODEAdapter.toComplex(y, z);
         TPSOperator rho = new TPSOperator(z);

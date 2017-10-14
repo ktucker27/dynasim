@@ -1,21 +1,25 @@
 package exe;
 
+import handlers.CumulantSteadyStateTerminator;
+import handlers.WriteBlochVectors;
+import handlers.WriteHandlerCorr;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Scanner;
 
-import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
-
-import handlers.CumulantSteadyStateTerminator;
-import handlers.WriteBlochVectors;
-import handlers.WriteHandlerCorr;
 import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
+
+import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
+
 import utils.DynaComplex;
 import utils.SynchUtils;
+import eval.CumulantEval;
+import eval.SystemEval.InitAngleType;
 
 public class CumulantSingle {
 
@@ -25,21 +29,21 @@ public class CumulantSingle {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 30;
+        int n = 2;
         double h = 0.001;
         double gamma = 1.0;
-        double tmax = 7.0;
-        double tmin = 5.0;
-        double delta = 5.0;
+        double tmax = 0.25;
+        double tmin = 0.25;
+        double delta = 0.0;
         double f = 1.0;
-        double g = 5.0;
+        double g = 30.0;
         double gel = 0.0;
         boolean correlate = false;
         boolean outputBloch = false;
         boolean upper = false;
 
         double w = SynchUtils.getWOpt(n);
-        //w = 2.0;
+        w = 3.0;
         //w = 60.0;
         
         // Get natural frequencies from Gaussian distribution
@@ -100,6 +104,9 @@ public class CumulantSingle {
         double[] y0 = new double[2*dim];
         DynaComplexODEAdapter.toReal(z0, y0);
         
+        CumulantEval eval = new CumulantEval(n);
+        eval.initialize(y0, 0.25*Math.PI, 0.25*Math.PI, InitAngleType.CONST, InitAngleType.CONST);
+        
         int startIdx[] = new int[6];
         SynchUtils.getStartIdx(startIdx, n);
         double kickval = 1.0e-21;
@@ -128,7 +135,7 @@ public class CumulantSingle {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/tuckerkj/output/temp/";
+        String dir = "/Users/kristophertucker/output/temp/";
         if(upper) dir += "upper/";
         File fdir = new File(dir);
         fdir.mkdirs();

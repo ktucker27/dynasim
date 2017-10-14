@@ -76,14 +76,15 @@ public class CumulantEval implements SystemEval {
 
     @Override
     public void initSpinUpX(double[] y0) {
-        initialize(z, 0.5*Math.PI, 0.0, false);
-        DynaComplexODEAdapter.toReal(z, y0);
+        initialize(y0, 0.5*Math.PI, 0.0, InitAngleType.CONST, InitAngleType.CONST);
     }
     
-    public void initialize(DynaComplex[] z0, double tip, double phase, boolean randPhase) {
-        double stip = Math.sin(tip);
-        
-        double[] phases = new double[n];
+    @Override
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType phaseType, InitAngleType zenithType) {
+        double zi = 0.0;
+        double pi = 0.0;
+        double szi = 0.0;
+        double czi = 0.0;
         
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/phase.txt"));
 //        int idx = 0;
@@ -95,18 +96,39 @@ public class CumulantEval implements SystemEval {
         
         Random rg = new Random(1);
         for(int i = 0; i < n; ++i) {
-            if(randPhase) {
-                phases[i] = rg.nextDouble()*2.0*Math.PI;
-            } else {
-                phases[i] = phase;
+            switch(zenithType) {
+            case EQUAL_SPACING:
+                zi = i*Math.PI/(double)n;
+                break;
+            case RANDOM:
+                zi = rg.nextDouble()*Math.PI;
+                break;
+            case CONST:
+                zi = zenith;
+                break;
+            }
+            
+            szi = Math.sin(zi);
+            szi = Math.cos(zi);
+            
+            switch(phaseType) {
+            case EQUAL_SPACING:
+                pi = i*2*Math.PI/(double)n - Math.PI;
+                break;
+            case RANDOM:
+                pi = rg.nextDouble()*2.0*Math.PI - Math.PI;
+                break;
+            case CONST:
+                pi = phase;
+                break;
             }
             
             // ps
-            z0[i] = new DynaComplex(0.5*stip*Math.cos(phases[i]),
-                                    0.5*stip*Math.sin(phases[i]));
+            z[i] = new DynaComplex(0.5*szi*Math.cos(pi),
+                                    0.5*szi*Math.sin(pi));
             
             // zs
-            z0[startIdx[2] + i] = new DynaComplex(Math.cos(tip), 0.0);
+            z[startIdx[2] + i] = new DynaComplex(czi, 0.0);
         }
         
         int idx = 0;
@@ -117,8 +139,8 @@ public class CumulantEval implements SystemEval {
                 }
                 
                 // zps
-                z0[startIdx[1] + idx] = new DynaComplex(z0[startIdx[2] + i]);
-                z0[startIdx[1] + idx].multiply(z0[j]);
+                z[startIdx[1] + idx] = new DynaComplex(z[startIdx[2] + i]);
+                z[startIdx[1] + idx].multiply(z[j]);
                 ++idx;
             }
         }
@@ -128,19 +150,21 @@ public class CumulantEval implements SystemEval {
         for(int i = 0; i < n; ++i) {
             for(int j = i + 1; j < n; ++j) {
                 // pms
-                z0[startIdx[3] + idx] = new DynaComplex(z0[i]);
-                z0[startIdx[3] + idx].multiply(temp.set(z0[j]).conjugate());
+                z[startIdx[3] + idx] = new DynaComplex(z[i]);
+                z[startIdx[3] + idx].multiply(temp.set(z[j]).conjugate());
                 
                 // zzs
-                z0[startIdx[4] + idx] = new DynaComplex(z0[startIdx[2] + i]);
-                z0[startIdx[4] + idx].multiply(z0[startIdx[2] + j]);
+                z[startIdx[4] + idx] = new DynaComplex(z[startIdx[2] + i]);
+                z[startIdx[4] + idx].multiply(z[startIdx[2] + j]);
                 
                 // pps
-                z0[startIdx[5] + idx] = new DynaComplex(z0[i]);
-                z0[startIdx[5] + idx].multiply(z0[j]);
+                z[startIdx[5] + idx] = new DynaComplex(z[i]);
+                z[startIdx[5] + idx].multiply(z[j]);
                 
                 ++idx;
             }
         }
+        
+        DynaComplexODEAdapter.toReal(z, y0);
     }
 }

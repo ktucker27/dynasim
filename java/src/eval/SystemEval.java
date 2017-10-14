@@ -1,15 +1,22 @@
 package eval;
 
+
 /**
  * 
  * @author kristophertucker
  *
- * Wraps an array of doubles and provides various values of common physical interest.
- * Evaluators can also provide values needed for specific dynamical systems, as well
- * as initial conditions
+ * Contains the logic for transforming an array of doubles into various values of physical interest.
+ * Evaluators can also provide values needed for specific dynamical systems, as well as initial
+ * conditions
  * 
  */
 public interface SystemEval {
+    
+    public enum InitAngleType {
+        EQUAL_SPACING,
+        RANDOM,
+        CONST
+    }
 
     public int getN();
     
@@ -22,4 +29,6 @@ public interface SystemEval {
     public double getAvgSigmaz(double[] y);
     
     public void initSpinUpX(double[] y0);
+    
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType phaseType, InitAngleType zenithType);
 }
