@@ -57,6 +57,7 @@ public class RunSim {
         options.addOption("l", false, "Use Lorentzian detunings (default is Gaussian)");
         options.addOption("h", false, "Print this help message");
         
+        // Options to ignore when setting up run parameters
         ignore.add("t");
         ignore.add("zd");
         ignore.add("df");
