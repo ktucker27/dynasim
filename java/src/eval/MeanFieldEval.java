@@ -50,6 +50,17 @@ public class MeanFieldEval implements SystemEval {
 
         return sum;
     }
+    
+    @Override
+    public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs) {
+        Complex z = null;
+        for(int i = 0; i < n; ++i) {
+            z = Complex.I.multiply(y[2*n+i]).exp().multiply(y[n+i]);
+            xs[i] = z.getReal();
+            ys[i] = z.getImaginary();
+            zs[i] = y[i];
+        }
+    }
 
     @Override
     public void initSpinUpX(double[] y0) {
@@ -63,11 +74,13 @@ public class MeanFieldEval implements SystemEval {
         double stip = 0.0;
         double ctip = 0.0;
         
+        double eps = 1.0e-3;
+        
         for(int i = 0; i < n; ++i) {
             
             switch(zenithType) {
             case EQUAL_SPACING:
-                tip = i*Math.PI/(double)n;
+                tip = eps + i*(Math.PI - 2*eps)/(double)(n-1);
                 break;
             case RANDOM:
                 tip = rand.nextDouble()*Math.PI;

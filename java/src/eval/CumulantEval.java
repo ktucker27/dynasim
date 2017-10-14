@@ -75,6 +75,12 @@ public class CumulantEval implements SystemEval {
     }
 
     @Override
+    public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs) {
+        // TODO
+        throw new UnsupportedOperationException("Bloch vector retrieval not yet implemented for CumulantEval");
+    }
+    
+    @Override
     public void initSpinUpX(double[] y0) {
         initialize(y0, 0.5*Math.PI, 0.0, InitAngleType.CONST, InitAngleType.CONST);
     }

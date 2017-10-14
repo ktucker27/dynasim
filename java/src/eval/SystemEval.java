@@ -28,6 +28,8 @@ public interface SystemEval {
     
     public double getAvgSigmaz(double[] y);
     
+    public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs);
+    
     public void initSpinUpX(double[] y0);
     
     public void initialize(double[] y0, double zenith, double phase, InitAngleType zenithType, InitAngleType phaseType);

@@ -9,6 +9,7 @@ import handlers.WriteHandlerMeanField;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -73,6 +74,7 @@ public class RunSim {
         options.addOption("tmax", true, "Maximum simulation time");
         options.addOption("iz", true, "Initial zenith angle (CONST value in degrees | EQUAL_SPACING | RANDOM)");
         options.addOption("ip", true, "Initial phase angle (CONST value in degrees | EQUAL_SPACING | RANDOM)");
+        options.addOption("wic", true, "Write initial condition Bloch vectors to the given file");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -84,6 +86,7 @@ public class RunSim {
         ignore.add("tmax");
         ignore.add("iz");
         ignore.add("ip");
+        ignore.add("wic");
         
         return options;
     }
@@ -144,6 +147,14 @@ public class RunSim {
         boolean outputVsTime = cmd.hasOption("t");
         boolean outputZdist = cmd.hasOption("zd");
         boolean useLorDetunings = cmd.hasOption("l");
+        
+        // Get initial conditions output file path if provided
+        boolean outputIC = false;
+        String icOutFile = "";
+        if(cmd.hasOption("wic")) {
+            outputIC = true;
+            icOutFile = cmd.getOptionValue("wic");
+        }
         
         // Process initial condition overrides
         if(cmd.hasOption("iz")) {
@@ -236,6 +247,8 @@ public class RunSim {
         
         long startTime = System.nanoTime();
         
+        int lastn = -1;
+        double[] y0 = null;
         for(int i = 0; i < params.size(); ++i) {
             n = params.get(i).getN();
             
@@ -294,12 +307,24 @@ public class RunSim {
             DataRecorder recorder = new DataRecorder(eval, 0.01, 1.0);
             
             // Setup initial conditions
-            double[] y0 = new double[eval.getRealDimension()];
-            if(sim == Simulator.MASTER) {
-                // TODO - Remove this once MasterEval has implemented the initialize method
-                eval.initSpinUpX(y0);
-            } else {
-                eval.initialize(y0, izParams.initAngle, ipParams.initAngle, izParams.type, ipParams.type);
+            if(n != lastn) {
+                lastn = n;
+                y0 = new double[eval.getRealDimension()];
+                if(sim == Simulator.MASTER) {
+                    // TODO - Remove this once MasterEval has implemented the initialize method
+                    eval.initSpinUpX(y0);
+                } else {
+                    eval.initialize(y0, izParams.initAngle, ipParams.initAngle, izParams.type, ipParams.type);
+                }
+                
+                if(outputIC) {
+                    if(i > 0) {
+                        System.err.println("ERROR: Multiple initial conditions used with wic flag");
+                        break;
+                    }
+                    
+                    outputInitialBVs(eval, y0, icOutFile);
+                }
             }
 
             // Setup integrator
@@ -448,6 +473,10 @@ public class RunSim {
             params.initAngle = 0.0;
             try {
                 params.type = InitAngleType.valueOf(optVal);
+                if(params.type == InitAngleType.CONST) {
+                    System.err.println("Must specify a const value in degrees for option " + optName);
+                    return false;
+                }
             } catch(IllegalArgumentException ex2) {
                 System.err.println("Invalid value of option " + optName + ".  Choices are:");
                 for(int i = 0; i < InitAngleType.values().length; ++i) {
@@ -463,5 +492,20 @@ public class RunSim {
         }
         
         return true;
+    }
+    
+    private static void outputInitialBVs(SystemEval eval, double[] y0, String filepath) throws FileNotFoundException {
+        int n = eval.getN();
+        double[] xs = new double[n];
+        double[] ys = new double[n];
+        double[] zs = new double[n];
+        
+        eval.getBlochVectors(y0, xs, ys, zs);
+        
+        PrintWriter writer = new PrintWriter(filepath);
+        for(int i = 0; i < n; ++i) {
+            writer.write(xs[i] + ", " + ys[i] + ", " + zs[i] + "\n");
+        }
+        writer.close();
     }
 }

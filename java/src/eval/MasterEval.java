@@ -76,6 +76,12 @@ public class MasterEval implements SystemEval {
         
         return sum/(double)n;
     }
+    
+    @Override
+    public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs) {
+        // TODO
+        throw new UnsupportedOperationException("Bloch vector retrieval not yet implemented for MasterEval");
+    }
 
     @Override
     public void initSpinUpX(double[] y0) {
@@ -85,6 +91,7 @@ public class MasterEval implements SystemEval {
     
     @Override
     public void initialize(double[] y0, double zenith, double phase, InitAngleType zenithType, InitAngleType phaseType) {
+        // TODO
         throw new UnsupportedOperationException("Complete initialization functionality not yet implemented for the master solver");
     }
     
