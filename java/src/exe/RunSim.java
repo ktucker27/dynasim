@@ -6,6 +6,7 @@ import handlers.SummaryWriter;
 import handlers.WriteHandlerCorr;
 import handlers.WriteHandlerMaster;
 import handlers.WriteHandlerMeanField;
+import handlers.WriteHandlerRPA;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,6 +22,7 @@ import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
 import ode.MasterAllToAllODEs;
+import ode.RPAAllToAllODEs;
 import ode.SynchMeanFieldODEs;
 
 import org.apache.commons.cli.CommandLine;
@@ -38,6 +40,7 @@ import utils.SynchUtils;
 import eval.CumulantEval;
 import eval.MasterEval;
 import eval.MeanFieldEval;
+import eval.RPAEval;
 import eval.SystemEval;
 import eval.SystemEval.InitAngleType;
 
@@ -46,7 +49,8 @@ public class RunSim {
     public enum Simulator {
         MEAN_FIELD,
         CUMULANT,
-        MASTER
+        MASTER,
+        RPA
     }
     
     public static class ICAngleParams {
@@ -297,6 +301,13 @@ public class RunSim {
                 eval = new MasterEval(n);
                 MasterAllToAllODEs modes = new MasterAllToAllODEs(params.get(i));
                 odes = new DynaComplexODEAdapter(modes);
+                break;
+            case RPA:
+                if(outputVsTime) {
+                    writeHandler = new WriteHandlerRPA(timefile, n);
+                }
+                eval = new RPAEval(n);
+                odes = new RPAAllToAllODEs(params.get(i));
                 break;
             default:
                 System.err.println("Simulator type not yet supported");

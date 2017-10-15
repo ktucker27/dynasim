@@ -92,6 +92,8 @@ public class CumulantEval implements SystemEval {
         double szi = 0.0;
         double czi = 0.0;
         
+        double eps = 1.0e-3;
+        
 //        Scanner inputStream = new Scanner(new File("/Users/kristophertucker/Google Drive/Research/Synch/cumulant_all/phase.txt"));
 //        int idx = 0;
 //        while(inputStream.hasNext()) {
@@ -104,7 +106,7 @@ public class CumulantEval implements SystemEval {
         for(int i = 0; i < n; ++i) {
             switch(zenithType) {
             case EQUAL_SPACING:
-                zi = i*Math.PI/(double)n;
+                zi = eps + i*(Math.PI - 2*eps)/(double)(n-1);
                 break;
             case RANDOM:
                 zi = rg.nextDouble()*Math.PI;

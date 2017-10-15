@@ -1,6 +1,9 @@
 package eval;
 
-public class RPAEval {
+import java.util.Random;
+
+
+public class RPAEval implements SystemEval {
     int n;
     
     double[] myVals;
@@ -96,12 +99,114 @@ public class RPAEval {
         return startIdx;
     }
 
+    @Override
     public int getDimension() {
         return 3*n + 3*n*(n-1)/2 + 3*n*(n-1);
     }
     
+    @Override
+    public int getRealDimension() {
+        return getDimension();
+    }
+    
+    @Override
     public int getN() {
         return n;
+    }
+    
+    @Override
+    public double getOrderParam(double[] y) {
+        setVals(y);
+        return compCorr();
+    }
+    
+    @Override
+    public double getAvgSigmaz(double[] y) {
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            sum -= getSingle(0, a, y);
+        }
+        
+        return sum/(double)n;
+    }
+    
+    @Override
+    public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs) {
+        for(int a = 0; a < n; ++a) {
+            xs[a] = getSingle(2, a, y);
+            ys[a] = getSingle(1, a, y);
+            zs[a] = -1.0*getSingle(0, a, y);
+        }
+    }
+    
+    @Override
+    public void initSpinUpX(double[] y0) {
+        initialize(y0, 0, 0, InitAngleType.CONST, InitAngleType.CONST);
+    }
+    
+    @Override
+    public void initialize(double[] y0, double zenith, double phase, InitAngleType zenithType, InitAngleType phaseType) {
+        double zi = 0.0;
+        double pi = 0.0;
+        double szi = 0.0;
+        double czi = 0.0;
+        
+        double eps = 1.0e-3;
+        
+        Random rg = new Random(1);
+        for(int i = 0; i < n; ++i) {
+            switch(zenithType) {
+            case EQUAL_SPACING:
+                zi = eps + i*(Math.PI - 2*eps)/(double)(n-1);
+                break;
+            case RANDOM:
+                zi = rg.nextDouble()*Math.PI;
+                break;
+            case CONST:
+                zi = zenith;
+                break;
+            }
+            
+            szi = Math.sin(zi);
+            czi = Math.cos(zi);
+            
+            switch(phaseType) {
+            case EQUAL_SPACING:
+                pi = i*2*Math.PI/(double)n - Math.PI;
+                break;
+            case RANDOM:
+                pi = rg.nextDouble()*2.0*Math.PI - Math.PI;
+                break;
+            case CONST:
+                pi = phase;
+                break;
+            }
+            
+            y0[i] = -czi;
+            y0[startIdx[1]+i] = szi*Math.sin(pi);
+            y0[startIdx[2]+i] = szi*Math.cos(pi);
+        }
+
+        int triIdx = 0;
+        int recIdx = 0;
+        for(int a = 0; a < n; ++a) {
+            for(int b = 0; b < n; ++b) {
+                if(a == b) continue;
+                
+                if(b > a) {
+                    y0[startIdx[3] + triIdx] = y0[a]*y0[b];
+                    y0[startIdx[4] + triIdx] = y0[startIdx[1]+a]*y0[startIdx[1]+b];
+                    y0[startIdx[5] + triIdx] = y0[startIdx[2]+a]*y0[startIdx[2]+b];
+                    ++triIdx;
+                }
+                
+                y0[startIdx[6] + recIdx] = y0[a]*y0[startIdx[1]+b];
+                y0[startIdx[7] + recIdx] = y0[a]*y0[startIdx[2]+b];
+                y0[startIdx[8] + recIdx] = y0[startIdx[1]+a]*y0[startIdx[2]+b];
+                
+                ++recIdx;
+            }
+        }
     }
     
     private int getTriIdx(int i, int j) {
