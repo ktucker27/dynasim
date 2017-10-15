@@ -398,13 +398,13 @@ public class RunSim {
         double[] gvals = getValList(optMap, "g", dparams.getAlpha().getImaginary());
         
         for(int nidx = 0; nidx < nvals.length; ++nidx) {
+            int n = (int)nvals[nidx];
             for(int widx = 0; widx < wvals.length; ++widx) {
                 for(int didx = 0; didx < dvals.length; ++didx) {
+                    double[] d = new double[n];
+                    generateDetunings(dvals[didx], d, useLorDetunings);
                     for(int fidx = 0; fidx < fvals.length; ++fidx) {
                         for(int gidx = 0; gidx < gvals.length; ++gidx) {
-                            int n = (int)nvals[nidx];
-                            double[] d = new double[n];
-                            generateDetunings(dvals[didx], d, useLorDetunings);
                             params.add(new CumulantParams(n, dparams.getGamma(),
                                                           wvals[widx], dvals[didx],
                                                           new DynaComplex(fvals[fidx], gvals[gidx]), d));
