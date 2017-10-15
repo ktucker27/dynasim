@@ -198,9 +198,11 @@ public class RPAEval {
             return rpaSum(al, bt, gm, a, b, 1);
         } else if(al != 2 && bt != 2 && gm == 2) {
             return rpaSum(al, bt, gm, a, b, 2);
-        } else {
+        } else if(al == 2 && bt == 2 && gm == 2){
             return cumulantSum(al, bt, gm, a, b);
         }
+        
+        return 0.0;
     }
     
     public double compCorr() {
