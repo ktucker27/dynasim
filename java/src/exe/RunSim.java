@@ -328,7 +328,7 @@ public class RunSim {
             }
 
             // Setup integrator
-            AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
+            AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-6, h, 1.0e-3, 1.0e-2);
             integrator.addStepHandler(recorder);
             
             if(writeHandler != null) {
