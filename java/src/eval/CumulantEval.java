@@ -115,7 +115,7 @@ public class CumulantEval implements SystemEval {
             }
             
             szi = Math.sin(zi);
-            szi = Math.cos(zi);
+            czi = Math.cos(zi);
             
             switch(phaseType) {
             case EQUAL_SPACING:
