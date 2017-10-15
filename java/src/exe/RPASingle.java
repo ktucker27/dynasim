@@ -19,7 +19,7 @@ public class RPASingle {
      * @throws FileNotFoundException 
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        int n = 30;
+        int n = 4;
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 5.0;
@@ -29,10 +29,10 @@ public class RPASingle {
         double g = 5.0;
         
         double w = SynchUtils.getWOpt(n);
-        //w = 2.0;
+        w = 17.0;
         
         // Cooper
-        boolean cooper = true;
+        boolean cooper = false;
         if(cooper) {
             n = 2;
             delta = 0;
@@ -78,7 +78,7 @@ public class RPASingle {
                          odes.getStartIdx(6), odes.getStartIdx(7), odes.getStartIdx(8)};
         
 //        WriteHandler writeHandler = new WriteHandler("/Users/tuckerkj/output/temp/rpa_" + params.getFilename(), out_col, false);
-        WriteHandlerRPA writeHandler = new WriteHandlerRPA("/Users/tuckerkj/output/temp/rpa_corr_" + params.getFilename(), params.getN());
+        WriteHandlerRPA writeHandler = new WriteHandlerRPA("/Users/kristophertucker/output/temp/rpa_corr_" + params.getFilename(), params.getN());
         AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-4, h, 1.0e-3, 1.0e-2);
         integrator.addStepHandler(writeHandler);
         
