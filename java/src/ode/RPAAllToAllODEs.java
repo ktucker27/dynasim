@@ -5,6 +5,7 @@ import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
 import utils.DynaComplex;
+import eval.RPAEval;
 
 public class RPAAllToAllODEs implements FirstOrderDifferentialEquations {
 

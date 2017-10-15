@@ -8,7 +8,7 @@ import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.sampling.StepHandler;
 import org.apache.commons.math3.ode.sampling.StepInterpolator;
 
-import ode.RPAEval;
+import eval.RPAEval;
 
 public class WriteHandlerRPA implements StepHandler {
     PrintWriter myWriter;
