@@ -79,6 +79,7 @@ public class RunSim {
         options.addOption("iz", true, "Initial zenith angle (CONST value in degrees | EQUAL_SPACING | RANDOM)");
         options.addOption("ip", true, "Initial phase angle (CONST value in degrees | EQUAL_SPACING | RANDOM)");
         options.addOption("wic", true, "Write initial condition Bloch vectors to the given file");
+        options.addOption("c", false, "Carry over initial conditions from the previous solution");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -91,6 +92,7 @@ public class RunSim {
         ignore.add("iz");
         ignore.add("ip");
         ignore.add("wic");
+        ignore.add("c");
         
         return options;
     }
@@ -151,6 +153,7 @@ public class RunSim {
         boolean outputVsTime = cmd.hasOption("t");
         boolean outputZdist = cmd.hasOption("zd");
         boolean useLorDetunings = cmd.hasOption("l");
+        boolean carryOverIC = cmd.hasOption("c");
         
         // Get initial conditions output file path if provided
         boolean outputIC = false;
@@ -354,6 +357,16 @@ public class RunSim {
             // Perform the integration
             double[] y = new double[eval.getRealDimension()];
             integrator.integrate(odes, 0, y0, tmax, y);
+            
+            // Carry over the initial conditions if requested
+            if(carryOverIC) {
+                for(int j = 0; j < y.length; ++j) {
+                    y0[j] = y[j];
+                    if(Math.abs(y0[j]) < 1.0e-16) {
+                        y0[j] = 0.0;
+                    }
+                }
+            }
             
             // Add the results to the summary writer
             if(summWriter != null) {
