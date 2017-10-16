@@ -51,7 +51,7 @@ public class MeanFieldRun {
 
         CumulantParams params = new CumulantParams(n, 1, 0, delta, new DynaComplex(f, g), d);
 //        PrintWriter writer = new PrintWriter("/Users/tuckerkj/output/mf/wrun_" + params.getFilename(), "UTF-8");
-        PrintWriter writer = new PrintWriter("/Users/tuckerkj/output/mf/wrun_temp.txt", "UTF-8");
+        PrintWriter writer = new PrintWriter("/Users/kristophertucker/output/mf/wrun_temp.txt", "UTF-8");
         for(int i = 0; i < numw; ++i) {
                 writer.print(wv[i] + ", " + r[i] + "\n");
         }
