@@ -19,6 +19,8 @@ public class TPSOperator {
         IDENTITY,
         PLUS,
         MINUS,
+        X,
+        Y,
         Z
     }
     
@@ -170,14 +172,33 @@ public class TPSOperator {
                         vals[i*dim + j].set(0,0);
                      }
                     break;
+                case X:
+                    if((i & mask) == 0) {
+                        t1.set(vals[i*dim + j]);
+                        vals[i*dim + j].set(vals[(i + mask)*dim + j]);
+                        vals[(i + mask)*dim + j].set(t1);
+                    }
+                    break;
+                case Y:
+                    if((i & mask) == 0) {
+                        t1.set(vals[i*dim + j]);
+                        vals[i*dim + j].set(vals[(i + mask)*dim + j]);
+                        vals[(i + mask)*dim + j].set(t1);
+                        
+                        t1.set(0,1);
+                        vals[i*dim + j].multiply(t1);
+                        vals[(i + mask)*dim + j].multiply(t1.multiply(-1));
+                    }
+                    break;
                 case Z:
                     if((i & mask) != 0) {
                         vals[i*dim + j].multiply(-1.0);
                     }
                     break;
                 case IDENTITY:
-                default:
                     break;
+                default:
+                    throw new UnsupportedOperationException("TPSOperator does not yet support left multiplication by " + op.name());
                 }
             }
         }
@@ -206,9 +227,10 @@ public class TPSOperator {
                     }
                     break;
                 case IDENTITY:
-                default:
                     vals[i*dim + j].add(t1.set(rho.vals[i*dim + j]).multiply(z));
                     break;
+                default:
+                    throw new UnsupportedOperationException("TPSOperator does not yet support left multiplication by " + op.name());
                 }
             }
         }
@@ -237,8 +259,9 @@ public class TPSOperator {
                     }
                     break;
                 case IDENTITY:
-                default:
                     break;
+                default:
+                    throw new UnsupportedOperationException("TPSOperator does not yet support right multiplication by " + op.name());
                 }
             }
         }
@@ -267,9 +290,10 @@ public class TPSOperator {
                     }
                     break;
                 case IDENTITY:
-                default:
                     vals[i*dim + j].add(t1.set(rho.vals[i*dim + j]).multiply(z));
                     break;
+                default:
+                    throw new UnsupportedOperationException("TPSOperator does not yet support right multiplication by " + op.name());
                 }
             }
         }

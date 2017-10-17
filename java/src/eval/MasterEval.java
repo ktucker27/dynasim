@@ -121,4 +121,29 @@ public class MasterEval implements SystemEval {
         }
         writer.close();
     }
+    
+    public void writeTriples(double[] y) {
+        DynaComplexODEAdapter.toComplex(y, z);
+        TPSOperator rho = new TPSOperator(z);
+        
+        // Woefully inefficient for a number of reasons, but will work for
+        // the intended experiment
+        double[] vals = new double[27];
+        int idx = 0;
+        for(int al = 0; al < 3; ++al) {
+            for(int bt = 0; bt < 3; ++bt) {
+                for(int gm = 0; gm < 3; ++gm) {
+                    myRho.set(rho);
+                    myRho.pauliLeft(PauliOp.values()[gm+3], 0);
+                    myRho.pauliLeft(PauliOp.values()[bt+3], 1);
+                    myRho.pauliLeft(PauliOp.values()[al+3], 2);
+                    myRho.trace(t1);
+                    vals[idx] = t1.getReal();
+                    if(vals[idx] > 1.0e-10) {
+                        System.out.println(al + ", " + bt + ", " + gm + ": " + vals[idx]);
+                    }
+                }
+            }
+        }
+    }
 }

@@ -28,7 +28,10 @@ public class WriteHandlerRPA implements StepHandler {
             eval.setVals(y0);
             
             myWriter.print("0, ");
-            myWriter.print(eval.compCorr());
+            myWriter.print(eval.compCorr() + ", ");
+            myWriter.print(eval.getAvgSigmax(y0) + ", ");
+            myWriter.print(eval.getAvgSigmay(y0) + ", ");
+            myWriter.print(eval.getAvgSigmaz(y0));
             myWriter.print("\n");
         }
     }
@@ -43,7 +46,10 @@ public class WriteHandlerRPA implements StepHandler {
             eval.setVals(y);
             
             myWriter.print(t + ", ");
-            myWriter.print(eval.compCorr());
+            myWriter.print(eval.compCorr() + ", ");
+            myWriter.print(eval.getAvgSigmax(y) + ", ");
+            myWriter.print(eval.getAvgSigmay(y) + ", ");
+            myWriter.print(eval.getAvgSigmaz(y));
             myWriter.print("\n");
 
             if(!isLast) {

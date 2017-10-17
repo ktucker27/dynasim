@@ -120,6 +120,24 @@ public class RPAEval implements SystemEval {
         return compCorr();
     }
     
+    public double getAvgSigmax(double[] y) {
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            sum += getSingle(2, a, y);
+        }
+        
+        return sum/(double)n;
+    }
+    
+    public double getAvgSigmay(double[] y) {
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            sum += getSingle(1, a, y);
+        }
+        
+        return sum/(double)n;
+    }
+    
     @Override
     public double getAvgSigmaz(double[] y) {
         double sum = 0.0;
