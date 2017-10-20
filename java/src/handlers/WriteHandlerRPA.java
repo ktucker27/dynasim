@@ -28,10 +28,17 @@ public class WriteHandlerRPA implements StepHandler {
             eval.setVals(y0);
             
             myWriter.print("0, ");
-            myWriter.print(eval.compCorr() + ", ");
-            myWriter.print(eval.getAvgSigmax(y0) + ", ");
-            myWriter.print(eval.getAvgSigmay(y0) + ", ");
-            myWriter.print(eval.getAvgSigmaz(y0));
+            myWriter.print(eval.compCorr());
+            for(int al = 0; al < 3; ++al) {
+                myWriter.print(", " + eval.getAvg(al, y0));
+            }
+            
+            for(int al = 0; al < 3; ++al) {
+                for(int bt = al; bt < 3; ++bt) {
+                    myWriter.print(", " + eval.getAvg(al, bt));
+                }
+            }
+            
             myWriter.print("\n");
         }
     }
@@ -46,10 +53,16 @@ public class WriteHandlerRPA implements StepHandler {
             eval.setVals(y);
             
             myWriter.print(t + ", ");
-            myWriter.print(eval.compCorr() + ", ");
-            myWriter.print(eval.getAvgSigmax(y) + ", ");
-            myWriter.print(eval.getAvgSigmay(y) + ", ");
-            myWriter.print(eval.getAvgSigmaz(y));
+            myWriter.print(eval.compCorr());
+            for(int al = 0; al < 3; ++al) {
+                myWriter.print(", " + eval.getAvg(al, y));
+            }
+            
+            for(int al = 0; al < 3; ++al) {
+                for(int bt = al; bt < 3; ++bt) {
+                    myWriter.print(", " + eval.getAvg(al, bt));
+                }
+            }
             myWriter.print("\n");
 
             if(!isLast) {

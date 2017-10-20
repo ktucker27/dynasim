@@ -365,6 +365,7 @@ public class RunSim {
                     if(Math.abs(y0[j]) < 1.0e-16) {
                         y0[j] = 0.0;
                     }
+                    y0[j] += 1.0e-10;
                 }
             }
             

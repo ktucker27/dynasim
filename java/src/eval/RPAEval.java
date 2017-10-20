@@ -148,6 +148,45 @@ public class RPAEval implements SystemEval {
         return sum/(double)n;
     }
     
+    public double getAvg(int al, double[] y) {
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            sum += getSingle(fromGlobal(al), a, y);
+        }
+        
+        return (al == 2 ? -1.0 : 1.0)*sum/(double)n;
+    }
+    
+    public double getAvg(int al, int bt, double[] y) {
+        setVals(y);
+        return getAvg(al, bt);
+    }
+    
+    public double getAvg(int al, int bt) {
+        double amult = (al == 2 ? -1.0 : 1.0);
+        double bmult = (bt == 2 ? -1.0 : 1.0);
+        int lal = fromGlobal(al);
+        int lbt = fromGlobal(bt);
+        
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            sum += rowsums[lal][lbt][a];
+        }
+        
+        return amult*bmult*sum/(double)(n*(n-1));
+    }
+    
+    private int fromGlobal(int al) {
+        switch(al) {
+        case 0:
+            return 2;
+        case 2:
+            return 0;
+        }
+        
+        return al;
+    }
+    
     @Override
     public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs) {
         for(int a = 0; a < n; ++a) {
