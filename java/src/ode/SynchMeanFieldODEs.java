@@ -74,11 +74,11 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
             ydot[i] = -0.5*y[n+i]*(feff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i]) + geff*2*r*Math.sin(psi - y[2*n+i])) - gamma*(1 + y[i]) + w*(1 - y[i]);
             ydot[n+i] = 0.5*gamma*y[i]*(feff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i]) + geff*2*r*Math.sin(psi - y[2*n+i])) - 0.5*(gamma + w)*y[n+i];
             
-            if(y[n+i] > 1.0e-16) {
-                ydot[2*n+i] = -d[i] + 0.5*gamma*((y[i]/y[n+i])*(feff*2*r*Math.sin(psi - y[2*n+i]) - geff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i])));
-            } else {
-                ydot[2*n+i] = 0.0;
-            }
+//            if(true || y[n+i] > 1.0e-16) {
+            ydot[2*n+i] = -d[i] + 0.5*gamma*((y[i]/y[n+i])*(feff*2*r*Math.sin(psi - y[2*n+i]) - geff*(2*r*Math.cos(psi - y[2*n+i]) - y[n+i])));
+//            } else {
+//                ydot[2*n+i] = 0.0;
+//            }
             
 //            ydot[i] = -0.5*y[n+i]*(feff*(2*r*Math.cos(psi - y[2*n+i])) + geff*2*r*Math.sin(psi - y[2*n+i])) - gamma*(1 + y[i]) + w*(1 - y[i]);
 //            ydot[n+i] = 0.5*gamma*y[i]*(feff*(2*r*Math.cos(psi - y[2*n+i])) + geff*2*r*Math.sin(psi - y[2*n+i])) - 0.5*(gamma + w)*y[n+i];
