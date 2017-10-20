@@ -315,13 +315,13 @@ public class RPAEval implements SystemEval {
     }
     
     public double evalTriple(int al, int bt, int gm, int a, int b) {
-        if(al == 2 && bt != 2 && gm != 2) {
+        if(al == 0 && bt != 0 && gm != 0) {
             return rpaSum(al, bt, gm, a, b, 0);
-        } else if(al != 2 && bt == 2 && gm != 2) {
+        } else if(al != 0 && bt == 0 && gm != 0) {
             return rpaSum(al, bt, gm, a, b, 1);
-        } else if(al != 2 && bt != 2 && gm == 2) {
+        } else if(al != 0 && bt != 0 && gm == 0) {
             return rpaSum(al, bt, gm, a, b, 2);
-        } else if(al == 2 && bt == 2 && gm == 2){
+        } else if(al == 0 && bt == 0 && gm == 0){
             return cumulantSum(al, bt, gm, a, b);
         }
         
