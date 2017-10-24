@@ -1,12 +1,12 @@
-function rho = unwind(v)
+function v = unwind(rho)
 
-n = sqrt(size(v,1));
-rho = zeros(n,n);
+n = size(rho,1);
+v = zeros(n*n,1);
 
 idx = 1;
 for i=1:n
     for j = 1:n
-        rho(i,j) = v(idx);
+        v(idx) = rho(i,j);
         idx = idx + 1;
     end
 end
