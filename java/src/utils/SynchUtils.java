@@ -252,6 +252,7 @@ public class SynchUtils {
             ++idx;
             if(idx >= n) break;
         }
+        inputStream.close();
     }
     
     public static void detuneGauss(double delta, double[] d) {
@@ -575,7 +576,7 @@ public class SynchUtils {
                 ++idx2;
             }
         }
-        System.out.println("Avg corr factor: " + mod_sum/(n*(n-1)));
+        System.out.println("Inital average corr factor: " + mod_sum/(n*(n-1)));
 
         DynaConstCoupling coupling = new DynaConstCoupling(params.getAlpha().getReal(), params.getAlpha().getImaginary());
         CorrelationODEs c_corr_odes = new CorrelationODEs(n, params.getGamma(), params.getW(), coupling, params.getD(), szs);
@@ -585,7 +586,7 @@ public class SynchUtils {
         if(!filename.isEmpty()) {
 //            int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
 //            WriteHandler writeHandler = new WriteHandler(filename, out_col);
-            TwoTimeHandler writeHandler = new TwoTimeHandler(filename, false);
+            TwoTimeHandler writeHandler = new TwoTimeHandler(filename, n, false);
             integrator.addStepHandler(writeHandler);
         }
         

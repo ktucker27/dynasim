@@ -17,11 +17,13 @@ public class TwoTimeHandler implements StepHandler {
     String myFilename;
     DynaComplex mySum;
     DynaComplex t1;
+    int n;
     
-    public TwoTimeHandler(String filename, boolean liveStream) throws FileNotFoundException, UnsupportedEncodingException {
+    public TwoTimeHandler(String filename, int n, boolean liveStream) throws FileNotFoundException, UnsupportedEncodingException {
         mySum = new DynaComplex();
         t1 = new DynaComplex();
         myFilename = filename;
+        this.n = n;
         
         if(liveStream) {
             myBuffer = null;
@@ -35,7 +37,7 @@ public class TwoTimeHandler implements StepHandler {
     @Override
     public void init(double t0, double[] y0, double t) {
         myWriter.print("0, ");
-        compBigOlSum(y0);
+        compAvg(y0, mySum);
         myWriter.print(mySum.getReal() + ", " + mySum.getImaginary() + "\n");
     }
 
@@ -45,7 +47,7 @@ public class TwoTimeHandler implements StepHandler {
         double[] y = interpolator.getInterpolatedState();
         
         myWriter.print(interpolator.getInterpolatedTime() + ", ");
-        compBigOlSum(y);
+        compAvg(y, mySum);
         myWriter.print(mySum.getReal() + ", " + mySum.getImaginary() + "\n");
         
         if(!isLast) {
@@ -67,11 +69,18 @@ public class TwoTimeHandler implements StepHandler {
         }
     }
 
-    private void compBigOlSum(double[] y) {
-        int n = y.length;
-        mySum.set(0, 0);
-        for(int i = 0; i < n; i += 2) {
-            mySum.add(t1.set(y[i], y[i+1]));
+    private void compAvg(double[] y, DynaComplex avg) {
+        int idx = 0;
+        avg.set(0,0);
+        for(int i = 0; i < n; ++i) {
+            for(int j = 0; j < n; ++j) {
+                t1.set(y[idx], y[idx+1]);
+                avg.add(t1);
+                
+                idx += 2;
+            }
         }
+        
+        avg.multiply(1.0/(double)(n*n));
     }
 }
