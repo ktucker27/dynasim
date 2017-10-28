@@ -1,13 +1,5 @@
 package exe;
 
-import handlers.CumulantSteadyStateTerminator;
-import handlers.DataRecorder;
-import handlers.SummaryWriter;
-import handlers.WriteHandlerCorr;
-import handlers.WriteHandlerMaster;
-import handlers.WriteHandlerMeanField;
-import handlers.WriteHandlerRPA;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -17,13 +9,6 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
-import ode.DynaComplexODEAdapter;
-import ode.MasterAllToAllODEs;
-import ode.RPAAllToAllODEs;
-import ode.SynchMeanFieldODEs;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -35,14 +20,27 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.ode.sampling.StepHandler;
 
-import utils.DynaComplex;
-import utils.SynchUtils;
 import eval.CumulantEval;
 import eval.MasterEval;
 import eval.MeanFieldEval;
 import eval.RPAEval;
 import eval.SystemEval;
 import eval.SystemEval.InitAngleType;
+import handlers.CumulantSteadyStateTerminator;
+import handlers.DataRecorder;
+import handlers.SummaryWriter;
+import handlers.WriteHandlerCorr;
+import handlers.WriteHandlerMaster;
+import handlers.WriteHandlerMeanField;
+import handlers.WriteHandlerRPA;
+import ode.CumulantAllToAllODEs;
+import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
+import ode.MasterAllToAllODEs;
+import ode.RPAAllToAllODEs;
+import ode.SynchMeanFieldODEs;
+import utils.DynaComplex;
+import utils.SynchUtils;
 
 public class RunSim {
     
@@ -80,6 +78,7 @@ public class RunSim {
         options.addOption("ip", true, "Initial phase angle (CONST value in degrees | EQUAL_SPACING | RANDOM)");
         options.addOption("wic", true, "Write initial condition Bloch vectors to the given file");
         options.addOption("c", false, "Carry over initial conditions from the previous solution");
+        options.addOption("tt", false, "Perform two-time correlation simulation");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -93,6 +92,7 @@ public class RunSim {
         ignore.add("ip");
         ignore.add("wic");
         ignore.add("c");
+        ignore.add("tt");
         
         return options;
     }
@@ -154,6 +154,7 @@ public class RunSim {
         boolean outputZdist = cmd.hasOption("zd");
         boolean useLorDetunings = cmd.hasOption("l");
         boolean carryOverIC = cmd.hasOption("c");
+        boolean correlate = cmd.hasOption("tt");
         
         // Get initial conditions output file path if provided
         boolean outputIC = false;
@@ -269,6 +270,9 @@ public class RunSim {
                 for(int j = 0; j < fileDetunings.size(); ++j) {
                     params.get(i).getD()[j] = fileDetunings.get(j);
                 }
+                
+//                String filename = cmd.getOptionValue("df") + "N" + n + "_D" + (int)(params.get(i).getDelta()) + ".txt";
+//                SynchUtils.detuneFile(filename, params.get(i).getD());
             }
             
             System.out.println(params.get(i).toString());
@@ -377,6 +381,19 @@ public class RunSim {
             // Post-processing
             if(outputZdist && sim == Simulator.MASTER) {
                 ((MasterEval)eval).writeZDist(y, outdir + "zdist_" + params.get(i).getFilename());
+            }
+            
+//            if(sim == Simulator.MASTER) {
+//                ((MasterEval)eval).writeTriples(y);
+//            }
+            
+            // Compute the correlation function if requested
+            if(correlate) {
+                if(sim == Simulator.CUMULANT) {
+                    SynchUtils.compCorr(params.get(i), y, outdir + "time_corr_" + params.get(i).getFilename());
+                } else {
+                    throw new UnsupportedOperationException("Two-time correlation currently only supported for CUMULANT simulator");
+                }
             }
         }
         

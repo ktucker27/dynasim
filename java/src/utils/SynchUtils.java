@@ -1,7 +1,5 @@
 package utils;
 
-import handlers.TwoTimeHandler;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
@@ -10,14 +8,15 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import ode.CorrelationODEs;
-import ode.CumulantParams;
-import ode.DynaComplexODEAdapter;
-
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 import coupling.DynaConstCoupling;
+import handlers.TwoTimeHandler;
+import ode.CorrelationODEs;
+import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
+import ode.FOCorrelationODEs;
 
 public class SynchUtils {
 
@@ -538,6 +537,24 @@ public class SynchUtils {
         return isSteadyState;
     }
     
+    private static int getTriIdx(int i, int j, int n) {
+        if(i > j) {
+            int t = j;
+            j = i;
+            i = t;
+        }
+        
+        return n*i - i*(i+1)/2 + j - i - 1;
+    }
+    
+    private static int getRecIdx(int i, int j, int n) {
+        if(j < i) {
+            return i*(n-1) + j;
+        }
+        
+        return i*(n-1) + j - 1;
+    }
+    
     public static double[] compCorr(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
     {
         int n = params.getN();
@@ -605,6 +622,101 @@ public class SynchUtils {
         
         return y2;
     }
+    
+
+    public static double[] compFOCorr(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
+    {
+        int n = params.getN();
+        
+        int dim = SynchUtils.getDimension(n);
+        int[] startIdx = new int[6];
+        SynchUtils.getStartIdx(startIdx, n);
+        DynaComplex[] z = new DynaComplex[dim];
+        for(int i = 0; i < dim; ++i) {
+            z[i] = new DynaComplex(0, 0);
+        }
+        DynaComplexODEAdapter.toComplex(y, z);
+        
+        DynaComplex[] szs = new DynaComplex[n];
+        int idx2 = 0;
+        for(int i = startIdx[2]; i < startIdx[2] + n; ++i) {
+            szs[idx2] = new DynaComplex(z[i].getReal(), z[i].getImaginary());
+            ++idx2;
+        }
+        
+        double mod_sum = 0.0;
+        DynaComplex[] z02 = new DynaComplex[n*n + n*n*(n-1)];
+        int idx1 = startIdx[2];
+        idx2 = startIdx[3];
+        for(int i = 0; i < n; ++i) {
+            z02[i*n + i] = new DynaComplex(0.5 + 0.5*z[idx1].getReal(), 0);
+            ++idx1;
+            for(int j = i+1; j < n; ++j) {
+                z02[i*n + j] = new DynaComplex(z[idx2].getReal(), z[idx2].getImaginary());
+                z02[j*n + i] = new DynaComplex(z[idx2].getReal(), z[idx2].getImaginary());
+                z02[j*n + i].conjugate();
+                
+                mod_sum += 2.0*z02[j*n + i].getReal();
+                
+                //System.out.println(z02[i*n + j].getReal() + "+j*" + z02[i*n + j].getImaginary() + " " + idx2 + " " + startIdx[3] + " " + startIdx[4]);
+                ++idx2;
+            }
+        }
+        System.out.println("Inital average corr factor: " + mod_sum/(n*(n-1)));
+        
+        int idx = n*n;
+        for(int c = 0; c < n; ++c) {
+            for(int a = 0; a < n; ++a) {
+                for(int b = 0; b < n; ++b) {
+                    if(a == b) continue;
+                    
+                    z02[idx] = new DynaComplex();
+                    if(c == a) {
+                        z02[idx].set(z[startIdx[3] + getTriIdx(a,b,n)]);
+                        z02[idx].conjugate();
+                    } else if(c == b) {
+                        z02[idx].set(0.5*(szs[a].getReal() + z[startIdx[4] + getRecIdx(a,b,n)].getReal()), 0);
+                    } else {
+                        z02[idx].set(z[startIdx[3] + getTriIdx(b,c,n)]).multiply(szs[a]);
+                    }
+                    
+                    ++idx;
+                }
+            }
+        }
+        
+        for(int i = 0; i < z02.length; ++i) {
+            System.out.println(z02[i]);
+        }
+
+        DynaConstCoupling coupling = new DynaConstCoupling(params.getAlpha().getReal(), params.getAlpha().getImaginary());
+        FOCorrelationODEs c_corr_odes = new FOCorrelationODEs(n, params.getGamma(), params.getW(), coupling, params.getD(), szs);
+        DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
+        
+        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .0001, 1.0e-3, 1.0e-2);
+        if(!filename.isEmpty()) {
+//            int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
+//            WriteHandler writeHandler = new WriteHandler(filename, out_col);
+            TwoTimeHandler writeHandler = new TwoTimeHandler(filename, n, false);
+            integrator.addStepHandler(writeHandler);
+        }
+        
+        double[] y02 = new double[2*z02.length];
+        DynaComplexODEAdapter.toReal(z02, y02);
+        
+        double[] y2 = new double[2*z02.length];
+        
+        double startTime = System.nanoTime();
+        
+        integrator.integrate(odes, 0, y02, 5, y2);
+        
+        double endTime = System.nanoTime();
+        
+        System.out.println("Correlation time: " + (endTime - startTime)/1.0e9 + " seconds");
+        
+        return y2;
+    }
+    
     
     public static double getW(int n) {
         if(n == 10) {
