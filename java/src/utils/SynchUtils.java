@@ -692,8 +692,6 @@ public class SynchUtils {
     
     public static double[] compCorr(CumulantParams params, double[] y, String filename, boolean fo) throws FileNotFoundException, UnsupportedEncodingException
     {
-        int n = params.getN();
-        
         IntegratorRequest request;
         if(fo) {
             request = getFOCorrRequest(params, y, filename);
@@ -710,7 +708,7 @@ public class SynchUtils {
             integrator.addEventHandler(request.getEventHandler(i), Double.POSITIVE_INFINITY, 1.0e-12, 100);
         }
         
-        double[] y2 = new double[2*n*n];
+        double[] y2 = new double[request.getY0().length];
         
         double startTime = System.nanoTime();
         

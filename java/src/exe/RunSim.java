@@ -475,10 +475,10 @@ public class RunSim {
             if(correlate) {
                 if(sim == Simulator.CUMULANT) {
                     if(numThreads > 1) {
-                        IntegratorRequest request = SynchUtils.getCorrRequest(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename());
+                        IntegratorRequest request = SynchUtils.getFOCorrRequest(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename());
                         tpIntegrator.addIvp(request);
                     } else {
-                        SynchUtils.compCorr(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename(), false);
+                        SynchUtils.compCorr(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename(), true);
                     }
                 } else {
                     throw new UnsupportedOperationException("Two-time correlation currently only supported for CUMULANT simulator");
