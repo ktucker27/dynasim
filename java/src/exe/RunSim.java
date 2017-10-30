@@ -33,6 +33,9 @@ import handlers.WriteHandlerCorr;
 import handlers.WriteHandlerMaster;
 import handlers.WriteHandlerMeanField;
 import handlers.WriteHandlerRPA;
+import integrator.AdamsMoultonFactory;
+import integrator.IntegratorRequest;
+import integrator.ThreadPoolIntegrator;
 import ode.CumulantAllToAllODEs;
 import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
@@ -40,6 +43,8 @@ import ode.MasterAllToAllODEs;
 import ode.RPAAllToAllODEs;
 import ode.SynchMeanFieldODEs;
 import utils.DynaComplex;
+import utils.SynchReducer;
+import utils.SynchSolution;
 import utils.SynchUtils;
 
 public class RunSim {
@@ -79,6 +84,7 @@ public class RunSim {
         options.addOption("wic", true, "Write initial condition Bloch vectors to the given file");
         options.addOption("c", false, "Carry over initial conditions from the previous solution");
         options.addOption("tt", false, "Perform two-time correlation simulation");
+        options.addOption("nt", true, "Number of threads to use for integration");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -93,6 +99,7 @@ public class RunSim {
         ignore.add("wic");
         ignore.add("c");
         ignore.add("tt");
+        ignore.add("nt");
         
         return options;
     }
@@ -129,6 +136,8 @@ public class RunSim {
         double tmin = 2;
         double tmax = 20;
         
+        long timeout = 7*24*3600; // One week
+        
         // Initial condition defaults
         ICAngleParams izParams = new ICAngleParams();
         izParams.initAngle = Math.PI/2.0;
@@ -155,6 +164,11 @@ public class RunSim {
         boolean useLorDetunings = cmd.hasOption("l");
         boolean carryOverIC = cmd.hasOption("c");
         boolean correlate = cmd.hasOption("tt");
+        
+        int numThreads = 1;
+        if(cmd.hasOption("nt")) {
+            numThreads = Integer.parseInt(cmd.getOptionValue("nt"));
+        }
         
         // Get initial conditions output file path if provided
         boolean outputIC = false;
@@ -253,6 +267,19 @@ public class RunSim {
             summWriter = new SummaryWriter(outdir + "/" + sim.name().toLowerCase() + "_summary.txt");
         }
         
+        // Prepare the thread pool integrator
+        ThreadPoolIntegrator tpIntegrator = null;
+        ArrayList<SynchSolution> solns = new ArrayList<SynchSolution>();
+        if(numThreads > 1) {
+            SynchReducer reducer = null;
+            if(summWriter != null) {
+                reducer = new SynchReducer(summWriter);
+                // TODO - Set live update to false on summWriter
+            }
+            
+            tpIntegrator = new ThreadPoolIntegrator(numThreads, new AdamsMoultonFactory(h*1.0e-6, h), reducer);
+        }
+        
         long startTime = System.nanoTime();
         
         int lastn = -1;
@@ -275,7 +302,9 @@ public class RunSim {
 //                SynchUtils.detuneFile(filename, params.get(i).getD());
             }
             
-            System.out.println(params.get(i).toString());
+            if(numThreads == 1) {
+                System.out.println(params.get(i).toString());
+            }
 
             String timefile = outdir + "/" + sim.name().toLowerCase() + "_" + params.get(i).getFilename();
             
@@ -297,6 +326,7 @@ public class RunSim {
                     writeHandler = new WriteHandlerCorr(timefile, n);
                 }
                 term = new CumulantSteadyStateTerminator(tmin, 0.015, 50, 1000000, 0.0025, n);
+                term.setQuietMode(numThreads > 1);
                 eval = new CumulantEval(n);
                 CumulantAllToAllODEs codes = new CumulantAllToAllODEs(params.get(i));
                 odes = new DynaComplexODEAdapter(codes);
@@ -346,24 +376,55 @@ public class RunSim {
             }
 
             // Setup integrator
-            AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-6, h, 1.0e-3, 1.0e-2);
-            integrator.addStepHandler(recorder);
-            
-            if(writeHandler != null) {
-                integrator.addStepHandler(writeHandler);
+            double[] y = null;
+            if(numThreads == 1) {
+                // We are running single threaded, so simply integrate now
+                AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-6, h, 1.0e-3, 1.0e-2);
+                integrator.addStepHandler(recorder);
+
+                if(writeHandler != null) {
+                    integrator.addStepHandler(writeHandler);
+                }
+
+                if(term != null) {
+                    integrator.addStepHandler(term.getDetector());
+                    integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
+                }
+
+                // Perform the integration
+                y = new double[eval.getRealDimension()];
+                integrator.integrate(odes, 0, y0, tmax, y);
+                
+                SynchSolution soln = new SynchSolution(params.get(i), recorder, eval);
+                soln.setSolution(y);
+                solns.add(soln);
+            } else {
+                // We are running multi-threaded, so queue up the request
+                SynchSolution soln = new SynchSolution(params.get(i), recorder, eval);
+                solns.add(soln);
+                
+                IntegratorRequest request = new IntegratorRequest(odes, 0, y0, tmax, soln);
+                
+                request.addStepHandler(recorder);
+
+                if(writeHandler != null) {
+                    request.addStepHandler(writeHandler);
+                }
+
+                if(term != null) {
+                    request.addStepHandler(term.getDetector());
+                    request.addEventHandler(term);
+                }
+                
+                tpIntegrator.addIvp(request);
             }
-            
-            if(term != null) {
-                integrator.addStepHandler(term.getDetector());
-                integrator.addEventHandler(term, Double.POSITIVE_INFINITY, 1.0e-12, 100);
-            }
-            
-            // Perform the integration
-            double[] y = new double[eval.getRealDimension()];
-            integrator.integrate(odes, 0, y0, tmax, y);
             
             // Carry over the initial conditions if requested
             if(carryOverIC) {
+                if(numThreads != 1) {
+                    throw new UnsupportedOperationException("Initial condition carry over not supported in multi-threaded mode");
+                }
+                
                 for(int j = 0; j < y.length; ++j) {
                     y0[j] = y[j];
                     if(Math.abs(y0[j]) < 1.0e-16) {
@@ -374,13 +435,31 @@ public class RunSim {
             }
             
             // Add the results to the summary writer
-            if(summWriter != null) {
+            if(numThreads == 1 && summWriter != null) {
                 summWriter.addVals(params.get(i), recorder);
             }
+        }
+        
+        if(numThreads > 1) {
+            tpIntegrator.waitForFinished(timeout);
+        }
+        
+        long simEndTime = System.nanoTime();
+        
+        System.out.println("Simulation time: " + (simEndTime - startTime)/1.0e9 + " seconds");
+        
+        // Write the summary
+        // TODO - Only do this for multiple threads if single threaded mode is updating live
+        if(summWriter != null) {
+            summWriter.writeToFile();
+        }
+        
+        // Post processing
+        for(int i = 0; i < solns.size(); ++i) {
+            SynchSolution soln = solns.get(i);
             
-            // Post-processing
             if(outputZdist && sim == Simulator.MASTER) {
-                ((MasterEval)eval).writeZDist(y, outdir + "zdist_" + params.get(i).getFilename());
+                ((MasterEval)soln.getEval()).writeZDist(soln.getSolution(), outdir + "zdist_" + params.get(i).getFilename());
             }
             
 //            if(sim == Simulator.MASTER) {
@@ -390,7 +469,7 @@ public class RunSim {
             // Compute the correlation function if requested
             if(correlate) {
                 if(sim == Simulator.CUMULANT) {
-                    SynchUtils.compCorr(params.get(i), y, outdir + "time_corr_" + params.get(i).getFilename());
+                    SynchUtils.compCorr(params.get(i), soln.getSolution(), outdir + "time_corr_" + soln.getParams().getFilename());
                 } else {
                     throw new UnsupportedOperationException("Two-time correlation currently only supported for CUMULANT simulator");
                 }
@@ -400,11 +479,6 @@ public class RunSim {
         long endTime = System.nanoTime();
         
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
-        
-        // Write the summary
-        if(summWriter != null) {
-            summWriter.writeToFile();
-        }
     }
     
     private static boolean parseOptions(Options options, TreeSet<String> ignore, String[] args, CommandLine cmd, TreeMap<String, double[]> optMap) {

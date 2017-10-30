@@ -15,6 +15,7 @@ public class CumulantSteadyStateTerminator implements EventHandler {
     SteadyStateDetector myDetector;
     int myMaxIterations;
     boolean mySteadyStateReached;
+    boolean myQuietMode;
     
     private class SteadyStateDetector implements StepHandler {
         double myMinTime;
@@ -48,7 +49,7 @@ public class CumulantSteadyStateTerminator implements EventHandler {
 
             if(myTotalSteps >= myMaxIterations) {
                 myStopTime = interpolator.getInterpolatedTime();
-                System.out.println("Maximum number of iterations (" + myMaxIterations + ") exceeded at time " + myStopTime);
+                System.err.println("Maximum number of iterations (" + myMaxIterations + ") exceeded at time " + myStopTime);
                 return;
             }
 
@@ -72,7 +73,7 @@ public class CumulantSteadyStateTerminator implements EventHandler {
                SynchUtils.isSteadyState(mySpinCorr, myNumSteps, myTol)) {
                 myStopTime = interpolator.getInterpolatedTime();
                 mySteadyStateReached = true;
-                System.out.println("Steady state detected at time " + myStopTime);
+                if(!myQuietMode) System.out.println("Steady state detected at time " + myStopTime);
             }
         }
     }
@@ -83,6 +84,11 @@ public class CumulantSteadyStateTerminator implements EventHandler {
         myMaxIterations = maxIterations;
         mySteadyStateReached = false;
         myDetector = new SteadyStateDetector(minTime, timeDelta, tol, numSteps);
+        myQuietMode = false;
+    }
+    
+    public void setQuietMode(boolean quiet) {
+        myQuietMode = quiet;
     }
     
     public StepHandler getDetector() {
@@ -109,7 +115,7 @@ public class CumulantSteadyStateTerminator implements EventHandler {
 
     @Override
     public Action eventOccurred(double t, double[] y, boolean increasing) {
-        System.out.println("STOP EVENT");
+        if(!myQuietMode) System.out.println("STOP EVENT");
         return EventHandler.Action.STOP;
     }
 

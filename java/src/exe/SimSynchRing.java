@@ -48,7 +48,7 @@ public class SimSynchRing {
         int numw = 25;
         
         //ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, new EulerIntegratorFactory(h));
-        ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, new AdamsMoultonFactory(1.0e-18, h));
+        ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, new AdamsMoultonFactory(1.0e-18, h), null);
         integrator.setQuietMode(false);
 
         RingCoupling coupling = new RingCoupling(n,a);
