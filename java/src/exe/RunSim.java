@@ -127,6 +127,7 @@ public class RunSim {
         String outdir = "/Users/kristophertucker/output/temp/";
         int n = 2;
         double h = 0.001;
+        double hc = 0.0001;
         double gamma = 1.0;
         double f = 0.0;
         double g = 0.0;
@@ -455,6 +456,10 @@ public class RunSim {
         }
         
         // Post processing
+        if(numThreads > 1) {
+            tpIntegrator = new ThreadPoolIntegrator(numThreads, new AdamsMoultonFactory(hc*1.0e-6, hc), null);
+        }
+        
         for(int i = 0; i < solns.size(); ++i) {
             SynchSolution soln = solns.get(i);
             
@@ -469,11 +474,20 @@ public class RunSim {
             // Compute the correlation function if requested
             if(correlate) {
                 if(sim == Simulator.CUMULANT) {
-                    SynchUtils.compCorr(params.get(i), soln.getSolution(), outdir + "time_corr_" + soln.getParams().getFilename());
+                    if(numThreads > 1) {
+                        IntegratorRequest request = SynchUtils.getCorrRequest(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename());
+                        tpIntegrator.addIvp(request);
+                    } else {
+                        SynchUtils.compCorr(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename(), false);
+                    }
                 } else {
                     throw new UnsupportedOperationException("Two-time correlation currently only supported for CUMULANT simulator");
                 }
             }
+        }
+        
+        if(numThreads > 1) {
+            tpIntegrator.waitForFinished(timeout);
         }
         
         long endTime = System.nanoTime();

@@ -136,7 +136,7 @@ public class CumulantGridCorr {
             
             // Compute the correlation function if requested
             if(correlate) {
-                SynchUtils.compCorr(cparams, y, dir + "time_corr_" + cparams.getFilename());
+                SynchUtils.compCorr(cparams, y, dir + "time_corr_" + cparams.getFilename(), false);
             }
 
             DynaComplexODEAdapter.toComplex(y, z0);

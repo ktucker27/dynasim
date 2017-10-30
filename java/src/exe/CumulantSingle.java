@@ -159,7 +159,7 @@ public class CumulantSingle {
         System.out.println("final corr: " + SynchUtils.compCorr(y, n));
         
         if(correlate) {
-            SynchUtils.compCorr(params, y, dir + "two_time_" + params.getFilename());
+            SynchUtils.compCorr(params, y, dir + "two_time_" + params.getFilename(), false);
         }
 
         long endTime = System.nanoTime();

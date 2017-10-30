@@ -192,7 +192,7 @@ public class CumulantRun {
 
             // Compute the correlation function if requested
             if(correlate) {
-                SynchUtils.compCorr(cparams, y, dir + "time_corr_" + wStr + ".txt");
+                SynchUtils.compCorr(cparams, y, dir + "time_corr_" + wStr + ".txt", false);
             }
 
             DynaComplexODEAdapter.toComplex(y, z0);
