@@ -31,7 +31,11 @@ end
 sbmrhov = unwind(sum2*rho);
 
 dtau = tau(2) - tau(1);
-el = expm(tau(1)*L);
+if tau(1) == 0
+    el = eye(size(L,1));
+else
+    el = expm(tau(1)*L);
+end
 del = expm(dtau*L);
 
 for ti = 1:size(tau,1)

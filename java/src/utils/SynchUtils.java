@@ -548,14 +548,6 @@ public class SynchUtils {
         return n*i - i*(i+1)/2 + j - i - 1;
     }
     
-    private static int getRecIdx(int i, int j, int n) {
-        if(j < i) {
-            return i*(n-1) + j;
-        }
-        
-        return i*(n-1) + j - 1;
-    }
-    
     public static IntegratorRequest getCorrRequest(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException {
         int n = params.getN();
         
@@ -654,11 +646,17 @@ public class SynchUtils {
                     z02[idx] = new DynaComplex();
                     if(c == a) {
                         z02[idx].set(z[startIdx[3] + getTriIdx(a,b,n)]);
-                        z02[idx].conjugate();
+                        z02[idx].multiply(-1.0);
+                        if(b > a) {
+                            z02[idx].conjugate();
+                        }
                     } else if(c == b) {
-                        z02[idx].set(0.5*(szs[a].getReal() + z[startIdx[4] + getRecIdx(a,b,n)].getReal()), 0);
+                        z02[idx].set(0.5*(szs[a].getReal() + z[startIdx[4] + getTriIdx(a,b,n)].getReal()), 0);
                     } else {
                         z02[idx].set(z[startIdx[3] + getTriIdx(b,c,n)]).multiply(szs[a]);
+                        if(c < b) {
+                            z02[idx].conjugate();
+                        }
                     }
                     
                     ++idx;
