@@ -24,11 +24,15 @@ function [v,m,b] = smooth_max(x,y)
 end
 
 function [v,m,b] = disc_dist(x,y)
-    ay = abs(y);
+    % Trim the spectrum for consistent x limits
+    idx1 = binary_search(x, -500);
+    idx2 = binary_search(x, 500);
     
+    x2 = x(idx1:idx2,1);
+    ay = abs(y(idx1:idx2,1));
     ay = ay/sum(ay);
     
-    v = sum(x.*ay);
-    b = sqrt(sum(x.*x.*ay) - v*v);
-    m = max(smooth(abs(y), 11));
+    v = sum(x2.*ay);
+    b = sqrt(sum(x2.*x2.*ay) - v*v);
+    m = max(abs(y));
 end
