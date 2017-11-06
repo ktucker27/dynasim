@@ -28,27 +28,24 @@ for a = 1:n
     sum2 = sum2 + get_sa(sm, n, a);
 end
 
-sbmrhov = unwind(sum2*rho);
+v = unwind(sum2*rho);
 
 dtau = tau(2) - tau(1);
-if tau(1) == 0
-    el = eye(size(L,1));
-else
-    el = expm(tau(1)*L);
+if tau(1) ~= 0
+    v = expm(tau(1)*L)*v;
 end
 del = expm(dtau*L);
 
 for ti = 1:size(tau,1)
-    v = el*sbmrhov;
     m = sum1*wind(v);
     
     tt(ti,1) = trace(m)/(n*n);
     
-    if mod(ti,1000) == 0
-        disp(['tau: ', num2str(tau(ti))]);
-    end
+    %if mod(ti-1,5) == 0
+    %    disp(['tau: ', num2str(tau(ti))]);
+    %end
     
-    el = del*el;
+    v = del*v;
 end
 
 end
