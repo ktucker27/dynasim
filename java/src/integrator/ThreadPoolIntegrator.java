@@ -4,6 +4,7 @@ package integrator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
@@ -18,13 +19,11 @@ public class ThreadPoolIntegrator {
     private boolean myQuietMode;
     private ExecutorService myThreadPool;
     private ConcurrentLinkedQueue<FirstOrderIntegrator> myIntegrators;
+    private Semaphore myMutex;
+    private IntegratorReducer myReducer;
 
     private class ThreadPoolIVP implements Runnable {
-        private FirstOrderDifferentialEquations myOdes;
-        private double t0;
-        private double[] y0;
-        private double t;
-        private ODESolution soln;
+        private IntegratorRequest myRequest;
         
         /**
          * @param odes the odes to integrate
@@ -33,31 +32,61 @@ public class ThreadPoolIntegrator {
          * @param t final time
          * @param soln solution
          */
-        public ThreadPoolIVP(FirstOrderDifferentialEquations odes,
-                double t0, double[] y0,
-                double t, ODESolution soln) {
+        public ThreadPoolIVP(IntegratorRequest request) {
             super();
-            this.myOdes = odes;
-            this.t0 = t0;
-            this.y0 = y0;
-            this.t = t;
-            this.soln = soln;
+            myRequest = request;
         }
 
         @Override
         public void run() {
+            // Grab an integrator off the queue
             FirstOrderIntegrator integrator = myIntegrators.remove();
             
-            double[] y = new double[myOdes.getDimension()];
+            double[] y = new double[myRequest.getOdes().getDimension()];
             try {
-                integrator.integrate(myOdes, t0, y0, t, y);
-                soln.setSolution(y);
+                // Setup step handlers
+                integrator.clearStepHandlers();
+                for(int i = 0; i < myRequest.numStepHandlers(); ++i) {
+                    integrator.addStepHandler(myRequest.getStepHandler(i));
+                }
+                
+                // Setup event handlers
+                integrator.clearEventHandlers();
+                for(int i = 0; i < myRequest.numEventHandlers(); ++i) {
+                    integrator.addEventHandler(myRequest.getEventHandler(i), Double.POSITIVE_INFINITY, 1.0e-12, 100);
+                }
+                
+                // Perform integration
+                integrator.integrate(myRequest.getOdes(), 
+                                     myRequest.getT0(),
+                                     myRequest.getY0(),
+                                     myRequest.getTF(),
+                                     y);
+                
+                // Set solution
+                myRequest.getSoln().setSolution(y);
             } catch(Exception ex) {
-                System.out.println(ex.getMessage());
+                System.err.println(ex.getMessage());
+                ex.printStackTrace();
+            } 
+            
+            // Perform reduction step
+            if(myReducer != null) {
+                try {
+                    myMutex.acquire();
+                    myReducer.reduce(myRequest.getSoln());
+                } catch (InterruptedException ex) {
+                    System.err.println(ex.getMessage());
+                    ex.printStackTrace();
+                } finally {
+                    myMutex.release();
+                }
             }
             
+            // Return the integrator to the queue
             myIntegrators.add(integrator);
             
+            // Post some status
             if(!myQuietMode) {
                 int numFinished = finished();
                 if(numFinished % 100 == 0) {
@@ -71,21 +100,30 @@ public class ThreadPoolIntegrator {
      * @param numThreads the number of threads to use
      * @param intFactory factory to generate the integrators that will be used
      */
-    public ThreadPoolIntegrator(int numThreads, IntegratorFactory intFactory) {
+    public ThreadPoolIntegrator(int numThreads, IntegratorFactory intFactory, IntegratorReducer reducer) {
         super();
         myThreadPool = Executors.newFixedThreadPool(numThreads);
         myNumIvps = 0;
         myNumFinished = 0;
         myQuietMode = true;
+        myReducer = reducer;
         
         myIntegrators = new ConcurrentLinkedQueue<FirstOrderIntegrator>();
         for(int i = 0; i < numThreads; ++i) {
             myIntegrators.add(intFactory.newIntegrator());
         }
+        
+        myMutex = new Semaphore(1);
     }
     
     public void addIvp(FirstOrderDifferentialEquations odes, double t0, double[] y0, double t, ODESolution soln) {
-        myThreadPool.execute(new ThreadPoolIVP(odes, t0, y0, t, soln));
+        IntegratorRequest request = new IntegratorRequest(odes, t0, y0, t, soln);
+        myThreadPool.execute(new ThreadPoolIVP(request));
+        todo();
+    }
+    
+    public void addIvp(IntegratorRequest request) {
+        myThreadPool.execute(new ThreadPoolIVP(request));
         todo();
     }
     

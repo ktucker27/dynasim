@@ -12,7 +12,10 @@ import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 import coupling.DynaConstCoupling;
+import handlers.CollectiveTwoTimeHandler;
 import handlers.TwoTimeHandler;
+import integrator.IntegratorRequest;
+import ode.CollectiveCorrelationODEs;
 import ode.CorrelationODEs;
 import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
@@ -547,16 +550,22 @@ public class SynchUtils {
         return n*i - i*(i+1)/2 + j - i - 1;
     }
     
-    private static int getRecIdx(int i, int j, int n) {
-        if(j < i) {
-            return i*(n-1) + j;
+    public enum CorrelationType {THIRD, FOURTH, COLLECTIVE}
+    
+    public static IntegratorRequest getCorrRequest(CumulantParams params, double[] y, String filename, CorrelationType type) throws FileNotFoundException, UnsupportedEncodingException {
+        switch(type) {
+        case THIRD:
+            return getTOCorrRequest(params, y, filename);
+        case FOURTH:
+            return getFOCorrRequest(params, y, filename);
+        case COLLECTIVE:
+            return getCollectiveCorrRequest(params, y, filename);
         }
         
-        return i*(n-1) + j - 1;
+        return null;
     }
     
-    public static double[] compCorr(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
-    {
+    public static IntegratorRequest getTOCorrRequest(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException {
         int n = params.getN();
         
         int dim = SynchUtils.getDimension(n);
@@ -575,7 +584,6 @@ public class SynchUtils {
             ++idx2;
         }
         
-        double mod_sum = 0.0;
         DynaComplex[] z02 = new DynaComplex[n*n];
         int idx1 = startIdx[2];
         idx2 = startIdx[3];
@@ -587,44 +595,31 @@ public class SynchUtils {
                 z02[j*n + i] = new DynaComplex(z[idx2].getReal(), z[idx2].getImaginary());
                 z02[j*n + i].conjugate();
                 
-                mod_sum += 2.0*z02[j*n + i].getReal();
-                
-                //System.out.println(z02[i*n + j].getReal() + "+j*" + z02[i*n + j].getImaginary() + " " + idx2 + " " + startIdx[3] + " " + startIdx[4]);
                 ++idx2;
             }
         }
-        System.out.println("Inital average corr factor: " + mod_sum/(n*(n-1)));
 
         DynaConstCoupling coupling = new DynaConstCoupling(params.getAlpha().getReal(), params.getAlpha().getImaginary());
         CorrelationODEs c_corr_odes = new CorrelationODEs(n, params.getGamma(), params.getW(), coupling, params.getD(), szs);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
         
-        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .0001, 1.0e-3, 1.0e-2);
-        if(!filename.isEmpty()) {
-//            int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
-//            WriteHandler writeHandler = new WriteHandler(filename, out_col);
-            TwoTimeHandler writeHandler = new TwoTimeHandler(filename, n, false);
-            integrator.addStepHandler(writeHandler);
-        }
-        
         double[] y02 = new double[2*n*n];
         DynaComplexODEAdapter.toReal(z02, y02);
         
-        double[] y2 = new double[2*n*n];
+        FullODESolution soln = new FullODESolution();
+        IntegratorRequest request = new IntegratorRequest(odes, 0, y02, 5, soln);
         
-        double startTime = System.nanoTime();
+        if(!filename.isEmpty()) {
+//          int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
+//          WriteHandler writeHandler = new WriteHandler(filename, out_col);
+            TwoTimeHandler writeHandler = new TwoTimeHandler(filename, n, false);
+            request.addStepHandler(writeHandler);
+        }
         
-        integrator.integrate(odes, 0, y02, 5, y2);
-        
-        double endTime = System.nanoTime();
-        
-        System.out.println("Correlation time: " + (endTime - startTime)/1.0e9 + " seconds");
-        
-        return y2;
+        return request;
     }
     
-
-    public static double[] compFOCorr(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
+    public static IntegratorRequest getFOCorrRequest(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
     {
         int n = params.getN();
         
@@ -644,7 +639,6 @@ public class SynchUtils {
             ++idx2;
         }
         
-        double mod_sum = 0.0;
         DynaComplex[] z02 = new DynaComplex[n*n + n*n*(n-1)];
         int idx1 = startIdx[2];
         idx2 = startIdx[3];
@@ -656,13 +650,9 @@ public class SynchUtils {
                 z02[j*n + i] = new DynaComplex(z[idx2].getReal(), z[idx2].getImaginary());
                 z02[j*n + i].conjugate();
                 
-                mod_sum += 2.0*z02[j*n + i].getReal();
-                
-                //System.out.println(z02[i*n + j].getReal() + "+j*" + z02[i*n + j].getImaginary() + " " + idx2 + " " + startIdx[3] + " " + startIdx[4]);
                 ++idx2;
             }
         }
-        System.out.println("Inital average corr factor: " + mod_sum/(n*(n-1)));
         
         int idx = n*n;
         for(int c = 0; c < n; ++c) {
@@ -673,11 +663,17 @@ public class SynchUtils {
                     z02[idx] = new DynaComplex();
                     if(c == a) {
                         z02[idx].set(z[startIdx[3] + getTriIdx(a,b,n)]);
-                        z02[idx].conjugate();
+                        z02[idx].multiply(-1.0);
+                        if(b > a) {
+                            z02[idx].conjugate();
+                        }
                     } else if(c == b) {
-                        z02[idx].set(0.5*(szs[a].getReal() + z[startIdx[4] + getRecIdx(a,b,n)].getReal()), 0);
+                        z02[idx].set(0.5*(szs[a].getReal() + z[startIdx[4] + getTriIdx(a,b,n)].getReal()), 0);
                     } else {
                         z02[idx].set(z[startIdx[3] + getTriIdx(b,c,n)]).multiply(szs[a]);
+                        if(c < b) {
+                            z02[idx].conjugate();
+                        }
                     }
                     
                     ++idx;
@@ -685,30 +681,101 @@ public class SynchUtils {
             }
         }
         
-        for(int i = 0; i < z02.length; ++i) {
-            System.out.println(z02[i]);
-        }
+//        for(int i = 0; i < z02.length; ++i) {
+//            System.out.println(z02[i]);
+//        }
 
         DynaConstCoupling coupling = new DynaConstCoupling(params.getAlpha().getReal(), params.getAlpha().getImaginary());
         FOCorrelationODEs c_corr_odes = new FOCorrelationODEs(n, params.getGamma(), params.getW(), coupling, params.getD(), szs);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
         
-        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .0001, 1.0e-3, 1.0e-2);
-        if(!filename.isEmpty()) {
-//            int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
-//            WriteHandler writeHandler = new WriteHandler(filename, out_col);
-            TwoTimeHandler writeHandler = new TwoTimeHandler(filename, n, false);
-            integrator.addStepHandler(writeHandler);
-        }
-        
         double[] y02 = new double[2*z02.length];
         DynaComplexODEAdapter.toReal(z02, y02);
         
-        double[] y2 = new double[2*z02.length];
+        FullODESolution soln = new FullODESolution();
+        IntegratorRequest request = new IntegratorRequest(odes, 0, y02, 5, soln);
+        
+        if(!filename.isEmpty()) {
+//          int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
+//          WriteHandler writeHandler = new WriteHandler(filename, out_col);
+            TwoTimeHandler writeHandler = new TwoTimeHandler(filename, n, false);
+            request.addStepHandler(writeHandler);
+        }
+        
+        return request;
+    }
+    
+    public static IntegratorRequest getCollectiveCorrRequest(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
+    {
+        int n = params.getN();
+        
+        int dim = SynchUtils.getDimension(n);
+
+        int[] startIdx = new int[6];
+        SynchUtils.getStartIdx(startIdx, n);
+        int idxz = startIdx[2];
+        int idxpm = startIdx[3];
+        int idxzz = startIdx[4];
+        
+        DynaComplex[] z = new DynaComplex[dim];
+        for(int i = 0; i < dim; ++i) {
+            z[i] = new DynaComplex(0, 0);
+        }
+        DynaComplexODEAdapter.toComplex(y, z);
+        
+        double sz = z[idxz].getReal();
+        
+        DynaComplex t1 = new DynaComplex();
+        
+        DynaComplex[] z0 = new DynaComplex[5];
+        z0[0] = new DynaComplex(z[idxpm]);
+        z0[1] = new DynaComplex(0.5 + 0.5*sz, 0);
+        z0[2] = new DynaComplex(t1.set(z[idxpm]).multiply(sz));
+        z0[3] = new DynaComplex(0.5*(sz + z[idxzz].getReal()), 0);
+        z0[4] = new DynaComplex(-1.0*z0[0].getReal(), 0);
+        
+//        for(int i = 0; i < z.length; ++i) {
+//            System.out.println(z[i]);
+//        }
+        
+        CollectiveCorrelationODEs c_corr_odes = new CollectiveCorrelationODEs(params, sz);
+        DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
+        
+        double[] y0 = new double[2*z0.length];
+        DynaComplexODEAdapter.toReal(z0, y0);
+        
+        FullODESolution soln = new FullODESolution();
+        IntegratorRequest request = new IntegratorRequest(odes, 0, y0, 5, soln);
+        
+        if(!filename.isEmpty()) {
+//          int[] out_col = {0,1,2,3,2*(n+1),2*(n+1)+1};
+//          WriteHandler writeHandler = new WriteHandler(filename, out_col);
+            CollectiveTwoTimeHandler writeHandler = new CollectiveTwoTimeHandler(filename, n, false);
+            request.addStepHandler(writeHandler);
+        }
+        
+        return request;
+    }
+    
+    public static double[] compCorr(CumulantParams params, double[] y, String filename, CorrelationType type) throws FileNotFoundException, UnsupportedEncodingException
+    {
+        IntegratorRequest request = getCorrRequest(params, y, filename, type);
+        
+        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .0001, 1.0e-3, 1.0e-2);
+        for(int i = 0; i < request.numStepHandlers(); ++i) {
+            integrator.addStepHandler(request.getStepHandler(i));
+        }
+
+        for(int i = 0; i < request.numEventHandlers(); ++i) {
+            integrator.addEventHandler(request.getEventHandler(i), Double.POSITIVE_INFINITY, 1.0e-12, 100);
+        }
+        
+        double[] y2 = new double[request.getY0().length];
         
         double startTime = System.nanoTime();
         
-        integrator.integrate(odes, 0, y02, 5, y2);
+        integrator.integrate(request.getOdes(), request.getT0(), request.getY0(), request.getTF(), y2);
+        request.getSoln().setSolution(y2);
         
         double endTime = System.nanoTime();
         
@@ -716,7 +783,6 @@ public class SynchUtils {
         
         return y2;
     }
-    
     
     public static double getW(int n) {
         if(n == 10) {

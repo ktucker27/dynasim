@@ -58,7 +58,7 @@ public class SimSynchMeanField {
             }
         };
 
-        ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, factory);
+        ThreadPoolIntegrator integrator = new ThreadPoolIntegrator(8, factory, null);
         integrator.setQuietMode(false);
 
         OrderParameterSolution[][] r = new OrderParameterSolution[201][201];

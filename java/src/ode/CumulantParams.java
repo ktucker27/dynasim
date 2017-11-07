@@ -96,9 +96,9 @@ public class CumulantParams implements Comparable<CumulantParams> {
         out += "f = " + alpha.getReal() + "\n";
         out += "Gamma = " + gamma + "\n";
         out += "gel = " + gel + "\n";
-//        for(int j = 0; j < d.length; ++j) {
-//            out += "d[" + j + "]: " + d[j] + "\n";
-//        }
+        for(int j = 0; j < d.length; ++j) {
+            out += "d[" + j + "]: " + d[j] + "\n";
+        }
 
         return out;
     }
