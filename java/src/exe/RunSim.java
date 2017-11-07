@@ -1,5 +1,13 @@
 package exe;
 
+import handlers.CumulantSteadyStateTerminator;
+import handlers.DataRecorder;
+import handlers.SummaryWriter;
+import handlers.WriteHandlerCorr;
+import handlers.WriteHandlerMaster;
+import handlers.WriteHandlerMeanField;
+import handlers.WriteHandlerRPA;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -9,6 +17,13 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import ode.CumulantAllToAllODEs;
+import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
+import ode.MasterAllToAllODEs;
+import ode.RPAAllToAllODEs;
+import ode.SynchMeanFieldODEs;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -20,27 +35,14 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.ode.sampling.StepHandler;
 
+import utils.DynaComplex;
+import utils.SynchUtils;
 import eval.CumulantEval;
 import eval.MasterEval;
 import eval.MeanFieldEval;
 import eval.RPAEval;
 import eval.SystemEval;
 import eval.SystemEval.InitAngleType;
-import handlers.CumulantSteadyStateTerminator;
-import handlers.DataRecorder;
-import handlers.SummaryWriter;
-import handlers.WriteHandlerCorr;
-import handlers.WriteHandlerMaster;
-import handlers.WriteHandlerMeanField;
-import handlers.WriteHandlerRPA;
-import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
-import ode.DynaComplexODEAdapter;
-import ode.MasterAllToAllODEs;
-import ode.RPAAllToAllODEs;
-import ode.SynchMeanFieldODEs;
-import utils.DynaComplex;
-import utils.SynchUtils;
 
 public class RunSim {
     
@@ -251,6 +253,7 @@ public class RunSim {
         SummaryWriter summWriter = null;
         if(params.size() > 1 || !outputVsTime) {
             summWriter = new SummaryWriter(outdir + "/" + sim.name().toLowerCase() + "_summary.txt");
+            summWriter.setLiveUpdate(true);
         }
         
         long startTime = System.nanoTime();
@@ -403,7 +406,7 @@ public class RunSim {
         
         // Write the summary
         if(summWriter != null) {
-            summWriter.writeToFile();
+            summWriter.close();
         }
     }
     

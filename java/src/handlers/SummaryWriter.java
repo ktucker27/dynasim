@@ -22,10 +22,18 @@ public class SummaryWriter {
     
     TreeMap<CumulantParams, SummaryVals> myVals;
     PrintWriter myWriter;
+    boolean myLiveUpdate;
+    boolean myHeaderOut;
     
     public SummaryWriter(String filepath) throws FileNotFoundException {
         myVals = new TreeMap<CumulantParams, SummaryWriter.SummaryVals>();
         myWriter = new PrintWriter(filepath);
+        myLiveUpdate = false;
+        myHeaderOut = false;
+    }
+    
+    public void setLiveUpdate(boolean liveUpdate) {
+        myLiveUpdate = liveUpdate;
     }
     
     public void addVals(CumulantParams params, SystemEval eval, double[] y) {
@@ -33,6 +41,10 @@ public class SummaryWriter {
         vals.orderParam = eval.getOrderParam(y);
         vals.avgSigmaz = eval.getAvgSigmaz(y);
         myVals.put(params, vals);
+        
+        if(myLiveUpdate) {
+            writeVals(params, vals);
+        }
     }
     
     public void addVals(CumulantParams params, DataRecorder recorder) {
@@ -40,11 +52,22 @@ public class SummaryWriter {
         vals.orderParam = recorder.getMeanOrderParam();
         vals.avgSigmaz = recorder.getMeanAvgZs();
         myVals.put(params, vals);
+        
+        if(myLiveUpdate) {
+            writeVals(params, vals);
+        }
     }
     
-    public void writeToFile() {
+    public void close() {
+        myWriter.close();
+    }
+    
+    public void writeAllToFile() {
         // Write the header
-        myWriter.write(CumulantParams.getHeader() + ", " + getHeader() + "\n");
+        if(!myHeaderOut) {
+            myWriter.write(CumulantParams.getHeader() + ", " + getHeader() + "\n");
+            myHeaderOut = true;
+        }
         
         // Write the values
         Iterator<CumulantParams> iter = myVals.keySet().iterator();
@@ -57,6 +80,19 @@ public class SummaryWriter {
         }
         
         myWriter.close();
+    }
+    
+    private void writeVals(CumulantParams params, SummaryVals vals) {
+        if(!myHeaderOut) {
+            myWriter.write(CumulantParams.getHeader() + ", " + getHeader() + "\n");
+            myHeaderOut = true;
+        }
+        
+        myWriter.write(params.getLine() + ", ");
+        myWriter.write(vals.orderParam + ", ");
+        myWriter.write(vals.avgSigmaz + "\n");
+        
+        myWriter.flush();
     }
     
     private String getHeader() {
