@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -216,15 +215,15 @@ public class RunSim {
         
         // Read detunings from a file if requested
         boolean detuningsFromFile = cmd.hasOption("df");
-        ArrayList<Double> fileDetunings = null;
-        if(detuningsFromFile) {
-            fileDetunings = new ArrayList<Double>();
-            Scanner inputStream = new Scanner(new File(cmd.getOptionValue("df")));
-            while(inputStream.hasNext()) {
-                fileDetunings.add(Double.parseDouble(inputStream.next()));
-            }
-            inputStream.close();
-        }
+//        ArrayList<Double> fileDetunings = null;
+//        if(detuningsFromFile) {
+//            fileDetunings = new ArrayList<Double>();
+//            Scanner inputStream = new Scanner(new File(cmd.getOptionValue("df")));
+//            while(inputStream.hasNext()) {
+//                fileDetunings.add(Double.parseDouble(inputStream.next()));
+//            }
+//            inputStream.close();
+//        }
 
         // Default detunings
         double[] d = new double[n];
@@ -290,17 +289,17 @@ public class RunSim {
             
             // Override the detunings if provided in a file
             if(detuningsFromFile) {
-                if(n != fileDetunings.size()) {
-                    System.err.println("Number of detunings in provided file does not match number of particles");
-                    break;
-                }
+//                if(n != fileDetunings.size()) {
+//                    System.err.println("Number of detunings in provided file does not match number of particles");
+//                    break;
+//                }
+//                
+//                for(int j = 0; j < fileDetunings.size(); ++j) {
+//                    params.get(i).getD()[j] = fileDetunings.get(j);
+//                }
                 
-                for(int j = 0; j < fileDetunings.size(); ++j) {
-                    params.get(i).getD()[j] = fileDetunings.get(j);
-                }
-                
-//                String filename = cmd.getOptionValue("df") + "N" + n + "_D" + (int)(params.get(i).getDelta()) + ".txt";
-//                SynchUtils.detuneFile(filename, params.get(i).getD());
+                String filename = cmd.getOptionValue("df") + "N" + n + "_D" + (int)(params.get(i).getDelta()) + ".txt";
+                SynchUtils.detuneFile(filename, params.get(i).getD());
             }
             
             if(numThreads == 1) {
@@ -473,12 +472,13 @@ public class RunSim {
             
             // Compute the correlation function if requested
             if(correlate) {
+                SynchUtils.CorrelationType ctype = SynchUtils.CorrelationType.COLLECTIVE;
                 if(sim == Simulator.CUMULANT) {
                     if(numThreads > 1) {
-                        IntegratorRequest request = SynchUtils.getFOCorrRequest(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename());
+                        IntegratorRequest request = SynchUtils.getCorrRequest(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename(), ctype);
                         tpIntegrator.addIvp(request);
                     } else {
-                        SynchUtils.compCorr(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename(), true);
+                        SynchUtils.compCorr(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename(), ctype);
                     }
                 } else {
                     throw new UnsupportedOperationException("Two-time correlation currently only supported for CUMULANT simulator");
