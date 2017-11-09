@@ -206,6 +206,14 @@ public class CumulantEval implements SystemEval {
     // In the following, for the superscript indices:
     // 0 = +, 1 = -, 2 = z
     
+    private enum CumulantOp {
+        PLUS,
+        MINUS,
+        Z,
+        ZERO,
+        IDENTITY
+    }
+    
     /**
      * @param al superscript
      * @param a particle index
@@ -227,6 +235,21 @@ public class CumulantEval implements SystemEval {
      * @return <sigma_a^al sigma_b^bt> taken from z
      */
     public DynaComplex getDouble(int al, int bt, int a, int b, DynaComplex[] z, DynaComplex ans) {
+        // Handle same particle numbers first
+        if(a == b) {
+            if(al == bt) {
+                if(al == 0 || al == 1) {
+                    ans.set(0, 0);
+                } else {
+                    ans.set(1, 0);
+                }
+            } else {
+                // TODO
+            }
+            
+            return ans;
+        }
+        
         switch(al) {
         case 0:
             switch(bt) {
@@ -262,9 +285,7 @@ public class CumulantEval implements SystemEval {
         }
         
         // This should never happen
-        System.err.println("Invalid superscripts passed to cumulantDouble: " + al + " " + bt);
-        
-        return null;
+        throw new UnsupportedOperationException("Invalid superscripts passed to cumulantDouble: " + al + " " + bt);
     }
     
     /**
