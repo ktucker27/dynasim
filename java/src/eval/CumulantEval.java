@@ -12,6 +12,8 @@ public class CumulantEval implements SystemEval {
     int[] startIdx;
     DynaComplex[] z;
     
+    DynaComplex ct1, ct2, ct3;
+    
     public CumulantEval(int n) {
         this.n = n;
 
@@ -27,6 +29,10 @@ public class CumulantEval implements SystemEval {
         for(int i = 0; i < z.length; ++i) {
             z[i] = new DynaComplex();
         }
+        
+        ct1 = new DynaComplex();
+        ct2 = new DynaComplex();
+        ct3 = new DynaComplex();
     }
     
     public int[] getStartIdx() {
@@ -177,5 +183,107 @@ public class CumulantEval implements SystemEval {
         }
         
         DynaComplexODEAdapter.toReal(z, y0);
+    }
+    
+    private int getTriIdx(int i, int j) {
+        if(i > j) {
+            int t = j;
+            j = i;
+            i = t;
+        }
+        
+        return n*i - i*(i+1)/2 + j - i - 1;
+    }
+    
+    private int getRecIdx(int i, int j) {
+        if(j < i) {
+            return i*(n-1) + j;
+        }
+        
+        return i*(n-1) + j - 1;
+    }
+    
+    // In the following, for the superscript indices:
+    // 0 = +, 1 = -, 2 = z
+    
+    /**
+     * @param al superscript
+     * @param a particle index
+     * @param z value array
+     * @return <sigma_a^al> taken from z
+     */
+    public DynaComplex getSingle(int al, int a, DynaComplex[] z, DynaComplex ans) {
+        ans.set(z[a + startIdx[2]*(al/2)]);
+        if(al == 1) ans.conjugate();
+        return ans;
+    }
+    
+    /**
+     * @param al first superscript
+     * @param bt second superscript
+     * @param a first particle index
+     * @param b second particle index
+     * @param z value array
+     * @return <sigma_a^al sigma_b^bt> taken from z
+     */
+    public DynaComplex getDouble(int al, int bt, int a, int b, DynaComplex[] z, DynaComplex ans) {
+        switch(al) {
+        case 0:
+            switch(bt) {
+            case 0:
+                return ans.set(z[startIdx[5] + getTriIdx(a,b)]);
+            case 1:
+                ans.set(z[startIdx[3] + getTriIdx(a,b)]);
+                if(a > b) return ans.conjugate();
+                return ans;
+            case 2:
+                return ans.set(z[startIdx[1] + getRecIdx(b,a)]);
+            }
+        case 1:
+            switch(bt) {
+            case 0:
+                ans.set(z[startIdx[3] + getTriIdx(a,b)]);
+                if(a < b) return ans.conjugate();
+                return ans;
+            case 1:
+                return ans.set(z[startIdx[5] + getTriIdx(a,b)]).conjugate();
+            case 2:
+                return ans.set(z[startIdx[1] + getRecIdx(b,a)]).conjugate();
+            }
+        case 2:
+            switch(bt) {
+            case 0:
+                return ans.set(z[startIdx[1] + getRecIdx(a,b)]);
+            case 1:
+                return ans.set(z[startIdx[1] + getRecIdx(a,b)]).conjugate();
+            case 2:
+                return ans.set(z[startIdx[4] + getTriIdx(a,b)]);
+            }
+        }
+        
+        // This should never happen
+        System.err.println("Invalid superscripts passed to cumulantDouble: " + al + " " + bt);
+        
+        return null;
+    }
+    
+    /**
+     * Returns <sigma_a^al sigma_b^bt sigma_c^gm> approximated using the cumulant expansion
+     * 
+     * @param al first superscript
+     * @param bt second superscript
+     * @param gm third superscript
+     * @param a first particle index
+     * @param b second particle index
+     * @param c third particle index
+     * @param z value array
+     * @return <sigma_a^al sigma_b^bt sigma_c^gm> taken from z using the cumulant expansion
+     */
+    public DynaComplex getTriple(int al, int bt, int gm, int a, int b, int c, DynaComplex[] z, DynaComplex ans) {
+        getSingle(gm, c, z, ans).multiply(getDouble(al, bt, a, b, z, ct1));
+        ans.add(getSingle(al, a, z, ct1).multiply(getDouble(bt, gm, b, c, z, ct2)));
+        ans.add(getSingle(bt, b, z, ct1).multiply(getDouble(al, gm, a, c, z, ct2)));
+        ans.subtract(getSingle(al, a, z, ct1).multiply(getSingle(bt, b, z, ct2)).multiply(getSingle(gm, c, z, ct3)).multiply(2.0));
+        return ans;
     }
 }
