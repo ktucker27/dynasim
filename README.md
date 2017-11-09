@@ -11,8 +11,7 @@ A set of routines for simulating trajectories governed by dynamical systems.
 * Clone using GIT
 * Explore the executables in the exe package
 * Dependencies: Requires [Apache Commons Math 3.6.1](http://commons.apache.org/proper/commons-math/download_math.cgi) jars
-* CumulantSingle and CumulantRun are good starting points
-* CumulantGridCorr will run over a grid of Delta and g values based on command line arguments
+* RunSim in the exe package is the main executable. Run with -h to see what it can do!
 
 ### Contribution guidelines ###
 
