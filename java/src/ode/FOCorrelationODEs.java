@@ -26,7 +26,7 @@ public class FOCorrelationODEs implements DynaComplexODEs {
     DynaComplex[] c2;
     
     DynaComplex t1, t2;
-    DynaComplex sum, sum2;
+    DynaComplex sum, sum2, sum3;
     
     /**
      * @param n number of atoms
@@ -56,6 +56,7 @@ public class FOCorrelationODEs implements DynaComplexODEs {
         
         sum = new DynaComplex(0, 0);
         sum2 = new DynaComplex(0, 0);
+        sum3 = new DynaComplex(0, 0);
         
         initConstants();
     }
@@ -134,16 +135,28 @@ public class FOCorrelationODEs implements DynaComplexODEs {
                         if(j == a || j == b) continue;
                         
                         t1.set(z[a*n+c]).multiply(pms[b][j]);
+                        t1.add(t2.set(z[b*n+c]).multiply(pms[a][j]));
                         t1.multiply(coupling.getAlpha(a, j));
                         sum2.add(t1);
                     }
                     sum2.multiply(-1.0*gamma);
                     
+                    sum3.set(0,0);
+                    for(int j = 0; j < n; ++j) {
+                        if(j == a || j == b) continue;
+                        
+                        t1.set(z[j*n+c]).multiply(pms[b][a]);
+                        t1.add(t2.set(z[b*n+c]).multiply(pms[j][a]));
+                        t1.multiply(t2.set(coupling.getAlpha(a, j)).conjugate());
+                        sum3.add(t1);
+                    }
+                    sum3.multiply(-1.0*gamma);
+                    
                     zDot[idx].set(c2[b]).multiply(z[getTripleIndex(a, b, c)]);
                     zDot[idx].subtract(t1.set(z[b*n+c]).multiply(gamma - w));
                     zDot[idx].subtract(t1.set(z[a*n+c]).multiply(coupling.getAlpha(a, b)).multiply(0.5*gamma));
                     zDot[idx].subtract(t1.set(z[getTripleIndex(b, a, c)]).multiply(gamma*coupling.getAlpha(a, b).getReal()));
-                    zDot[idx].add(sum).add(sum2);
+                    zDot[idx].add(sum).add(sum2).add(sum3);
                     
                     ++idx;
                 }
