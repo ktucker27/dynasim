@@ -84,7 +84,7 @@ public class RunSim {
         options.addOption("ip", true, "Initial phase angle (CONST value in degrees | EQUAL_SPACING | RANDOM)");
         options.addOption("wic", true, "Write initial condition Bloch vectors to the given file");
         options.addOption("c", false, "Carry over initial conditions from the previous solution");
-        options.addOption("tt", false, "Perform two-time correlation simulation");
+        options.addOption("tt", true, "Perform two-time correlation simulation of specified type");
         options.addOption("nt", true, "Number of threads to use for integration");
         options.addOption("h", false, "Print this help message");
         
@@ -165,7 +165,20 @@ public class RunSim {
         boolean outputZdist = cmd.hasOption("zd");
         boolean useLorDetunings = cmd.hasOption("l");
         boolean carryOverIC = cmd.hasOption("c");
+        
         boolean correlate = cmd.hasOption("tt");
+        SynchUtils.CorrelationType ctype = SynchUtils.CorrelationType.FOURTH;
+        if(correlate) {
+            try {
+                ctype = SynchUtils.CorrelationType.valueOf(cmd.getOptionValue("tt"));
+            } catch(IllegalArgumentException ex) {
+                System.err.println("Invalid correlation type.  Please choose from the following:");
+                for(int i = 0; i < SynchUtils.CorrelationType.values().length; ++i) {
+                    System.err.println(SynchUtils.CorrelationType.values()[i].name());
+                }
+                return;
+            }
+        }
         
         int numThreads = 1;
         if(cmd.hasOption("nt")) {
@@ -481,7 +494,6 @@ public class RunSim {
             
             // Compute the correlation function if requested
             if(correlate) {
-                SynchUtils.CorrelationType ctype = SynchUtils.CorrelationType.FOURTH;
                 if(sim == Simulator.CUMULANT) {
                     if(numThreads > 1) {
                         IntegratorRequest request = SynchUtils.getCorrRequest(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename(), ctype);

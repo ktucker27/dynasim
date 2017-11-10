@@ -724,6 +724,8 @@ public class SynchUtils {
         DynaComplexODEAdapter.toComplex(y, z);
         
         double sz = z[idxz].getReal();
+        double szz = z[idxzz].getReal();
+        double pm = z[idxpm].getReal();
         
         DynaComplex t1 = new DynaComplex();
         
@@ -738,7 +740,7 @@ public class SynchUtils {
 //            System.out.println(z[i]);
 //        }
         
-        CollectiveCorrelationODEs c_corr_odes = new CollectiveCorrelationODEs(params, sz);
+        CollectiveCorrelationODEs c_corr_odes = new CollectiveCorrelationODEs(params, sz, szz, pm);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
         
         double[] y0 = new double[2*z0.length];
