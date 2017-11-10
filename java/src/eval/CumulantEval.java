@@ -214,6 +214,71 @@ public class CumulantEval implements SystemEval {
         IDENTITY
     }
     
+    private class ReducedSingle {
+        public CumulantOp op;
+        public double m;
+        public double b;
+        
+        public ReducedSingle() {
+            op = CumulantOp.IDENTITY;
+            m = 1.0;
+            b = 0.0;
+        }
+    }
+    
+    private ReducedSingle getSingleOp(int al, int bt) {
+        ReducedSingle single = new ReducedSingle();
+        if(al == bt) {
+            if(al == 0 || al == 1) {
+                single.op = CumulantOp.ZERO;
+                single.m = 0.0;
+            } else {
+                single.op = CumulantOp.IDENTITY;
+                single.m = 1.0;
+            }
+        } else {
+            switch(al) {
+                case 0:
+                    if(bt == 1) {
+                        single.op = CumulantOp.Z;
+                        single.m = 0.5;
+                        single.b = 0.5;
+                    } else {
+                        single.op = CumulantOp.PLUS;
+                        single.m = -1.0;
+                        single.b = 0.0;
+                    }
+                    break;
+                case 1:
+                    if(bt == 0) {
+                        single.op = CumulantOp.Z;
+                        single.m = -0.5;
+                        single.b = 0.5;
+                    } else {
+                        single.op = CumulantOp.MINUS;
+                        single.m = 1.0;
+                        single.b = 0.0;
+                    }
+                    break;
+                case 2:
+                    if(bt == 0) {
+                        single.op = CumulantOp.PLUS;
+                        single.m = 1.0;
+                        single.b = 0.0;
+                    } else {
+                        single.op = CumulantOp.MINUS;
+                        single.m = -1.0;
+                        single.b = 0.0;
+                    }
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Invalid alpha passed to getSingleOp");
+            }
+        }
+        
+        return single;
+    }
+    
     /**
      * @param al superscript
      * @param a particle index
@@ -237,14 +302,15 @@ public class CumulantEval implements SystemEval {
     public DynaComplex getDouble(int al, int bt, int a, int b, DynaComplex[] z, DynaComplex ans) {
         // Handle same particle numbers first
         if(a == b) {
-            if(al == bt) {
-                if(al == 0 || al == 1) {
-                    ans.set(0, 0);
-                } else {
-                    ans.set(1, 0);
-                }
+            ReducedSingle single = getSingleOp(al, bt);
+            
+            if(single.op == CumulantOp.ZERO) {
+                ans.set(0, 0);
+            } else if(single.op == CumulantOp.IDENTITY){
+                ans.set(1, 0);
             } else {
-                // TODO
+                getSingle(single.op.ordinal(), a, z, ans);
+                ans.multiply(single.m).add(single.b);
             }
             
             return ans;
@@ -301,10 +367,33 @@ public class CumulantEval implements SystemEval {
      * @return <sigma_a^al sigma_b^bt sigma_c^gm> taken from z using the cumulant expansion
      */
     public DynaComplex getTriple(int al, int bt, int gm, int a, int b, int c, DynaComplex[] z, DynaComplex ans) {
-        getSingle(gm, c, z, ans).multiply(getDouble(al, bt, a, b, z, ct1));
-        ans.add(getSingle(al, a, z, ct1).multiply(getDouble(bt, gm, b, c, z, ct2)));
-        ans.add(getSingle(bt, b, z, ct1).multiply(getDouble(al, gm, a, c, z, ct2)));
-        ans.subtract(getSingle(al, a, z, ct1).multiply(getSingle(bt, b, z, ct2)).multiply(getSingle(gm, c, z, ct3)).multiply(2.0));
+        if(a == c) {
+            ReducedSingle single = getSingleOp(al, gm);
+            if(single.op == CumulantOp.ZERO) {
+                ans.set(0, 0);
+            } else if(single.op == CumulantOp.IDENTITY) {
+                getSingle(bt, b, z, ans);
+            } else {
+                getDouble(single.op.ordinal(), bt, a, b, z, ans);
+                ans.multiply(single.m).add(getSingle(bt, b, z, ct1).multiply(single.b));
+            }
+        } else if(b == c) {
+            ReducedSingle single = getSingleOp(bt, gm);
+            if(single.op == CumulantOp.ZERO) {
+                ans.set(0, 0);
+            } else if(single.op == CumulantOp.IDENTITY) {
+                getSingle(al, a, z, ans);
+            } else {
+                getDouble(al, single.op.ordinal(), a, b, z, ans);
+                ans.multiply(single.m).add(getSingle(al, a, z, ct1).multiply(single.b));
+            }
+        } else {
+            getSingle(gm, c, z, ans).multiply(getDouble(al, bt, a, b, z, ct1));
+            ans.add(getSingle(al, a, z, ct1).multiply(getDouble(bt, gm, b, c, z, ct2)));
+            ans.add(getSingle(bt, b, z, ct1).multiply(getDouble(al, gm, a, c, z, ct2)));
+            ans.subtract(getSingle(al, a, z, ct1).multiply(getSingle(bt, b, z, ct2)).multiply(getSingle(gm, c, z, ct3)).multiply(2.0));
+        }
+        
         return ans;
     }
 }
