@@ -481,7 +481,7 @@ public class RunSim {
             
             // Compute the correlation function if requested
             if(correlate) {
-                SynchUtils.CorrelationType ctype = SynchUtils.CorrelationType.COLLECTIVE;
+                SynchUtils.CorrelationType ctype = SynchUtils.CorrelationType.FOURTH;
                 if(sim == Simulator.CUMULANT) {
                     if(numThreads > 1) {
                         IntegratorRequest request = SynchUtils.getCorrRequest(soln.getParams(), soln.getSolution(), outdir + "/time_corr_" + soln.getParams().getFilename(), ctype);
