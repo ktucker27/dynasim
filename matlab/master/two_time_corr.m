@@ -1,4 +1,4 @@
-function tt = two_time_corr(n, w, d, f, g, gamma, tau)
+function [tt, rho] = two_time_corr(n, w, d, f, g, gamma, tau)
 
 L = full(master_matrix(n, w, d, f, g, gamma));
 [~,~,v] = svd(L);
