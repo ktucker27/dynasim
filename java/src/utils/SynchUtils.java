@@ -820,4 +820,12 @@ public class SynchUtils {
         }
         writer.close();
     }
+    
+    public static void initFromFile(String filepath, ArrayList<Double> y) throws FileNotFoundException {
+        Scanner fileReader = new Scanner(new File(filepath));
+        while(fileReader.hasNextLine()) {
+            y.add(Double.parseDouble(fileReader.nextLine()));
+        }
+        fileReader.close();
+    }
 }

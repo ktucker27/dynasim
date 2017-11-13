@@ -87,6 +87,7 @@ public class RunSim {
         options.addOption("tt", true, "Perform two-time correlation simulation of specified type");
         options.addOption("nt", true, "Number of threads to use for integration");
         options.addOption("wf", false, "Write final answer to a file in the output directory");
+        options.addOption("icf", true, "Get initial conditions from the specified file");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -103,6 +104,7 @@ public class RunSim {
         ignore.add("tt");
         ignore.add("nt");
         ignore.add("wf");
+        ignore.add("icf");
         
         return options;
     }
@@ -168,6 +170,23 @@ public class RunSim {
         boolean useLorDetunings = cmd.hasOption("l");
         boolean carryOverIC = cmd.hasOption("c");
         boolean writeFinal = cmd.hasOption("wf");
+        
+        boolean initFromFile = cmd.hasOption("icf");
+        double[] y0 = null;
+        if(initFromFile) {
+            ArrayList<Double> y0f = new ArrayList<Double>();
+            SynchUtils.initFromFile(cmd.getOptionValue("icf"), y0f);
+            
+            y0 = new double[y0f.size()];
+            for(int i = 0; i < y0f.size(); ++i) {
+                y0[i] = y0f.get(i);
+                
+                // Chop the incoming initial conditions
+                if(Math.abs(y0[i]) < 1.0e-10) {
+                    y0[i] = 0.0;
+                }
+            }
+        }
         
         boolean correlate = cmd.hasOption("tt");
         SynchUtils.CorrelationType ctype = SynchUtils.CorrelationType.FOURTH;
@@ -310,7 +329,6 @@ public class RunSim {
         long startTime = System.nanoTime();
         
         int lastn = -1;
-        double[] y0 = null;
         for(int i = 0; i < params.size(); ++i) {
             n = params.get(i).getN();
             
@@ -384,21 +402,43 @@ public class RunSim {
             // Setup initial conditions
             if(n != lastn) {
                 lastn = n;
-                y0 = new double[eval.getRealDimension()];
-                if(sim == Simulator.MASTER) {
-                    // TODO - Remove this once MasterEval has implemented the initialize method
-                    eval.initSpinUpX(y0);
-                } else {
-                    eval.initialize(y0, izParams.initAngle, ipParams.initAngle, izParams.type, ipParams.type);
-                }
-                
-                if(outputIC) {
+                if(initFromFile) {
+                    // When initial conditions come from a file, y0 is already set up, so just make sure we
+                    // aren't seeing multiple n, verify y0.length for this n, and output initial conditions if requested
+                    
                     if(i > 0) {
-                        System.err.println("ERROR: Multiple initial conditions used with wic flag");
+                        System.err.println("Cannot run with multiple n when initial conditions come from a file");
                         break;
                     }
                     
-                    outputInitialBVs(eval, y0, icOutFile);
+                    if(y0.length != eval.getRealDimension()) {
+                        System.err.println("Initial conditions file did not have the correct number of terms. " +
+                                           "Expected " + eval.getRealDimension() + ", received " + y0.length);
+                        break;
+                    }
+                    
+                    if(outputIC) {
+                        outputInitialBVs(eval, y0, icOutFile);
+                    }
+                } else {
+                    // Get new initial conditions for this n using the settings, and output if requested
+                    
+                    y0 = new double[eval.getRealDimension()];
+                    if(sim == Simulator.MASTER) {
+                        // TODO - Remove this once MasterEval has implemented the initialize method
+                        eval.initSpinUpX(y0);
+                    } else {
+                        eval.initialize(y0, izParams.initAngle, ipParams.initAngle, izParams.type, ipParams.type);
+                    }
+
+                    if(outputIC) {
+                        if(i > 0) {
+                            System.err.println("ERROR: Multiple initial conditions used with wic flag");
+                            break;
+                        }
+
+                        outputInitialBVs(eval, y0, icOutFile);
+                    }
                 }
             }
 
