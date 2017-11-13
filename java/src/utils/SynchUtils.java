@@ -2,6 +2,7 @@ package utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Random;
@@ -809,5 +810,14 @@ public class SynchUtils {
         }
         
         return ans;
+    }
+    
+    public static void writeToFile(String filepath, double[] y) throws FileNotFoundException {
+        PrintWriter writer = new PrintWriter(new File(filepath));
+        
+        for(int i = 0; i < y.length; ++i) {
+            writer.write(y[i] + "\n");
+        }
+        writer.close();
     }
 }

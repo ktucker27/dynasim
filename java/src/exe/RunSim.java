@@ -86,6 +86,7 @@ public class RunSim {
         options.addOption("c", false, "Carry over initial conditions from the previous solution");
         options.addOption("tt", true, "Perform two-time correlation simulation of specified type");
         options.addOption("nt", true, "Number of threads to use for integration");
+        options.addOption("wf", false, "Write final answer to a file in the output directory");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -101,6 +102,7 @@ public class RunSim {
         ignore.add("c");
         ignore.add("tt");
         ignore.add("nt");
+        ignore.add("wf");
         
         return options;
     }
@@ -165,6 +167,7 @@ public class RunSim {
         boolean outputZdist = cmd.hasOption("zd");
         boolean useLorDetunings = cmd.hasOption("l");
         boolean carryOverIC = cmd.hasOption("c");
+        boolean writeFinal = cmd.hasOption("wf");
         
         boolean correlate = cmd.hasOption("tt");
         SynchUtils.CorrelationType ctype = SynchUtils.CorrelationType.FOURTH;
@@ -288,11 +291,16 @@ public class RunSim {
         ArrayList<SynchSolution> solns = new ArrayList<SynchSolution>();
         if(numThreads > 1) {
             SynchReducer reducer = null;
-            if(summWriter != null) {
-                reducer = new SynchReducer(summWriter);
+            if(summWriter != null || writeFinal) {
+                reducer = new SynchReducer();
 
                 if(summWriter != null) {
+                    reducer.writeSummaries(summWriter);
                     summWriter.setLiveUpdate(false);
+                }
+                
+                if(writeFinal) {
+                    reducer.writeFinal(outdir);
                 }
             }
             
@@ -417,6 +425,12 @@ public class RunSim {
                 SynchSolution soln = new SynchSolution(params.get(i), recorder, eval);
                 soln.setSolution(y);
                 solns.add(soln);
+                
+                // Write the answer to a file if requested
+                if(writeFinal) {
+                    String finalFile = outdir + "/final_" + params.get(i).getFilename();
+                    SynchUtils.writeToFile(finalFile, y);
+                }
             } else {
                 // We are running multi-threaded, so queue up the request
                 SynchSolution soln = new SynchSolution(params.get(i), recorder, eval);
