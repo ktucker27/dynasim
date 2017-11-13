@@ -37,7 +37,7 @@ public class WriteHandlerCorr implements StepHandler {
             myWriter.print(sigmazp.getImaginary() + ", ");
             myWriter.print(SynchUtils.compSigmazzAvg(y0, n) + ", ");
             myWriter.print(sigmapp.getReal() + ", ");
-            myWriter.print(sigmapp.getImaginary() + ", ");
+            myWriter.print(sigmapp.getImaginary());
             myWriter.print("\n");
         }
     }
@@ -61,7 +61,7 @@ public class WriteHandlerCorr implements StepHandler {
             myWriter.print(sigmazp.getImaginary() + ", ");
             myWriter.print(SynchUtils.compSigmazzAvg(y, n) + ", ");
             myWriter.print(sigmapp.getReal() + ", ");
-            myWriter.print(sigmapp.getImaginary() + ", ");
+            myWriter.print(sigmapp.getImaginary());
             myWriter.print("\n");
 
             if(!isLast) {
