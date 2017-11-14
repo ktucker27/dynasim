@@ -20,7 +20,7 @@ import ode.CollectiveCorrelationODEs;
 import ode.CorrelationODEs;
 import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
-import ode.FOCorrelationODEs;
+import ode.FOCorrelationAllToAllODEs;
 
 public class SynchUtils {
 
@@ -686,8 +686,7 @@ public class SynchUtils {
 //            System.out.println(z02[i]);
 //        }
 
-        DynaConstCoupling coupling = new DynaConstCoupling(params.getAlpha().getReal(), params.getAlpha().getImaginary());
-        FOCorrelationODEs c_corr_odes = new FOCorrelationODEs(n, params.getGamma(), params.getW(), coupling, params.getD(), z);
+        FOCorrelationAllToAllODEs c_corr_odes = new FOCorrelationAllToAllODEs(params, z);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
         
         double[] y02 = new double[2*z02.length];
