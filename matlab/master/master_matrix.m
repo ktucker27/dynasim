@@ -14,7 +14,13 @@ for a = 1:n
     for b = 1:n
         sapsbm = get_sa(sp,n,a)*get_sa(sm,n,b);
         
-        A = A - 0.5*gamma*f*(kron(sapsbm, eyed) + kron(eyed, sapsbm') - 2*(kron(get_sa(sm,n,b), sap')));
+        if a == b && f ~= 0
+            fab = 1;
+        else
+            fab = f;
+        end
+        
+        A = A - 0.5*gamma*fab*(kron(sapsbm, eyed) + kron(eyed, sapsbm') - 2*(kron(get_sa(sm,n,b), sap')));
         
         if a ~= b
             A = A - 1i*0.5*gamma*g*(kron(sapsbm, eyed) - kron(eyed, sapsbm'));

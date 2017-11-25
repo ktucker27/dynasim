@@ -85,7 +85,11 @@ public class MasterAllToAllODEs implements DynaComplexODEs {
         for(int a = 0; a < n; ++a) {
             sum1.set(0);
             for(int b = 0; b < n; ++b) {
-                t1.set(-0.5*gamma*alpha.getReal(),0);
+                double f = alpha.getReal();
+                if(a == b && f != 0) {
+                    f = 1.0;
+                }
+                t1.set(-0.5*gamma*f,0);
                 sum1.pauliLeft(PauliOp.MINUS, b, t1, rho);
             }
             t1.set(1,0);
@@ -95,7 +99,11 @@ public class MasterAllToAllODEs implements DynaComplexODEs {
         for(int b = 0; b < n; ++b) {
             sum1.set(0);
             for(int a = 0; a < n; ++a) {
-                t1.set(-0.5*gamma*alpha.getReal(),0);
+                double f = alpha.getReal();
+                if(a == b && f != 0) {
+                    f = 1.0;
+                }
+                t1.set(-0.5*gamma*f,0);
                 sum1.pauliRight(PauliOp.PLUS, a, t1, rho);
             }
             t1.set(1,0);
@@ -105,7 +113,11 @@ public class MasterAllToAllODEs implements DynaComplexODEs {
         for(int b = 0; b < n; ++b) {
             sum1.set(0);   
             for(int a = 0; a < n; ++a) {
-                t1.set(gamma*alpha.getReal(),0);
+                double f = alpha.getReal();
+                if(a == b && f != 0) {
+                    f = 1.0;
+                }
+                t1.set(gamma*f,0);
                 sum1.pauliRight(PauliOp.PLUS, a, t1, rho);
             }
             t1.set(1,0);
