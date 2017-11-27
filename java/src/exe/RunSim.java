@@ -1,31 +1,14 @@
 package exe;
 
-import handlers.CumulantSteadyStateTerminator;
-import handlers.DataRecorder;
-import handlers.SummaryWriter;
-import handlers.WriteHandlerCorr;
-import handlers.WriteHandlerMaster;
-import handlers.WriteHandlerMeanField;
-import handlers.WriteHandlerRPA;
-import integrator.AdamsMoultonFactory;
-import integrator.IntegratorRequest;
-import integrator.ThreadPoolIntegrator;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
-import ode.DynaComplexODEAdapter;
-import ode.MasterAllToAllODEs;
-import ode.RPAAllToAllODEs;
-import ode.SynchMeanFieldODEs;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -37,16 +20,32 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.ode.sampling.StepHandler;
 
-import utils.DynaComplex;
-import utils.SynchReducer;
-import utils.SynchSolution;
-import utils.SynchUtils;
 import eval.CumulantEval;
 import eval.MasterEval;
 import eval.MeanFieldEval;
 import eval.RPAEval;
 import eval.SystemEval;
 import eval.SystemEval.InitAngleType;
+import handlers.CumulantSteadyStateTerminator;
+import handlers.DataRecorder;
+import handlers.SummaryWriter;
+import handlers.WriteHandlerCorr;
+import handlers.WriteHandlerMaster;
+import handlers.WriteHandlerMeanField;
+import handlers.WriteHandlerRPA;
+import integrator.AdamsMoultonFactory;
+import integrator.IntegratorRequest;
+import integrator.ThreadPoolIntegrator;
+import ode.CumulantAllToAllODEs;
+import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
+import ode.MasterAllToAllODEs;
+import ode.RPAAllToAllODEs;
+import ode.SynchMeanFieldODEs;
+import utils.DynaComplex;
+import utils.SynchReducer;
+import utils.SynchSolution;
+import utils.SynchUtils;
 
 public class RunSim {
     
@@ -252,15 +251,18 @@ public class RunSim {
         
         // Read detunings from a file if requested
         boolean detuningsFromFile = cmd.hasOption("df");
-//        ArrayList<Double> fileDetunings = null;
-//        if(detuningsFromFile) {
-//            fileDetunings = new ArrayList<Double>();
-//            Scanner inputStream = new Scanner(new File(cmd.getOptionValue("df")));
-//            while(inputStream.hasNext()) {
-//                fileDetunings.add(Double.parseDouble(inputStream.next()));
-//            }
-//            inputStream.close();
-//        }
+        ArrayList<Double> fileDetunings = null;
+        if(detuningsFromFile) {
+            File detunPath = new File(cmd.getOptionValue("df"));
+            if(!detunPath.isDirectory()) {
+                fileDetunings = new ArrayList<Double>();
+                Scanner inputStream = new Scanner(new File(cmd.getOptionValue("df")));
+                while(inputStream.hasNext()) {
+                    fileDetunings.add(Double.parseDouble(inputStream.next()));
+                }
+                inputStream.close();
+            }
+        }
 
         // Default detunings
         double[] d = new double[n];
@@ -334,17 +336,20 @@ public class RunSim {
             
             // Override the detunings if provided in a file
             if(detuningsFromFile) {
-//                if(n != fileDetunings.size()) {
-//                    System.err.println("Number of detunings in provided file does not match number of particles");
-//                    break;
-//                }
-//                
-//                for(int j = 0; j < fileDetunings.size(); ++j) {
-//                    params.get(i).getD()[j] = fileDetunings.get(j);
-//                }
-                
-                String filename = cmd.getOptionValue("df") + "N" + n + "_D" + (int)(params.get(i).getDelta()) + ".txt";
-                SynchUtils.detuneFile(filename, params.get(i).getD());
+                if(fileDetunings != null) {
+                    if(n != fileDetunings.size()) {
+                        System.err.println("Number of detunings in provided file does not match number of particles");
+                        break;
+                    }
+
+                    for(int j = 0; j < fileDetunings.size(); ++j) {
+                        params.get(i).getD()[j] = fileDetunings.get(j);
+                    }
+                } else {
+                    String filename = cmd.getOptionValue("df") + "/N" + n + "_D" + (int)(params.get(i).getDelta()) + ".txt";
+                    System.out.println("Reading detunings from file:\n" + filename);
+                    SynchUtils.detuneFile(filename, params.get(i).getD());
+                }
             }
             
             if(numThreads == 1) {

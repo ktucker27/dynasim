@@ -10,7 +10,7 @@ for i=1:size(tt,1)
         [x,y] = plot_fft(tt{i,j}(:,1), tt{i,j}(:,2), 0);
         
         [V(i,j), M(i,j), B(i,j)] = disc_dist(x,y);
-        T(i,j) = decay_time(tt{i,j}, 0.00001);
+        T(i,j) = decay_time(tt{i,j}, 0.001);
     end
 end
 end
