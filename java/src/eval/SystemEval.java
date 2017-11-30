@@ -27,6 +27,8 @@ public interface SystemEval {
     public double getOrderParam(double[] y);
     
     public double getAvgSigmaz(double[] y);
+
+    public double getAvgSigmazz(double[] y);
     
     public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs);
     

@@ -87,6 +87,7 @@ public class RunSim {
         options.addOption("nt", true, "Number of threads to use for integration");
         options.addOption("wf", false, "Write final answer to a file in the output directory");
         options.addOption("icf", true, "Get initial conditions from the specified file");
+        options.addOption("swna", false, "Summary writer will not compute averages in this case");
         options.addOption("h", false, "Print this help message");
         
         // Options to ignore when setting up run parameters
@@ -104,6 +105,7 @@ public class RunSim {
         ignore.add("nt");
         ignore.add("wf");
         ignore.add("icf");
+        ignore.add("swna");
         
         return options;
     }
@@ -169,6 +171,7 @@ public class RunSim {
         boolean useLorDetunings = cmd.hasOption("l");
         boolean carryOverIC = cmd.hasOption("c");
         boolean writeFinal = cmd.hasOption("wf");
+        boolean recordAverages = !cmd.hasOption("swna");
         
         boolean initFromFile = cmd.hasOption("icf");
         double[] y0 = null;
@@ -402,7 +405,12 @@ public class RunSim {
             }
             
             // Setup the data recorder
-            DataRecorder recorder = new DataRecorder(eval, 0.01, 1.0);
+            DataRecorder recorder = null;
+            if(recordAverages) {
+                recorder = new DataRecorder(eval, 0.01, 1.0);
+            } else {
+                recorder = new DataRecorder(eval, 0.0, 0.0);
+            }
             
             // Setup initial conditions
             if(n != lastn) {

@@ -79,6 +79,20 @@ public class CumulantEval implements SystemEval {
 
         return sum;
     }
+    
+    @Override
+    public double getAvgSigmazz(double[] y) {
+        double sum = 0.0;
+        int beginIdx = 2*startIdx[4];
+        int endIdx = 2*startIdx[5];
+        
+        for(int i = beginIdx; i < endIdx; i += 2) {
+            sum += y[i];
+        }
+        sum *= 1.0/(startIdx[5] - startIdx[4]);
+
+        return sum;
+    }
 
     @Override
     public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs) {

@@ -13,10 +13,12 @@ public class SummaryWriter {
     private class SummaryVals {
         double orderParam;
         double avgSigmaz;
+        double avgSigmazz;
 
         public SummaryVals() {
             orderParam = 0.0;
             avgSigmaz = 0.0;
+            avgSigmazz = 0.0;
         }
     }
     
@@ -51,6 +53,7 @@ public class SummaryWriter {
         SummaryVals vals = new SummaryVals();
         vals.orderParam = recorder.getMeanOrderParam();
         vals.avgSigmaz = recorder.getMeanAvgZs();
+        vals.avgSigmazz = recorder.getMeanAvgZzs();
         myVals.put(params, vals);
         
         if(myLiveUpdate) {
@@ -76,7 +79,8 @@ public class SummaryWriter {
             SummaryVals vals = myVals.get(params);
             myWriter.write(params.getLine() + ", ");
             myWriter.write(vals.orderParam + ", ");
-            myWriter.write(vals.avgSigmaz + "\n");
+            myWriter.write(vals.avgSigmaz + ", ");
+            myWriter.write(vals.avgSigmazz + "\n");
         }
         
         myWriter.close();
@@ -90,12 +94,13 @@ public class SummaryWriter {
         
         myWriter.write(params.getLine() + ", ");
         myWriter.write(vals.orderParam + ", ");
-        myWriter.write(vals.avgSigmaz + "\n");
+        myWriter.write(vals.avgSigmaz + ", ");
+        myWriter.write(vals.avgSigmazz + "\n");
         
         myWriter.flush();
     }
     
     private String getHeader() {
-        return "order_param, avg_sigmaz";
+        return "order_param, avg_sigmaz, avg_sigmazz";
     }
 }

@@ -78,6 +78,25 @@ public class MasterEval implements SystemEval {
     }
     
     @Override
+    public double getAvgSigmazz(double[] y) {
+        DynaComplexODEAdapter.toComplex(y, z);
+        TPSOperator rho = new TPSOperator(z);
+        
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            for(int b = a+1; b < n; ++b) {
+                myRho.set(rho);
+                myRho.pauliLeft(PauliOp.Z, b);
+                myRho.pauliLeft(PauliOp.Z, a);
+                myRho.trace(t1);
+                sum += t1.getReal();
+            }
+        }
+        
+        return sum/(double)(n*(n-1)/2);
+    }
+    
+    @Override
     public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs) {
         // TODO
         throw new UnsupportedOperationException("Bloch vector retrieval not yet implemented for MasterEval");

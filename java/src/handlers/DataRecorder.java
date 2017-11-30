@@ -20,16 +20,22 @@ public class DataRecorder implements StepHandler {
     Deque<Double> myTimes;
     Deque<Double> myOrderParams;
     Deque<Double> myAvgZs;
+    Deque<Double> myAvgZzs;
     
     public DataRecorder(SystemEval eval, double timeStep, double totalTime) {
         myEval = eval;
         myTimeStep = timeStep;
         myElapsedTime = 0.0;
         myTol = 1.0e-5;
-        myMaxSize = (int) (Math.ceil(totalTime/timeStep) + 1.5);
+        if(timeStep == 0 || totalTime == 0) {
+            myMaxSize = 1;
+        } else {
+            myMaxSize = (int) (Math.ceil(totalTime/timeStep) + 1.5);
+        }
         myTimes = new ArrayDeque<Double>(myMaxSize);
         myOrderParams = new ArrayDeque<Double>(myMaxSize);
         myAvgZs = new ArrayDeque<Double>(myMaxSize);
+        myAvgZzs = new ArrayDeque<Double>(myMaxSize);
     }
     
     @Override
@@ -37,6 +43,7 @@ public class DataRecorder implements StepHandler {
         myTimes.add(0.0);
         myOrderParams.add(myEval.getOrderParam(y0));
         myAvgZs.add(myEval.getAvgSigmaz(y0));
+        myAvgZzs.add(myEval.getAvgSigmazz(y0));
     }
 
     @Override
@@ -51,6 +58,7 @@ public class DataRecorder implements StepHandler {
             myTimes.add(time);
             myOrderParams.add(myEval.getOrderParam(y));
             myAvgZs.add(myEval.getAvgSigmaz(y));
+            myAvgZzs.add(myEval.getAvgSigmazz(y));
             myElapsedTime = time;
         }
     }
@@ -71,6 +79,14 @@ public class DataRecorder implements StepHandler {
         return getDequeMean(myAvgZs);
     }
     
+    public Deque<Double> getAvgZzs() {
+        return myAvgZzs;
+    }
+    
+    public double getMeanAvgZzs() {
+        return getDequeMean(myAvgZzs);
+    }
+    
     private double getDequeMean(Deque<Double> deque) {
         double sum = 0.0;
         Iterator<Double> iter = deque.iterator();
@@ -85,5 +101,6 @@ public class DataRecorder implements StepHandler {
         myTimes.removeFirst();
         myOrderParams.removeFirst();
         myAvgZs.removeFirst();
+        myAvgZzs.removeFirst();
     }
 }

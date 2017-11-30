@@ -52,6 +52,20 @@ public class MeanFieldEval implements SystemEval {
     }
     
     @Override
+    public double getAvgSigmazz(double[] y) {
+        double sum = 0.0;
+        
+        for(int i = 0; i < n; ++i) {
+            for(int j = i+1; j < n; ++j) {
+                sum += y[i]*y[j];
+            }
+        }
+        sum *= 1.0/(n*(n-1)/2);
+
+        return sum;
+    }
+    
+    @Override
     public void getBlochVectors(double[] y, double[] xs, double[] ys, double[] zs) {
         Complex z = null;
         for(int i = 0; i < n; ++i) {

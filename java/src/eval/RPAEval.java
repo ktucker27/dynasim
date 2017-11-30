@@ -148,6 +148,18 @@ public class RPAEval implements SystemEval {
         return sum/(double)n;
     }
     
+    @Override
+    public double getAvgSigmazz(double[] y) {
+        double sum = 0.0;
+        for(int a = 0; a < n; ++a) {
+            for(int b = a+1; b < n; ++b) {
+                sum += getSingle(0, a, y)*getSingle(0, b, y);
+            }
+        }
+        
+        return sum/(double)(n*(n-1)/2);
+    }
+    
     public double getAvg(int al, double[] y) {
         double sum = 0.0;
         for(int a = 0; a < n; ++a) {
