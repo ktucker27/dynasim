@@ -1,4 +1,15 @@
 function A = coll_two_time_matrix(n, w, f, g, gamma, cz, czz, cpm)
+% -------------------------------------------------------------------------
+% Returns the matrix governing the collective two-time correlation
+% equations using a fourth order cumulant expansion.  The ordering of the
+% variables is as follows:
+%
+% <\sigma_a^+(t + tau) sigma_b^-(t)>
+% <\sigma_a^+(t + tau) sigma_a^-(t)>
+% <\sigma_a^z(t + tau) sigma_b^+(t + tau) sigma_c^-(t)>
+% <\sigma_a^z(t + tau) sigma_b^+(t + tau) sigma_b^-(t)>
+% <\sigma_a^z(t + tau) sigma_b^+(t + tau) sigma_a^-(t)>
+% -------------------------------------------------------------------------
 
 A = zeros(5,5);
 
