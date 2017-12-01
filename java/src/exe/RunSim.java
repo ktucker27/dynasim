@@ -591,11 +591,17 @@ public class RunSim {
             if(ignore.contains(opt.getOpt())) continue;
 
             if(cmd.hasOption(opt.getOpt())) {
-                double[] dvals = parseOption(cmd.getOptionValue(opt.getOpt()), opt.getOpt());
-                if(dvals == null) {
-                    return false;
+                double[] dvals = null;
+                if(opt.getOpt().equals("w") && cmd.getOptionValue("w").equals("opt")) {
+                    dvals = new double[1];
+                    dvals[0] = -1;
+                } else {
+                    dvals = parseOption(cmd.getOptionValue(opt.getOpt()), opt.getOpt());
+                    if(dvals == null) {
+                        return false;
+                    }
                 }
-
+                
                 optMap.put(opt.getOpt(), dvals);
                 
 //                System.out.println(opt.getOpt() + " vals:");
@@ -618,13 +624,17 @@ public class RunSim {
         for(int nidx = 0; nidx < nvals.length; ++nidx) {
             int n = (int)nvals[nidx];
             for(int widx = 0; widx < wvals.length; ++widx) {
+                double w = wvals[widx];
+                if(w < 0) {
+                    w = SynchUtils.getWOpt(n);
+                }
                 for(int didx = 0; didx < dvals.length; ++didx) {
                     double[] d = new double[n];
                     generateDetunings(dvals[didx], d, useLorDetunings);
                     for(int fidx = 0; fidx < fvals.length; ++fidx) {
                         for(int gidx = 0; gidx < gvals.length; ++gidx) {
                             params.add(new CumulantParams(n, dparams.getGamma(),
-                                                          wvals[widx], dvals[didx],
+                                                          w, dvals[didx],
                                                           new DynaComplex(fvals[fidx], gvals[gidx]), d));
                         }
                     }
