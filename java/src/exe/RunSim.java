@@ -69,7 +69,7 @@ public class RunSim {
     private static Options setupOptions(TreeSet<String> ignore) {
         Options options = new Options();
         options.addOption("n", true, "Number of particles");
-        options.addOption("w", true, "Incoherent pumping");
+        options.addOption("w", true, "Incoherent pumping (specify opt for optimal)");
         options.addOption("d", true, "Disorder sigma");
         options.addOption("f", true, "Elastic interaction term");
         options.addOption("g", true, "Inelastic interaction term");
