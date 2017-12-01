@@ -72,7 +72,7 @@ public class RunSim {
         options.addOption("w", true, "Incoherent pumping (specify opt for optimal)");
         options.addOption("d", true, "Disorder sigma");
         options.addOption("f", true, "Elastic interaction term");
-        options.addOption("g", true, "Inelastic interaction term");
+        options.addOption("g", true, "Inelastic interaction term (preface with n to hold ng at the given value)");
         options.addOption("t", false, "Output results versus time");
         options.addOption("zd", false, "Output collective z distribution when running MASTER");
         options.addOption("df", true, "File of detunings to use");
@@ -595,6 +595,15 @@ public class RunSim {
                 if(opt.getOpt().equals("w") && cmd.getOptionValue("w").equals("opt")) {
                     dvals = new double[1];
                     dvals[0] = -1;
+                } else if(opt.getOpt().equals("g") && cmd.getOptionValue("g").startsWith("n")) {
+                    dvals = parseOption(cmd.getOptionValue(opt.getOpt()).substring(1), opt.getOpt());
+                    if(dvals == null) {
+                        return false;
+                    }
+                    
+                    for(int i = 0; i < dvals.length; ++i) {
+                        dvals[i] *= -1.0;
+                    }
                 } else {
                     dvals = parseOption(cmd.getOptionValue(opt.getOpt()), opt.getOpt());
                     if(dvals == null) {
@@ -633,9 +642,13 @@ public class RunSim {
                     generateDetunings(dvals[didx], d, useLorDetunings);
                     for(int fidx = 0; fidx < fvals.length; ++fidx) {
                         for(int gidx = 0; gidx < gvals.length; ++gidx) {
+                            double g = gvals[gidx];
+                            if(g < 0) {
+                                g = -1.0*g/(double)n;
+                            }
                             params.add(new CumulantParams(n, dparams.getGamma(),
                                                           w, dvals[didx],
-                                                          new DynaComplex(fvals[fidx], gvals[gidx]), d));
+                                                          new DynaComplex(fvals[fidx], g), d));
                         }
                     }
                 }
