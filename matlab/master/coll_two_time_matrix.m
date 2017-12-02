@@ -1,4 +1,4 @@
-function A = coll_two_time_matrix(n, w, f, g, gamma, cz, czz, cpm)
+function A = coll_two_time_matrix(n, w, f, g, gamma)
 % -------------------------------------------------------------------------
 % Returns the matrix governing the collective two-time correlation
 % equations using a fourth order cumulant expansion.  The ordering of the
@@ -10,6 +10,8 @@ function A = coll_two_time_matrix(n, w, f, g, gamma, cz, czz, cpm)
 % <\sigma_a^z(t + tau) sigma_b^+(t + tau) sigma_b^-(t)>
 % <\sigma_a^z(t + tau) sigma_b^+(t + tau) sigma_a^-(t)>
 % -------------------------------------------------------------------------
+
+[cz, czz, cpm] = coll_steady_vals(n, w, f, gamma);
 
 A = zeros(5,5);
 
