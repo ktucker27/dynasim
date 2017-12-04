@@ -1,10 +1,10 @@
-function tt = coll_two_time_corr(n, w, f, g, gamma, tau)
+function tt = coll_two_time_corr_to(n, w, f, g, gamma, tau)
 
 [cz, czz, cpm] = coll_steady_vals(n, w, f, gamma);
 
-z0 = [cpm; 0.5*(1 + cz); cz*cpm; 0.5*(cz + czz); -cpm];
+z0 = [cpm; 0.5*(1 + cz)];
 
-A = coll_two_time_matrix(n, w, f, g, gamma);
+A = coll_two_time_matrix_to(n, w, f, g, gamma);
 
 dtau = tau(2) - tau(1);
 dea = expm(dtau*A);
