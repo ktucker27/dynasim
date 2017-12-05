@@ -1,11 +1,14 @@
-function [V, M, B, T, G] = fft_grid(tt)
+function [V, M, B, T, G] = fft_grid(tt, tol)
+
+if nargin == 1
+    tol = 0.001;
+end
 
 V = zeros(size(tt,1), size(tt,2));
 M = zeros(size(tt,1), size(tt,2));
 B = zeros(size(tt,1), size(tt,2));
 T = zeros(size(tt,1), size(tt,2));
 
-tol = 0.001;
 for i=1:size(tt,1)
     for j=1:size(tt,2)
         [x,y] = plot_fft(tt{i,j}(:,1), tt{i,j}(:,2), 0);
