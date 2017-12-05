@@ -4,10 +4,12 @@ tt = cell(1, size(gvec,1));
 
 for i=1:size(gvec)
     disp(['g = ', num2str(gvec(i))]);
-    
-    if nargin > 6 && to ~= 0
-        tt{1,i} = [tau, coll_two_time_corr_to(n, w, f, gvec(i), gamma, tau)];
-    else
-        tt{1,i} = [tau, coll_two_time_corr(n, w, f, gvec(i), gamma, tau)];
+    for j=1:size(w,1)
+        disp(['w = ', num2str(w(j))]);
+        if nargin > 6 && to ~= 0
+            tt{j,i} = [tau, coll_two_time_corr_to(n, w(j), f, gvec(i), gamma, tau)];
+        else
+            tt{j,i} = [tau, coll_two_time_corr(n, w(j), f, gvec(i), gamma, tau)];
+        end
     end
 end

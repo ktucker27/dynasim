@@ -1,18 +1,22 @@
-function [V, M, B, T] = fft_grid(tt)
+function [V, M, B, T, G] = fft_grid(tt)
 
 V = zeros(size(tt,1), size(tt,2));
 M = zeros(size(tt,1), size(tt,2));
 B = zeros(size(tt,1), size(tt,2));
 T = zeros(size(tt,1), size(tt,2));
 
+tol = 0.001;
 for i=1:size(tt,1)
     for j=1:size(tt,2)
         [x,y] = plot_fft(tt{i,j}(:,1), tt{i,j}(:,2), 0);
         
         [V(i,j), M(i,j), B(i,j)] = disc_dist(x,y);
-        T(i,j) = decay_time(tt{i,j}, 0.001);
+        T(i,j) = decay_time(tt{i,j}, tol);
     end
 end
+
+G = -log(tol)./T;
+
 end
 
 function [v,m,b] = smooth_max(x,y)
