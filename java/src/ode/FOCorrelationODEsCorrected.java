@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import coupling.DynaComplexCoupling;
+import coupling.DynaConstCoupling;
 import eval.CumulantEval;
 import utils.DynaComplex;
 
@@ -44,13 +45,14 @@ public class FOCorrelationODEsCorrected implements DynaComplexODEs {
      * @param szs size n vector of the steady state values of sigma_z
      * @throws FileNotFoundException 
      */
-    public FOCorrelationODEsCorrected(int n, double gamma, double w, DynaComplexCoupling coupling, double[] d, DynaComplex[] z) throws FileNotFoundException {
+    public FOCorrelationODEsCorrected(CumulantParams params, DynaComplex[] z) throws FileNotFoundException {
+//        public FOCorrelationODEsCorrected(int n, double gamma, double w, DynaComplexCoupling coupling, double[] d, DynaComplex[] z) throws FileNotFoundException {
         super();
-        this.n = n;
-        this.gamma = gamma;
-        this.w = w;
-        this.coupling = coupling;
-        this.d = d;
+        this.n = params.getN();
+        this.gamma = params.getGamma();
+        this.w = params.getW();
+        this.coupling = new DynaConstCoupling(params.getAlpha().getReal(), params.getAlpha().getImaginary());
+        this.d = params.getD();
         
         eval = new CumulantEval(n);
         this.steady = z;
@@ -76,13 +78,19 @@ public class FOCorrelationODEsCorrected implements DynaComplexODEs {
             c1[i] = new DynaComplex(-0.5*(gamma+w), -d[i]);
             c2[i] = new DynaComplex(-1.5*(gamma+w), -d[i]);
             
-            szs[i] = new DynaComplex(eval.getSingle(2, i, steady, t1));
+//            szs[i] = new DynaComplex(eval.getSingle(2, i, steady, t1));
+//            szs[i] = new DynaComplex(0.487907742998352, 0);
+            szs[i] = new DynaComplex(0.452811301424729, 0);
             
             for(int j = 0; j < n; ++j) {
                 if(i == j) continue;
                 
-                zzs[i][j] = new DynaComplex(eval.getDouble(2, 2, i, j, steady, t1));
-                pms[i][j] = new DynaComplex(eval.getDouble(0, 1, i, j, steady, t1));
+//                zzs[i][j] = new DynaComplex(eval.getDouble(2, 2, i, j, steady, t1));
+//                pms[i][j] = new DynaComplex(eval.getDouble(0, 1, i, j, steady, t1));
+//                zzs[i][j] = new DynaComplex(0.301087314662273, 0);
+//                pms[i][j] = new DynaComplex(0.093410214168040, 0);
+                zzs[i][j] = new DynaComplex(0.268825428205640, 0);
+                pms[i][j] = new DynaComplex(0.091992936609545, 0);
             }
         }
         
@@ -98,6 +106,7 @@ public class FOCorrelationODEsCorrected implements DynaComplexODEs {
                 double rp = Double.parseDouble(tokens[i]);
                 double ip = Double.parseDouble(tokens[i+1]);
                 cline[idx] = new DynaComplex(rp, ip);
+//                cline[idx] = new DynaComplex(0, 0);
                 ++idx;
             }
             corrections.add(cline);

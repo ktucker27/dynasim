@@ -685,6 +685,15 @@ public class SynchUtils {
 //        for(int i = 0; i < z02.length; ++i) {
 //            System.out.println(z02[i]);
 //        }
+        
+        // Read in initial conditions for corrected version
+//        ArrayList<Double> y0 = new ArrayList<Double>();
+//        initFromFile("/Users/tuckerkj/output/foc/z0_N5_D0_g50_w4p00_f1.csv", y0);
+//        idx = 0;
+//        for(int i = 0; i < y0.size(); i +=2) {
+//            z02[idx].set(y0.get(i), y0.get(i+1));
+//            ++idx;
+//        }
 
         FOCorrelationAllToAllODEs c_corr_odes = new FOCorrelationAllToAllODEs(params, z);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
