@@ -20,7 +20,9 @@ import ode.CollectiveCorrelationODEs;
 import ode.CorrelationODEs;
 import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
+import ode.DynaComplexODEs;
 import ode.FOCorrelationAllToAllODEs;
+import ode.MomentsCorrelationAllToAllODEs;
 
 public class SynchUtils {
 
@@ -551,14 +553,15 @@ public class SynchUtils {
         return n*i - i*(i+1)/2 + j - i - 1;
     }
     
-    public enum CorrelationType {THIRD, FOURTH, COLLECTIVE}
+    public enum CorrelationType {THIRD, FOURTH, COLLECTIVE, MOMENTS}
     
     public static IntegratorRequest getCorrRequest(CumulantParams params, double[] y, String filename, CorrelationType type) throws FileNotFoundException, UnsupportedEncodingException {
         switch(type) {
         case THIRD:
             return getTOCorrRequest(params, y, filename);
         case FOURTH:
-            return getFOCorrRequest(params, y, filename);
+        case MOMENTS:
+            return getFOCorrRequest(params, y, filename, (type == CorrelationType.MOMENTS));
         case COLLECTIVE:
             return getCollectiveCorrRequest(params, y, filename);
         }
@@ -620,7 +623,7 @@ public class SynchUtils {
         return request;
     }
     
-    public static IntegratorRequest getFOCorrRequest(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
+    public static IntegratorRequest getFOCorrRequest(CumulantParams params, double[] y, String filename, boolean moments) throws FileNotFoundException, UnsupportedEncodingException
     {
         int n = params.getN();
         
@@ -695,7 +698,12 @@ public class SynchUtils {
 //            ++idx;
 //        }
 
-        FOCorrelationAllToAllODEs c_corr_odes = new FOCorrelationAllToAllODEs(params, z);
+        DynaComplexODEs c_corr_odes = null;
+        if(moments) {
+            c_corr_odes = new MomentsCorrelationAllToAllODEs(params, z);            
+        } else {
+            c_corr_odes = new FOCorrelationAllToAllODEs(params, z);
+        }
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
         
         double[] y02 = new double[2*z02.length];
