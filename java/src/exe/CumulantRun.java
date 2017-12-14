@@ -27,14 +27,14 @@ public class CumulantRun {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         
-        int n = 6;
+        int n = 70;
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 6.0;
         double tmin = 5.0;
-        double delta = 5.0;
+        double delta = 0.0;
         double f = 1;
-        double g = 5.0;
+        double g = 20.0;
         double gel = 0.0;
         boolean correlate = false;
         
@@ -80,9 +80,10 @@ public class CumulantRun {
         
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
 
-        double wmin = 2.0;
-        double wmax = 20.0;
+        double wmin = 36.55;
+        double wmax = 36.55;
         double dw = (wmax - wmin)/20;
+        dw = 1;
         for(double w = wmin; w <= wmax; w += dw) {
             CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
             p.setGel(gel);
@@ -147,7 +148,7 @@ public class CumulantRun {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/kristophertucker/output/vw/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        String dir = "/Users/tuckerkj/output/vw/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");

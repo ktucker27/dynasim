@@ -88,6 +88,6 @@ public class DynaComplex {
     }
     
     public String toString() {
-        return x + " + 1i*" + y;
+        return x + "+" + y + "i";
     }
 }

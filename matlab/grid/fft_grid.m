@@ -13,6 +13,8 @@ for i=1:size(tt,1)
     for j=1:size(tt,2)
         [x,y] = plot_fft(tt{i,j}(:,1), tt{i,j}(:,2), 0);
         
+        y = (abs(y) > 0.1*max(abs(y))).*y;
+        
         [V(i,j), M(i,j), B(i,j)] = disc_dist(x,y);
         T(i,j) = decay_time(tt{i,j}, tol);
     end
@@ -23,7 +25,7 @@ G = -log(tol)./T;
 end
 
 function [v,m,b] = smooth_max(x,y)
-    ay = smooth(abs(y), 11);
+    ay = smooth(abs(y), 3);
         
     [maxval, maxidx] = max(ay);
     
