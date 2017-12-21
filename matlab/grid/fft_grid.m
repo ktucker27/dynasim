@@ -13,7 +13,7 @@ for i=1:size(tt,1)
     for j=1:size(tt,2)
         [x,y] = plot_fft(tt{i,j}(:,1), tt{i,j}(:,2), 0);
         
-        y = (abs(y) > 0.1*max(abs(y))).*y;
+        y = (abs(y) > 0.07*max(abs(y))).*y;
         
         [V(i,j), M(i,j), B(i,j)] = disc_dist(x,y);
         T(i,j) = decay_time(tt{i,j}, tol);
@@ -36,8 +36,10 @@ end
 
 function [v,m,b] = disc_dist(x,y)
     % Trim the spectrum for consistent x limits
-    idx1 = binary_search(x, -500);
-    idx2 = binary_search(x, 500);
+    %idx1 = binary_search(x, -500);
+    %idx2 = binary_search(x, 500);
+    idx1 = 1;
+    idx2 = size(x,1);
     
     x2 = x(idx1:idx2,1);
     ay = abs(y(idx1:idx2,1));
