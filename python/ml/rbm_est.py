@@ -96,6 +96,11 @@ class RBM(object):
         presigmoid_h, h_mean, h_vals = self.sample_h_given_v(v_vals)
         return presigmoid_h, h_mean, h_vals, presigmoid_v, v_mean, v_vals
     
+    def gibbs_vhv(self, v_vals):
+        presigmoid_h, h_mean, h_vals = self.sample_h_given_v(v_vals)
+        presigmoid_v, v_mean, v_vals = self.sample_v_given_h(h_vals)
+        return presigmoid_h, h_mean, h_vals, presigmoid_v, v_mean, v_vals
+    
     def free_energy(self, v_vals):
         inner_prod = tf.matmul(v_vals, tf.reshape(self.v_bias, [-1,1]))
         wvpc = tf.matmul(v_vals, self.W) + self.h_bias
@@ -163,6 +168,13 @@ class RBM(object):
             
             if checkpoint_dir is not None:
                 self.save(sess, checkpoint_dir, step_idx)
+                
+    def sample(self, init_v, chain_len):
+        v_sample = init_v
+        for _ in range(chain_len):
+            _, _, _, _, v_mean, v_sample = self.gibbs_vhv(v_sample)
+            
+        return v_mean, v_sample
 
     def save(self, sess, checkpoint_dir, step_idx):    
         model_name = "rbm.model"
