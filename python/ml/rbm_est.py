@@ -125,10 +125,6 @@ class RBM(object):
         return tf.reduce_mean(self.num_vis*tf.log(tf.nn.sigmoid(fe_xi_flip - fe_xi)))
     
     def train(self, sess, data_X, num_epochs, lr, beta1=0.5, checkpoint_dir=None):
-        saver = None
-        if checkpoint_dir is not None:
-            saver = tf.train.Saver()
-        
         train_op = tf.train.AdamOptimizer(lr, beta1=beta1).minimize(self.loss, global_step=tf.train.get_global_step())
         sess.run(tf.global_variables_initializer())
         
