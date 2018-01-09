@@ -65,7 +65,7 @@ class RBM(object):
             self.persistent_update = tf.assign(self.persistent, h_sample)
             # A hack to get the update in the loss function graph
             # TODO - Find the right way to do this
-            v_sample = v_sample + tf.matmul(self.persistent_update, tf.zeros([self.num_hidden, self.num_vis]))
+            #v_sample = v_sample + tf.matmul(self.persistent_update, tf.zeros([self.num_hidden, self.num_vis]))
             
         chain_end = tf.stop_gradient(v_sample)
 
