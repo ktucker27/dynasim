@@ -12,12 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
-import coupling.DynaConstCoupling;
 import handlers.CollectiveTwoTimeHandler;
 import handlers.TwoTimeHandler;
 import integrator.IntegratorRequest;
 import ode.CollectiveCorrelationODEs;
-import ode.CorrelationODEs;
+import ode.CorrelationAllToAllODEs;
 import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
 import ode.DynaComplexODEs;
@@ -603,8 +602,7 @@ public class SynchUtils {
             }
         }
 
-        DynaConstCoupling coupling = new DynaConstCoupling(params.getAlpha().getReal(), params.getAlpha().getImaginary());
-        CorrelationODEs c_corr_odes = new CorrelationODEs(n, params.getGamma(), params.getW(), coupling, params.getD(), szs);
+        CorrelationAllToAllODEs c_corr_odes = new CorrelationAllToAllODEs(params, szs);
         DynaComplexODEAdapter odes = new DynaComplexODEAdapter(c_corr_odes);
         
         double[] y02 = new double[2*n*n];
