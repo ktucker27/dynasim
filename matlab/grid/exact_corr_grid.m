@@ -4,6 +4,7 @@ G = zeros(size(gvec,1), size(dvec,1));
 
 for i=1:size(gvec)
     for j=1:size(dvec)
+        disp(['g = ', num2str(gvec(i)), ', d = ', num2str(dvec(j))]);
         [d,~] = even_lor(n, dvec(j));
         L = full(master_matrix(n, w, d, f, gvec(i), gamma));
         [~,~,v] = svd(L);
