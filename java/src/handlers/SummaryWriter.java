@@ -1,12 +1,15 @@
 package handlers;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.TreeMap;
 
-import ode.CumulantParams;
 import eval.SystemEval;
+import ode.CumulantParams;
 
 public class SummaryWriter {
     
@@ -27,11 +30,15 @@ public class SummaryWriter {
     boolean myLiveUpdate;
     boolean myHeaderOut;
     
-    public SummaryWriter(String filepath) throws FileNotFoundException {
+    public SummaryWriter(String filepath) throws IOException {
         myVals = new TreeMap<CumulantParams, SummaryWriter.SummaryVals>();
-        myWriter = new PrintWriter(filepath);
+        //myWriter = new PrintWriter(filepath);
+        File file = new File(filepath);
+        myHeaderOut = file.exists();
+        FileWriter fw = new FileWriter(file, true);
+        BufferedWriter bw = new BufferedWriter(fw);
+        myWriter = new PrintWriter(bw);
         myLiveUpdate = false;
-        myHeaderOut = false;
     }
     
     public void setLiveUpdate(boolean liveUpdate) {
