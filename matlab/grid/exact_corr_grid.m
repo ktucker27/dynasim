@@ -1,6 +1,6 @@
 function G = exact_corr_grid(gvec, dvec, n, w, f, gamma)
 
-G = zeros(size(gvec,1), size(dvec,1));
+G = zeros(size(dvec,1), size(gvec,1));
 
 for i=1:size(gvec)
     for j=1:size(dvec)
