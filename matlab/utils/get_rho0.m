@@ -4,7 +4,7 @@ rand_phase = (nargin < 3);
 
 for i=1:n
     if rand_phase
-        phi = 2*pi*rand();
+        phi = (pi/6)*rand();
     end
     
     v = [cos(theta/2);exp(1i*phi)*sin(theta/2)];

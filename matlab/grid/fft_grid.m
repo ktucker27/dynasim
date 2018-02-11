@@ -11,7 +11,12 @@ T = zeros(size(tt,1), size(tt,2));
 
 for i=1:size(tt,1)
     for j=1:size(tt,2)
-        [x,y] = plot_fft(tt{i,j}(:,1), tt{i,j}(:,2), 0);
+        %[x,y] = plot_fft(tt{i,j}(:,1), tt{i,j}(:,2), 0);
+        z = tt{i,j}(:,2);
+        t = tt{i,j}(:,1);
+        z = [z;zeros(3*size(z,1),1)];
+        t = [t;zeros(3*size(t,1),1)];
+        [x,y] = plot_fft(t, z, 0);
         
         y = (abs(y) > 0.07*max(abs(y))).*y;
         
