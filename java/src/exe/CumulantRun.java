@@ -1,20 +1,18 @@
 package exe;
 
-import handlers.CumulantSteadyStateTerminator;
-import handlers.WriteHandlerCorr;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
-import ode.DynaComplexODEAdapter;
-
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
+import handlers.CumulantSteadyStateTerminator;
+import handlers.WriteHandlerCorr;
+import ode.CoherentCumulantODEs;
+import ode.CumulantParams;
+import ode.DynaComplexODEAdapter;
 import utils.DynaComplex;
 import utils.SynchUtils;
 
@@ -31,11 +29,12 @@ public class CumulantRun {
         double h = 0.001;
         double gamma = 1.0;
         double tmax = 6.0;
-        double tmin = 5.0;
+        double tmin = 1.0;
         double delta = 0.0;
         double f = 1;
-        double g = 20.0;
+        double g = 3.0;
         double gel = 0.0;
+        double omega = 0.25*gamma*n;
         boolean correlate = false;
         
         int nmax = n;
@@ -80,8 +79,8 @@ public class CumulantRun {
         
         ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
 
-        double wmin = 36.55;
-        double wmax = 36.55;
+        double wmin = 0;
+        double wmax = 0;
         double dw = (wmax - wmin)/20;
         dw = 1;
         for(double w = wmin; w <= wmax; w += dw) {
@@ -148,14 +147,15 @@ public class CumulantRun {
         
         long startTime = System.nanoTime();
 
-        String dir = "/Users/tuckerkj/output/vw/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
+        String dir = "/Users/tuckerkj/output/20180101/coh/" + params.get(0).getResultsDir().getAbsolutePath() + "/";
         File fdir = new File(dir);
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
         boolean success = true;
         for(int idx = 0; idx < params.size(); ++idx) {
             CumulantParams cparams = params.get(idx);
-            CumulantAllToAllODEs codes = new CumulantAllToAllODEs(cparams);
+            //CumulantAllToAllODEs codes = new CumulantAllToAllODEs(cparams);
+            CoherentCumulantODEs codes = new CoherentCumulantODEs(cparams, omega);
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
 
             String wStr = Double.toString(cparams.getW()).replace('.', 'p');
