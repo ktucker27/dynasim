@@ -14,7 +14,7 @@ tf.set_random_seed(1)
 
 batch_size = 64
 k = 15
-checkpoint_dir = '/Users/tuckerkj/checkpoints/rbm_mnist_k15_b64'
+checkpoint_dir = '/Users/tuckerkj/checkpoints/rbm_mnist_pers2_k15_b64'
 
 train_input_fn = tf.estimator.inputs.numpy_input_fn(x={"v":mnist.train.images},
                                                     y=mnist.train.labels,

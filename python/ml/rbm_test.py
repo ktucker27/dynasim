@@ -16,7 +16,7 @@ tf.set_random_seed(1)
 
 batch_size = 64
 k = 15
-checkpoint_dir = '/Users/tuckerkj/checkpoints/rbm_mnist_k15_b64'
+checkpoint_dir = '/Users/tuckerkj/checkpoints/rbm_mnist_pers2_k15_b64'
 n_samples = 10
 n_chains = 20
 chain_len = 1000
@@ -41,4 +41,4 @@ for i in range(n_samples):
     else:
         all_v_means = np.append(all_v_means, v_mean_vals, axis=0)
 
-    np.savetxt("/Users/tuckerkj/data/scratch/sample_out.csv", all_v_means, delimiter=",")
+    np.savetxt("/Users/tuckerkj/data/scratch/sample_out2.csv", all_v_means, delimiter=",")
