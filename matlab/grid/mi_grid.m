@@ -1,7 +1,7 @@
 function [gvec,nvec,mi,M,T] = mi_grid(rootdir)
 
-filenames = dir([rootdir, '/*cumulant_N*.txt']);
-pat = '[^_]*cumulant_N([^_]+)_D[^_]+_g([^_]+)_w([^_]+)_f[^_]+.txt';
+filenames = dir([rootdir, '/*exact_N*.txt']);
+pat = '[^_]*exact_N([^_]+)_D[^_]+_g([^_]+)_w([^_]+)_f[^_]+.txt';
 
 A = zeros(size(filenames,1),3);
 for i=1:size(filenames,1)

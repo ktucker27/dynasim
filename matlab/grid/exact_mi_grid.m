@@ -1,11 +1,12 @@
-function [mi, M, decay, freq, T] = exact_mi_grid(gvec, nvec, wvec, f, gamma, tau, savefile)
+function [mi, M, decay, freq, evecs, T] = exact_mi_grid(gvec, nvec, wvec, f, gamma, tau, savefile)
 
-num_evals = 5;
+num_evals = 20;
 mi = cell(size(nvec,1), size(gvec,1));
 M = zeros(size(nvec,1), size(gvec,1));
 T = zeros(size(nvec,1), size(gvec,1));
 decay = zeros(size(nvec,1), size(gvec,1), num_evals);
 freq = zeros(size(nvec,1), size(gvec,1), num_evals);
+evecs = cell(size(nvec,1), size(gvec,1), num_evals);
 
 tol = 1.0e-12;
 
@@ -24,18 +25,21 @@ for i=1:size(gvec)
         
         L = full(master_matrix(n, wvec(j), zeros(n,1), f, gvec(i), gamma));
         
-        l = eig(L);
-        lv = [real(l) imag(l)];
+        [ev,l] = eig(L);
+        l = diag(l);
+        lv = [real(l) imag(l) (1:size(l,1))'];
         lv = sortrows(lv, -1);
         num_found = 0;
         for lvidx = 1:size(lv,1)
             if abs(lv(lvidx, 2)) > tol
                 decay(j,i,num_found+1) = abs(lv(lvidx,1));
                 freq(j,i,num_found+1) = abs(lv(lvidx,2));
+                evecs{j,i,num_found+1} = ev(:,lv(lvidx, 3));
+                
+                num_found = num_found + 1;
                 if num_found == num_evals
                     break;
                 end
-                num_found = num_found + 1;
             end
         end
         
@@ -50,8 +54,8 @@ for i=1:size(gvec)
         [M(j,i), maxidx] = max(abs(mi{j,i}(:,2)));
         T(j,i) = mi{j,i}(maxidx,1);
         
-        if nargin > 7
-            save(savefile, 'gvec', 'nvec', 'wvec', 'f', 'gamma', 'rho0', 'mi', 'M', 'T');
+        if nargin > 6
+            save(savefile, 'gvec', 'nvec', 'wvec', 'f', 'gamma', 'rho0', 'mi', 'M', 'T', 'decay', 'freq', 'evecs');
         end
     end
 end
