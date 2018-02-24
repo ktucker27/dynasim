@@ -32,8 +32,8 @@ for i=1:size(A,1)
     zps = f(:,6) + 1i*f(:,7);
     pps = f(:,9) + 1i*f(:,10);
     
-    mi{nidx, gidx} = mutual_info2(pms, zs, zzs, ps, zps, pps);
-    [M(nidx, gidx), maxidx] = max(abs(mi{nidx, gidx}));
+    mi{nidx, gidx} = [f(:,1), mutual_info2(pms, zs, zzs, ps, zps, pps)];
+    [M(nidx, gidx), maxidx] = max(abs(mi{nidx, gidx}(:,2)));
     T(nidx, gidx) = f(maxidx,1);
     
     disp(['g = ', num2str(gvec(gidx)), ', n = ', num2str(nvec(nidx))]);

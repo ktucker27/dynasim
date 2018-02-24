@@ -1,6 +1,6 @@
 function [mi, M, decay, freq, evecs, T] = exact_mi_grid(gvec, nvec, wvec, f, gamma, tau, savefile)
 
-num_evals = 20;
+num_evals = 4;
 mi = cell(size(nvec,1), size(gvec,1));
 M = zeros(size(nvec,1), size(gvec,1));
 T = zeros(size(nvec,1), size(gvec,1));
@@ -29,17 +29,22 @@ for i=1:size(gvec)
         l = diag(l);
         lv = [real(l) imag(l) (1:size(l,1))'];
         lv = sortrows(lv, -1);
+        lvs = [];
         num_found = 0;
         for lvidx = 1:size(lv,1)
             if abs(lv(lvidx, 2)) > tol
+                evl = abs(lv(lvidx,1)) + 1i*abs(lv(lvidx,2));
+                if size(lvs,1) == 0 || min(abs(lvs - evl)) > 1.0e-4
+                    lvs = [lvs;evl];
+                    if size(lvs,1) > num_evals
+                        break;
+                    end
+                end
+                
                 decay(j,i,num_found+1) = abs(lv(lvidx,1));
                 freq(j,i,num_found+1) = abs(lv(lvidx,2));
                 evecs{j,i,num_found+1} = ev(:,lv(lvidx, 3));
-                
                 num_found = num_found + 1;
-                if num_found == num_evals
-                    break;
-                end
             end
         end
         
