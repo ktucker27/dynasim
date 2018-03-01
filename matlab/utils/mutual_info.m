@@ -1,7 +1,7 @@
 function [avg_info, info] = mutual_info(filepath, n)
 
 B = dlmread(filepath);
-z = B(:,1) + 1i*B(:,2);
+z = B(1:2:end,1) + 1i*B(2:2:end,1);
 [~, ps, zps, zs, pms, zzs, pps] = z_to_vars(z, n);
 
 info = zeros(n,n);
