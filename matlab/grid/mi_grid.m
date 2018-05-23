@@ -1,4 +1,4 @@
-function [gvec,nvec,mi,M,T] = mi_grid(rootdir)
+function [gvec,nvec,mi,M,T,C] = mi_grid(rootdir)
 
 filenames = dir([rootdir, '/*exact_N*.txt']);
 pat = '[^_]*exact_N([^_]+)_D[^_]+_g([^_]+)_w([^_]+)_f[^_]+.txt';
@@ -19,9 +19,12 @@ gvec = unique(A(:,2));
 mi = cell(size(nvec,1), size(gvec,1));
 M = zeros(size(nvec,1), size(gvec,1));
 T = zeros(size(nvec,1), size(gvec,1));
+C = zeros(size(nvec,1), size(gvec,1));
 for i=1:size(A,1)
     nidx = find(nvec == A(i,1));
     gidx = find(gvec == A(i,2));
+    
+    disp(['g = ', num2str(gvec(gidx)), ', n = ', num2str(nvec(nidx))]);
 
     f = dlmread(filepaths{A(i,3)});
     pms = f(:,2);
@@ -35,6 +38,5 @@ for i=1:size(A,1)
     mi{nidx, gidx} = [f(:,1), mutual_info2(pms, zs, zzs, ps, zps, pps)];
     [M(nidx, gidx), maxidx] = max(abs(mi{nidx, gidx}(:,2)));
     T(nidx, gidx) = f(maxidx,1);
-    
-    disp(['g = ', num2str(gvec(gidx)), ', n = ', num2str(nvec(nidx))]);
+    C(nidx, gidx) = f(end,2);
 end

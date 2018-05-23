@@ -16,6 +16,8 @@ function info = single_info(sz, sp)
 A = [0.5*(1 + sz), sp';sp, 0.5*(1 - sz)];
 l = eig(A);
 info = -1.0*sum(l.*log(l));
+%info = -log(trace(A*A));
+%info = -log(sum(l.^2));
 end
 
 function info = double_info(a_p, b_p, a_z, b_z, ab_zp, ba_zp, pp, pm, zz)
@@ -31,6 +33,9 @@ A(4,4) = 1 - a_z - b_z + zz;
 A = 0.25*A;
 l = eig(A);
 info = -1.0*sum(l.*log(l));
+%info = -log(trace(A*A));
+%info = -log(sum(l.^2));
+
 if(abs(sum(l)-1.0) > 1.0e-10 || max(max(abs(A - A'))) > 1.0e-10 || min(l >= -1.0e-4) < 1)
 sum(l)
 A - A'

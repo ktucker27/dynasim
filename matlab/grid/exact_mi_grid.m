@@ -1,5 +1,18 @@
 function [mi, M, decay, freq, evecs, T] = exact_mi_grid(gvec, nvec, wvec, f, gamma, tau, savefile)
 
+% -------------------------------- OUTPUT ---------------------------------
+% mi{j,i}      - (num_time, 2) matrix containing (tau, mutual info) for
+%               nvec(j) and gvec(i)
+% M(j,i)       - Max value of mutual info in column 2 of mi{j,i}
+% decay(j,i,:) - vector of decay rates (abs of real part of Liouvillian
+%                eigenvalues in descending order of real part)
+% freq(j,i,:)  - Corresponding eigenvalue imaginary parts
+% evecs(j,i,:) - Corresponding eigenvectors
+% Note: The number of unique eigenvals is determined by num_evals. The
+%       structures above include degeneracies
+% T(j,i)       - Time at which the max occurred
+% -------------------------------------------------------------------------
+
 num_evals = 4;
 mi = cell(size(nvec,1), size(gvec,1));
 M = zeros(size(nvec,1), size(gvec,1));
@@ -20,7 +33,7 @@ for i=1:size(gvec)
         n = nvec(j);
         %rho0 = (1/(2^n))*ones(2^n,2^n);
         %rho0 = zeros(2^n,2^n);
-        %rh0(1,1) = 1;
+        %rho0(1,1) = 1;
         %rho0 = get_rho0(n, pi/2);
         
         L = full(master_matrix(n, wvec(j), zeros(n,1), f, gvec(i), gamma));
