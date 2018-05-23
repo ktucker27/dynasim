@@ -9,6 +9,6 @@ spm = sp*sm;
 eyed = speye(D,D);
 A = sparse(D^2, D^2);
 
-A = A - 1i*o*(kron(sp, eyed) + kron(sm, eyed) - kron(eyed, sm) - kron(eyed, sp));
+A = A - 1i*0.5*o*(kron(sp, eyed) + kron(sm, eyed) - kron(eyed, sm) - kron(eyed, sp));
 A = A - 1i*0.5*gamma*g*(kron(spm, eyed) - 0.5*kron(sz, eyed) - kron(eyed, spm) + 0.5*kron(eyed, sz));
 A = A - 0.5*gamma*f*(kron(spm, eyed) + kron(eyed, spm) - 2*kron(sm, eyed)*kron(eyed, sm));
