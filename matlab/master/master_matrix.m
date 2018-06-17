@@ -1,4 +1,4 @@
-function A = master_matrix_coh_onsite(n, w, o, d, faa, fab, gaa, gab, gamma, gel)
+function A = master_matrix(n, w, o, d, faa, fab, gaa, gab, gamma, gel)
 
 sz = [1,0;0,-1];
 sp = [0,1;0,0];
