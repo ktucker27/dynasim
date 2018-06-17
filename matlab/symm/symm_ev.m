@@ -1,4 +1,4 @@
-function [es, ess, epp] = compact_ev(n, L, c, t0, dt, t)
+function [es, ess, epp] = symm_ev(n, L, c, t0, dt, t)
 
 del = expm(dt*L);
 

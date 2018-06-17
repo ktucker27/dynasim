@@ -1,4 +1,4 @@
-function [L, Lf, Sp, Sm, Spr, Smr] = compact_liouv(n, w, o, f, g, gamma, gel)
+function [L, Lf, Sp, Sm, Spr, Smr] = symm_liouv(n, w, o, f, g, gamma, gel)
 
 d = (n+3)*(n+2)*(n+1)/6;
 

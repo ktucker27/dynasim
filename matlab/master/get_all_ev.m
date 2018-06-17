@@ -1,4 +1,4 @@
-function [es, ess, epp, rhoss] = coherent_ev(rho, L, sz, sp, sm, t0, dt, t)
+function [es, ess, epp, rhoss] = get_all_ev(rho, L, sz, sp, sm, t0, dt, t)
 
 sx = 0.5*(sp + sm);
 sy = -1i*0.5*(sp - sm);

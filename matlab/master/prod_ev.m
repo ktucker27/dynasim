@@ -1,4 +1,4 @@
-function ev = compact_prod_ev(n1, n2, ess)
+function ev = prod_ev(n1, n2, ess)
 
 ev = 0;
 for i=1:3
