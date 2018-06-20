@@ -41,10 +41,10 @@ for j=1:d
             Lfab(i,j) = 0.5*(nz+1)*(nm+1+3*(np+1)) - 0.5*(nz+1)*(np - nm);
         end
         
-        if idx_equals(row_idx, col_idx - [1;0;0])
+        if idx_equals(row_idx, col_idx + [-1;0;0])
             Lgab(i,j) = -(col_idx(2) - col_idx(3))*(n - sum(col_idx) + 1);
-            %Lf(i,j) = n1*nm - n1*np + nm - np;
-            Lfab(i,j) = 0.5*(n1+1)*(nm - np) + 0.5*(n1+1)*(nm-np);
+            Lfab(i,j) = -n1*nm - n1*np - nm - np;
+            %Lfab(i,j) = 0.5*(n1+1)*(nm - np) + 0.5*(n1+1)*(nm-np);
         end
         
         if idx_equals(row_idx, col_idx + [-1;1;1])
