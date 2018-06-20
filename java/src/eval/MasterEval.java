@@ -101,6 +101,16 @@ public class MasterEval implements SystemEval {
         // TODO
         throw new UnsupportedOperationException("Bloch vector retrieval not yet implemented for MasterEval");
     }
+    
+    @Override
+    public void getFirstOrderCollectiveEvs(double[] y, double[] es) {
+        throw new UnsupportedOperationException("MasterEval has not implemented getFirstOrderEvs");
+    }
+    
+    @Override
+    public void getSecondOrderCollectiveEvs(double[] y, DynaComplex[][] es) {
+        throw new UnsupportedOperationException("MasterEval has not implemented getSecondOrderEvs");
+    }
 
     @Override
     public void initSpinUpX(double[] y0) {

@@ -104,6 +104,16 @@ public class CumulantEval implements SystemEval {
     }
     
     @Override
+    public void getFirstOrderCollectiveEvs(double[] y, double[] es) {
+        throw new UnsupportedOperationException("CumulantEval has not implemented getFirstOrderEvs");
+    }
+    
+    @Override
+    public void getSecondOrderCollectiveEvs(double[] y, DynaComplex[][] es) {
+        throw new UnsupportedOperationException("CumulantEval has not implemented getSecondOrderEvs");
+    }
+    
+    @Override
     public void initSpinUpX(double[] y0) {
         initialize(y0, 0.5*Math.PI, 0.0, InitAngleType.CONST, InitAngleType.CONST);
     }

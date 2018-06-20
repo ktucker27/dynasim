@@ -4,6 +4,8 @@ import java.util.Random;
 
 import org.apache.commons.math3.complex.Complex;
 
+import utils.DynaComplex;
+
 public class MeanFieldEval implements SystemEval {
     
     int n;
@@ -74,6 +76,16 @@ public class MeanFieldEval implements SystemEval {
             ys[i] = z.getImaginary();
             zs[i] = y[i];
         }
+    }
+    
+    @Override
+    public void getFirstOrderCollectiveEvs(double[] y, double[] es) {
+        throw new UnsupportedOperationException("MeanFieldEval has not implemented getFirstOrderEvs");
+    }
+    
+    @Override
+    public void getSecondOrderCollectiveEvs(double[] y, DynaComplex[][] es) {
+        throw new UnsupportedOperationException("MeanFieldEval has not implemented getSecondOrderEvs");
     }
 
     @Override

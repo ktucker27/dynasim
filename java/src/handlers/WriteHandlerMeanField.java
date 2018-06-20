@@ -30,6 +30,17 @@ public class WriteHandlerMeanField implements StepHandler {
             myWriter.print(avgSigmay(y0, n) + ", ");
             myWriter.print(avgSigmaz(y0, n));
             myWriter.print("\n");
+            
+//            for(int i = 0; i < n; ++i) {
+//                double xx = y0[n+i]*Math.cos(y0[2*n+i]);
+//                double yy = y0[n+i]*Math.sin(y0[2*n+i]);
+//                double zz = y0[i];
+//                myWriter.print(xx + ", " + yy + ", " + zz);
+//                if(i < n - 1) {
+//                    myWriter.print(", ");
+//                }
+//            }
+//            myWriter.print("\n");
         }
     }
 
@@ -45,6 +56,17 @@ public class WriteHandlerMeanField implements StepHandler {
             myWriter.print(avgSigmay(y, n) + ", ");
             myWriter.print(avgSigmaz(y, n));
             myWriter.print("\n");
+            
+//            for(int i = 0; i < n; ++i) {
+//                double xx = y[n+i]*Math.cos(y[2*n+i]);
+//                double yy = y[n+i]*Math.sin(y[2*n+i]);
+//                double zz = y[i];
+//                myWriter.print(xx + ", " + yy + ", " + zz);
+//                if(i < n - 1) {
+//                    myWriter.print(", ");
+//                }
+//            }
+//            myWriter.print("\n");
 
             if(!isLast) {
                 myWriter.flush();

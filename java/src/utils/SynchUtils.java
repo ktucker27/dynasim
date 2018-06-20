@@ -22,6 +22,7 @@ import ode.DynaComplexODEAdapter;
 import ode.DynaComplexODEs;
 import ode.FOCorrelationAllToAllODEs;
 import ode.MomentsCorrelationAllToAllODEs;
+import ode.SystemParams;
 
 public class SynchUtils {
 
@@ -842,5 +843,12 @@ public class SynchUtils {
             y.add(Double.parseDouble(fileReader.nextLine()));
         }
         fileReader.close();
+    }
+    
+    public static SystemParams getSysParams(CumulantParams params) {
+        return new SystemParams(params.getN(), params.getGamma(), params.getW(), 0.0, 
+                params.getGel(), params.getDelta(), params.getAlpha().getReal(),
+                params.getAlpha().getReal(), 0.0, params.getAlpha().getImaginary(),
+                params.getD());
     }
 }

@@ -24,11 +24,13 @@ import eval.CumulantEval;
 import eval.MasterEval;
 import eval.MeanFieldEval;
 import eval.RPAEval;
+import eval.SymmEval;
 import eval.SystemEval;
 import eval.SystemEval.InitAngleType;
 import handlers.CumulantSteadyStateTerminator;
 import handlers.DataRecorder;
 import handlers.SummaryWriter;
+import handlers.WriteHandlerCollectiveSpin;
 import handlers.WriteHandlerCorr;
 import handlers.WriteHandlerMaster;
 import handlers.WriteHandlerMeanField;
@@ -41,7 +43,9 @@ import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
 import ode.MasterAllToAllODEs;
 import ode.RPAAllToAllODEs;
+import ode.SymmetricODEs;
 import ode.SynchMeanFieldODEs;
+import ode.SystemParams;
 import utils.DynaComplex;
 import utils.SynchReducer;
 import utils.SynchSolution;
@@ -53,7 +57,8 @@ public class RunSim {
         MEAN_FIELD,
         CUMULANT,
         MASTER,
-        RPA
+        RPA,
+        SYMM
     }
     
     public static class ICAngleParams {
@@ -73,6 +78,7 @@ public class RunSim {
         options.addOption("d", true, "Disorder sigma");
         options.addOption("f", true, "Elastic interaction term");
         options.addOption("g", true, "Inelastic interaction term (preface with n to hold ng at the given value)");
+        options.addOption("gel", true, "Single particle spontaneous emission term");
         options.addOption("t", false, "Output results versus time");
         options.addOption("zd", false, "Output collective z distribution when running MASTER");
         options.addOption("df", true, "File of detunings to use");
@@ -399,6 +405,15 @@ public class RunSim {
                 eval = new RPAEval(n);
                 odes = new RPAAllToAllODEs(params.get(i));
                 break;
+            case SYMM:
+                eval = new SymmEval(n);
+                if(outputVsTime) {
+                    writeHandler = new WriteHandlerCollectiveSpin(timefile, eval);
+                }
+                SystemParams sysParams = SynchUtils.getSysParams(params.get(i));
+                SymmetricODEs sodes = new SymmetricODEs(sysParams);
+                odes = new DynaComplexODEAdapter(sodes);
+                break;
             default:
                 System.err.println("Simulator type not yet supported");
                 return;
@@ -629,6 +644,7 @@ public class RunSim {
         double[] dvals = getValList(optMap, "d", dparams.getDelta());
         double[] fvals = getValList(optMap, "f", dparams.getAlpha().getReal());
         double[] gvals = getValList(optMap, "g", dparams.getAlpha().getImaginary());
+        double[] gels = getValList(optMap, "gel", dparams.getGel());
         
         for(int nidx = 0; nidx < nvals.length; ++nidx) {
             int n = (int)nvals[nidx];
@@ -646,9 +662,15 @@ public class RunSim {
                             if(g < 0) {
                                 g = -1.0*g/(double)n;
                             }
-                            params.add(new CumulantParams(n, dparams.getGamma(),
-                                                          w, dvals[didx],
-                                                          new DynaComplex(fvals[fidx], g), d));
+                            
+                            for(int gelidx = 0; gelidx < gels.length; ++gelidx) {
+                                CumulantParams newparams = new CumulantParams(n, dparams.getGamma(),
+                                                                              w, dvals[didx],
+                                                                              new DynaComplex(fvals[fidx], g), d);
+                                newparams.setGel(gels[gelidx]);
+                                
+                                params.add(newparams);
+                            }
                         }
                     }
                 }

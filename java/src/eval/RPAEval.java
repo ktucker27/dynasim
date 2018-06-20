@@ -2,6 +2,8 @@ package eval;
 
 import java.util.Random;
 
+import utils.DynaComplex;
+
 
 public class RPAEval implements SystemEval {
     int n;
@@ -206,6 +208,16 @@ public class RPAEval implements SystemEval {
             ys[a] = getSingle(1, a, y);
             zs[a] = -1.0*getSingle(0, a, y);
         }
+    }
+    
+    @Override
+    public void getFirstOrderCollectiveEvs(double[] y, double[] es) {
+        throw new UnsupportedOperationException("RPAEval has not implemented getFirstOrderEvs");
+    }
+    
+    @Override
+    public void getSecondOrderCollectiveEvs(double[] y, DynaComplex[][] es) {
+        throw new UnsupportedOperationException("RPAEval has not implemented getSecondOrderEvs");
     }
     
     @Override
