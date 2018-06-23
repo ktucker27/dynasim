@@ -17,7 +17,6 @@ import handlers.TwoTimeHandler;
 import integrator.IntegratorRequest;
 import ode.CollectiveCorrelationODEs;
 import ode.CorrelationAllToAllODEs;
-import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
 import ode.DynaComplexODEs;
 import ode.FOCorrelationAllToAllODEs;
@@ -555,7 +554,7 @@ public class SynchUtils {
     
     public enum CorrelationType {THIRD, FOURTH, COLLECTIVE, MOMENTS}
     
-    public static IntegratorRequest getCorrRequest(CumulantParams params, double[] y, String filename, CorrelationType type) throws FileNotFoundException, UnsupportedEncodingException {
+    public static IntegratorRequest getCorrRequest(SystemParams params, double[] y, String filename, CorrelationType type) throws FileNotFoundException, UnsupportedEncodingException {
         switch(type) {
         case THIRD:
             return getTOCorrRequest(params, y, filename);
@@ -569,7 +568,7 @@ public class SynchUtils {
         return null;
     }
     
-    public static IntegratorRequest getTOCorrRequest(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException {
+    public static IntegratorRequest getTOCorrRequest(SystemParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException {
         int n = params.getN();
         
         int dim = SynchUtils.getDimension(n);
@@ -622,7 +621,7 @@ public class SynchUtils {
         return request;
     }
     
-    public static IntegratorRequest getFOCorrRequest(CumulantParams params, double[] y, String filename, boolean moments) throws FileNotFoundException, UnsupportedEncodingException
+    public static IntegratorRequest getFOCorrRequest(SystemParams params, double[] y, String filename, boolean moments) throws FileNotFoundException, UnsupportedEncodingException
     {
         int n = params.getN();
         
@@ -721,7 +720,7 @@ public class SynchUtils {
         return request;
     }
     
-    public static IntegratorRequest getCollectiveCorrRequest(CumulantParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
+    public static IntegratorRequest getCollectiveCorrRequest(SystemParams params, double[] y, String filename) throws FileNotFoundException, UnsupportedEncodingException
     {
         int n = params.getN();
         
@@ -775,7 +774,7 @@ public class SynchUtils {
         return request;
     }
     
-    public static double[] compCorr(CumulantParams params, double[] y, String filename, CorrelationType type) throws FileNotFoundException, UnsupportedEncodingException
+    public static double[] compCorr(SystemParams params, double[] y, String filename, CorrelationType type) throws FileNotFoundException, UnsupportedEncodingException
     {
         IntegratorRequest request = getCorrRequest(params, y, filename, type);
         
@@ -843,12 +842,5 @@ public class SynchUtils {
             y.add(Double.parseDouble(fileReader.nextLine()));
         }
         fileReader.close();
-    }
-    
-    public static SystemParams getSysParams(CumulantParams params) {
-        return new SystemParams(params.getN(), params.getGamma(), params.getW(), 1.0, 
-                params.getGel(), params.getDelta(), params.getAlpha().getReal(),
-                params.getAlpha().getReal(), 0.0, params.getAlpha().getImaginary(),
-                params.getD());
     }
 }

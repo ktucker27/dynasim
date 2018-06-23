@@ -11,7 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Scanner;
 
 import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.DynaComplexODEAdapter;
 
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
@@ -69,7 +69,7 @@ public class CumulantSingle {
             gvec[i] = g*Math.cos(7.0*Math.PI*i/6.0);
         }
         
-        CumulantParams params = new CumulantParams(n, gamma, w, delta, alpha, d);
+        SystemParams params = new SystemParams(n, gamma, w, delta, alpha, d);
         params.setGel(gel);
         
         CumulantAllToAllODEs codes = new CumulantAllToAllODEs(params);

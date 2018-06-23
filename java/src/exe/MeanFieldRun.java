@@ -8,7 +8,7 @@ import java.util.Random;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.SynchMeanFieldODEs;
 import utils.DynaComplex;
 import utils.SynchUtils;
@@ -49,7 +49,7 @@ public class MeanFieldRun {
 
         long endTime = System.nanoTime();
 
-        CumulantParams params = new CumulantParams(n, 1, 0, delta, new DynaComplex(f, g), d);
+        SystemParams params = new SystemParams(n, 1, 0, delta, new DynaComplex(f, g), d);
 //        PrintWriter writer = new PrintWriter("/Users/tuckerkj/output/mf/wrun_" + params.getFilename(), "UTF-8");
         PrintWriter writer = new PrintWriter("/Users/kristophertucker/output/mf/wrun_temp.txt", "UTF-8");
         for(int i = 0; i < numw; ++i) {

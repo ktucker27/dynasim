@@ -39,7 +39,6 @@ import integrator.AdamsMoultonFactory;
 import integrator.IntegratorRequest;
 import integrator.ThreadPoolIntegrator;
 import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
 import ode.DynaComplexODEAdapter;
 import ode.MasterAllToAllODEs;
 import ode.RPAAllToAllODEs;
@@ -277,7 +276,7 @@ public class RunSim {
         double[] d = new double[n];
         generateDetunings(delta, d, useLorDetunings);
         
-        CumulantParams dparams = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
+        SystemParams dparams = new SystemParams(n, gamma, w, delta, new DynaComplex(f,g), d);
         
         TreeMap<String, double[]> optMap = new TreeMap<String, double[]>();
         if(!parseOptions(options, optIgnore, args, cmd, optMap)) {
@@ -306,7 +305,7 @@ public class RunSim {
         }
         
         // Create params list
-        ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
+        ArrayList<SystemParams> params = new ArrayList<SystemParams>();
         createParams(optMap, dparams, params, useLorDetunings);
         
         // Initialize the summary writer
@@ -410,8 +409,7 @@ public class RunSim {
                 if(outputVsTime) {
                     writeHandler = new WriteHandlerCollectiveSpin(timefile, eval);
                 }
-                SystemParams sysParams = SynchUtils.getSysParams(params.get(i));
-                SymmetricODEs sodes = new SymmetricODEs(sysParams);
+                SymmetricODEs sodes = new SymmetricODEs(params.get(i));
                 odes = new DynaComplexODEAdapter(sodes);
                 break;
             default:
@@ -638,7 +636,7 @@ public class RunSim {
         return true;
     }
     
-    private static void createParams(TreeMap<String, double[]> optMap, CumulantParams dparams, ArrayList<CumulantParams> params, boolean useLorDetunings) {
+    private static void createParams(TreeMap<String, double[]> optMap, SystemParams dparams, ArrayList<SystemParams> params, boolean useLorDetunings) {
         double[] nvals = getValList(optMap, "n", dparams.getN());
         double[] wvals = getValList(optMap, "w", dparams.getW());
         double[] dvals = getValList(optMap, "d", dparams.getDelta());
@@ -664,7 +662,7 @@ public class RunSim {
                             }
                             
                             for(int gelidx = 0; gelidx < gels.length; ++gelidx) {
-                                CumulantParams newparams = new CumulantParams(n, dparams.getGamma(),
+                                SystemParams newparams = new SystemParams(n, dparams.getGamma(),
                                                                               w, dvals[didx],
                                                                               new DynaComplex(fvals[fidx], g), d);
                                 newparams.setGel(gels[gelidx]);

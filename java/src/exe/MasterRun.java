@@ -10,7 +10,7 @@ import handlers.WriteHandlerMaster;
 
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.DynaComplexODEAdapter;
 import ode.MasterAllToAllODEs;
 import utils.DynaComplex;
@@ -40,13 +40,13 @@ public class MasterRun {
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
         
-        ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
+        ArrayList<SystemParams> params = new ArrayList<SystemParams>();
         
         double wmin = 2.0;
         double wmax = 20.0;
         double dw = (wmax - wmin)/20;
         for(double w = wmin; w <= wmax; w += dw) {
-            CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
+            SystemParams p = new SystemParams(n, gamma, w, delta, alpha, d);
             params.add(p);
         }
         
@@ -69,7 +69,7 @@ public class MasterRun {
         fdir.mkdirs();
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
         for(int idx = 0; idx < params.size(); ++idx) {
-            CumulantParams cparams = params.get(idx);
+            SystemParams cparams = params.get(idx);
             MasterAllToAllODEs modes = new MasterAllToAllODEs(cparams);
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(modes);
             

@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 
 import handlers.WriteHandlerRPA;
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.RPAAllToAllODEs;
 import utils.DynaComplex;
 import utils.SynchUtils;
@@ -49,7 +49,7 @@ public class RPASingle {
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
         
-        CumulantParams params = new CumulantParams(n, gamma, w, delta, alpha, d);
+        SystemParams params = new SystemParams(n, gamma, w, delta, alpha, d);
         
         RPAAllToAllODEs odes = new RPAAllToAllODEs(params);
         

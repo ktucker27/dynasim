@@ -10,7 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.DynaComplexODEAdapter;
 
 import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
@@ -41,7 +41,7 @@ public class CumulantGrid {
 //        SynchUtils.detuneGauss(delta, d);
 //        SynchUtils.detuneLor(delta, d);
         
-        ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
+        ArrayList<SystemParams> params = new ArrayList<SystemParams>();
 
         double wmin = 2.5;
         double wmax = 120.0;
@@ -61,7 +61,7 @@ public class CumulantGrid {
             for(double gi = gmin; gi <= gmax; gi += dg) {
                 DynaComplex alpha = new DynaComplex(f, gi);
                 for(double w = wmax; w >= wmin; w -= dw) {
-                    CumulantParams p = new CumulantParams(n, gamma, w, di, alpha, d);
+                    SystemParams p = new SystemParams(n, gamma, w, di, alpha, d);
                     params.add(p);
                 }
             }
@@ -96,7 +96,7 @@ public class CumulantGrid {
         PrintWriter corrWriter = null;
         boolean success = true;
         for(int idx = 0; idx < params.size(); ++idx) {
-            CumulantParams cparams = params.get(idx);
+            SystemParams cparams = params.get(idx);
             CumulantAllToAllODEs codes = new CumulantAllToAllODEs(cparams);
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);
             

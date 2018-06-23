@@ -24,7 +24,7 @@ public class MasterAllToAllODEs implements DynaComplexODEs {
     /**
      * @param params input object specifying parameters
      */
-    public MasterAllToAllODEs(CumulantParams params) {
+    public MasterAllToAllODEs(SystemParams params) {
         super();
         this.n = params.getN();
         this.gamma = params.getGamma();

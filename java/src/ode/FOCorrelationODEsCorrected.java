@@ -45,7 +45,7 @@ public class FOCorrelationODEsCorrected implements DynaComplexODEs {
      * @param szs size n vector of the steady state values of sigma_z
      * @throws FileNotFoundException 
      */
-    public FOCorrelationODEsCorrected(CumulantParams params, DynaComplex[] z) throws FileNotFoundException {
+    public FOCorrelationODEsCorrected(SystemParams params, DynaComplex[] z) throws FileNotFoundException {
 //        public FOCorrelationODEsCorrected(int n, double gamma, double w, DynaComplexCoupling coupling, double[] d, DynaComplex[] z) throws FileNotFoundException {
         super();
         this.n = params.getN();

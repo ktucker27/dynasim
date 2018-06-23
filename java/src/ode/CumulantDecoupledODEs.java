@@ -87,7 +87,7 @@ public class CumulantDecoupledODEs implements DynaComplexODEs {
     /**
      * @param params input object specifying parameters
      */
-    public CumulantDecoupledODEs(CumulantParams params) {
+    public CumulantDecoupledODEs(SystemParams params) {
         super();
         this.n = params.getN();
         this.gamma = params.getGamma();

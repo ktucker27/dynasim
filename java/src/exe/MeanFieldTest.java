@@ -3,7 +3,7 @@ package exe;
 import org.apache.commons.math3.complex.Complex;
 
 import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.DynaComplexODEAdapter;
 import ode.SynchMeanFieldODEs;
 import utils.DynaComplex;
@@ -28,7 +28,7 @@ public class MeanFieldTest {
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
         
-        CumulantParams dparams = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
+        SystemParams dparams = new SystemParams(n, gamma, w, delta, new DynaComplex(f,g), d);
         
         MeanFieldEval meval = new MeanFieldEval(n);
         double[] y = new double[meval.getRealDimension()];

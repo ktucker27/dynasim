@@ -34,7 +34,7 @@ public class CumulantAllToAllODEs implements DynaComplexODEs {
     /**
      * @param params input object specifying parameters
      */
-    public CumulantAllToAllODEs(CumulantParams params) {
+    public CumulantAllToAllODEs(SystemParams params) {
         super();
         this.n = params.getN();
         this.gamma = params.getGamma();

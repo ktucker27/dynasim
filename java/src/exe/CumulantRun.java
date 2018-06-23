@@ -11,7 +11,7 @@ import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import handlers.CumulantSteadyStateTerminator;
 import handlers.WriteHandlerCorr;
 import ode.CoherentCumulantODEs;
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.DynaComplexODEAdapter;
 import utils.DynaComplex;
 import utils.SynchUtils;
@@ -77,14 +77,14 @@ public class CumulantRun {
 //            d[i] = 0.0;
 //        }
         
-        ArrayList<CumulantParams> params = new ArrayList<CumulantParams>();
+        ArrayList<SystemParams> params = new ArrayList<SystemParams>();
 
         double wmin = 0;
         double wmax = 0;
         double dw = (wmax - wmin)/20;
         dw = 1;
         for(double w = wmin; w <= wmax; w += dw) {
-            CumulantParams p = new CumulantParams(n, gamma, w, delta, alpha, d);
+            SystemParams p = new SystemParams(n, gamma, w, delta, alpha, d);
             p.setGel(gel);
             params.add(p);
         }
@@ -153,7 +153,7 @@ public class CumulantRun {
         PrintWriter corrWriter = new PrintWriter(dir + "corr.txt", "UTF-8");
         boolean success = true;
         for(int idx = 0; idx < params.size(); ++idx) {
-            CumulantParams cparams = params.get(idx);
+            SystemParams cparams = params.get(idx);
             //CumulantAllToAllODEs codes = new CumulantAllToAllODEs(cparams);
             CoherentCumulantODEs codes = new CoherentCumulantODEs(cparams, omega);
             DynaComplexODEAdapter odes = new DynaComplexODEAdapter(codes);

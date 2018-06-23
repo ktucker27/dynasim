@@ -36,7 +36,7 @@ public class CoherentCumulantODEs implements DynaComplexODEs {
     /**
      * @param params input object specifying parameters
      */
-    public CoherentCumulantODEs(CumulantParams params, double omega) {
+    public CoherentCumulantODEs(SystemParams params, double omega) {
         super();
         this.n = params.getN();
         this.gamma = params.getGamma();

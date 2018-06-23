@@ -10,7 +10,7 @@ import org.apache.commons.math3.ode.nonstiff.AdamsMoultonIntegrator;
 import handlers.RingSteadyStateTest;
 import handlers.SynchSteadyStateTerminator;
 import handlers.WriteHandlerMeanField;
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.SynchMeanFieldODEs;
 import utils.DynaComplex;
 import utils.SynchUtils;
@@ -52,7 +52,7 @@ public class MeanFieldSingle {
             y0[2*n+i] = i*2*Math.PI/(double)n - Math.PI;
         }
         
-        CumulantParams params = new CumulantParams(n, gamma, w, delta, new DynaComplex(f,g), d);
+        SystemParams params = new SystemParams(n, gamma, w, delta, new DynaComplex(f,g), d);
 
         String dir = "/Users/tuckerkj/output/temp/";
 //        WriteHandler writeHandler = new WriteHandler("/Users/kristophertucker/output/temp/.txt", new int[] {n+n/2}, true);

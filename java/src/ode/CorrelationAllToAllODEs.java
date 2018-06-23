@@ -23,7 +23,7 @@ public class CorrelationAllToAllODEs implements DynaComplexODEs {
      * @param params specifies equation parameters
      * @param szs size n vector of the steady state values of sigma_z
      */
-    public CorrelationAllToAllODEs(CumulantParams params, DynaComplex[] szs) {
+    public CorrelationAllToAllODEs(SystemParams params, DynaComplex[] szs) {
         this(params.getN(), params.getGamma(), params.getW(), params.getAlpha(), params.getD(), szs);
     }
     

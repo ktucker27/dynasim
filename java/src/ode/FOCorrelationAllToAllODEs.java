@@ -36,7 +36,7 @@ public class FOCorrelationAllToAllODEs implements DynaComplexODEs {
      * @param params specifies equation parameters
      * @param z complex output of cumulant expansion equations
      */
-    public FOCorrelationAllToAllODEs(CumulantParams params, DynaComplex[] z) {
+    public FOCorrelationAllToAllODEs(SystemParams params, DynaComplex[] z) {
         this(params.getN(), params.getGamma(), params.getW(), params.getAlpha(), params.getD(), z);
     }
     

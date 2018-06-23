@@ -21,7 +21,7 @@ public class RPAAllToAllODEs implements FirstOrderDifferentialEquations {
     /**
      * @param params input object specifying parameters
      */
-    public RPAAllToAllODEs(CumulantParams params) {
+    public RPAAllToAllODEs(SystemParams params) {
         super();
         this.n = params.getN();
         this.gamma = params.getGamma();

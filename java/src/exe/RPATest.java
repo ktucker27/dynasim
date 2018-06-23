@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 import ode.CumulantAllToAllODEs;
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.RPAAllToAllODEs;
 import utils.DynaComplex;
 import utils.SynchUtils;
@@ -32,7 +32,7 @@ public class RPATest {
         double[] d = new double[n];
         SynchUtils.detuneGauss(delta, d);
         
-        CumulantParams params = new CumulantParams(n, gamma, w, delta, alpha, d);
+        SystemParams params = new SystemParams(n, gamma, w, delta, alpha, d);
         
         RPAAllToAllODEs odes = new RPAAllToAllODEs(params);
         CumulantAllToAllODEs codes = new CumulantAllToAllODEs(params);

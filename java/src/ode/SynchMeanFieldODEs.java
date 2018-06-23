@@ -32,7 +32,7 @@ public class SynchMeanFieldODEs implements FirstOrderDifferentialEquations {
         this.d = d;
     }
     
-    public SynchMeanFieldODEs(CumulantParams params) {
+    public SynchMeanFieldODEs(SystemParams params) {
         super();
         this.n = params.getN();
         this.gamma = params.getGamma();

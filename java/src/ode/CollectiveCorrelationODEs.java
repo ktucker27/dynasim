@@ -16,7 +16,7 @@ public class CollectiveCorrelationODEs implements DynaComplexODEs {
     
     DynaComplex t1, t2, t3;
     
-    public CollectiveCorrelationODEs(CumulantParams params, double sz, double szz, double pm) {
+    public CollectiveCorrelationODEs(SystemParams params, double sz, double szz, double pm) {
         n = params.getN();
         gamma = params.getGamma();
         w = params.getW();

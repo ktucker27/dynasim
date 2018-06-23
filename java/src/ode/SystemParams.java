@@ -2,6 +2,8 @@ package ode;
 
 import java.io.File;
 
+import utils.DynaComplex;
+
 public class SystemParams implements Comparable<SystemParams> {
     private int n;
     private double gamma;
@@ -14,6 +16,7 @@ public class SystemParams implements Comparable<SystemParams> {
     private double gaa;
     private double gab;
     private double[] d;
+    private DynaComplex alpha;
     
     public SystemParams(int n, double gamma, double w, double omega, double gel, double delta,
                         double faa, double fab, double gaa, double gab, double[] d) {
@@ -31,6 +34,25 @@ public class SystemParams implements Comparable<SystemParams> {
         for(int i = 0; i < d.length; ++i) {
             this.d[i] = d[i];
         }
+        this.alpha = new DynaComplex(this.fab, this.gab);
+    }
+    
+    public SystemParams(int n, double gamma, double w, double delta, DynaComplex alpha, double[] d) {
+        this.n = n;
+        this.gamma = gamma;
+        this.w = w;
+        this.omega = 0.0;
+        this.gel = 0.0;
+        this.delta = delta;
+        this.faa = alpha.getReal();
+        this.fab = alpha.getReal();
+        this.gaa = 0.0;
+        this.gab = alpha.getImaginary();
+        this.d = new double[d.length];
+        for(int i = 0; i < d.length; ++i) {
+            this.d[i] = d[i];
+        }
+        this.alpha = new DynaComplex(alpha);
     }
     
     public SystemParams(SystemParams rhs) {
@@ -48,6 +70,7 @@ public class SystemParams implements Comparable<SystemParams> {
         for(int i = 0; i < d.length; ++i) {
             this.d[i] = rhs.d[i];
         }
+        this.alpha = new DynaComplex(rhs.alpha);
     }
     
     public int getN() {
@@ -64,6 +87,10 @@ public class SystemParams implements Comparable<SystemParams> {
     
     public double getOmega() {
         return omega;
+    }
+    
+    public void setGel(double gel) {
+        this.gel = gel;
     }
     
     public double getGel() {
@@ -88,6 +115,10 @@ public class SystemParams implements Comparable<SystemParams> {
     
     public double getGab() {
         return gab;
+    }
+    
+    public DynaComplex getAlpha() {
+        return alpha;
     }
 
     public double[] getD() {

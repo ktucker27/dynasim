@@ -2,16 +2,16 @@ package utils;
 
 import eval.SystemEval;
 import handlers.DataRecorder;
-import ode.CumulantParams;
+import ode.SystemParams;
 
 public class SynchSolution implements ODESolution {
 
-    private CumulantParams myParams;
+    private SystemParams myParams;
     private DataRecorder myRecorder;
     private SystemEval myEval;
     private double[] y;
 
-    public SynchSolution(CumulantParams params, DataRecorder recorder, SystemEval eval) {
+    public SynchSolution(SystemParams params, DataRecorder recorder, SystemEval eval) {
         super();
         myParams = params;
         myRecorder = recorder;
@@ -19,7 +19,7 @@ public class SynchSolution implements ODESolution {
         y = null;
     }
     
-    public CumulantParams getParams() {
+    public SystemParams getParams() {
         return myParams;
     }
     

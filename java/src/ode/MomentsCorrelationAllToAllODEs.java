@@ -36,7 +36,7 @@ public class MomentsCorrelationAllToAllODEs implements DynaComplexODEs {
      * @param params specifies equation parameters
      * @param z complex output of cumulant expansion equations
      */
-    public MomentsCorrelationAllToAllODEs(CumulantParams params, DynaComplex[] z) {
+    public MomentsCorrelationAllToAllODEs(SystemParams params, DynaComplex[] z) {
         this(params.getN(), params.getGamma(), params.getW(), params.getAlpha(), params.getD(), z);
     }
     

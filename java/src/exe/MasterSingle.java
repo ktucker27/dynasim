@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
-import ode.CumulantParams;
+import ode.SystemParams;
 import ode.DynaComplexODEAdapter;
 import ode.MasterAllToAllODEs;
 
@@ -45,7 +45,7 @@ public class MasterSingle {
 //        SynchUtils.detuneGauss(delta, d);
         SynchUtils.detuneLor(delta, d);
         
-        CumulantParams params = new CumulantParams(n, gamma, w, delta, alpha, d);
+        SystemParams params = new SystemParams(n, gamma, w, delta, alpha, d);
         
         // Initialize everyone to spin-up along the x-direction
         TPSOperator rho0 = new TPSOperator(n);
