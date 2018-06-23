@@ -56,7 +56,6 @@ public class SymmetricODEs implements DynaComplexODEs {
     @Override
     public void computeDerivatives(double t, DynaComplex[] z, DynaComplex[] zDot)
             throws MaxCountExceededException, DimensionMismatchException {
-        // TODO Auto-generated method stub
         int d = getDimension();
         
         // Loop through each column of the Liouvillian adding its contribution to zDot
@@ -81,8 +80,8 @@ public class SymmetricODEs implements DynaComplexODEs {
             zDot[i].add(t1.set(z[i]).multiply(-w).multiply(nz + 0.5*(np + nm)));
             zDot[i].add(t1.set(z[i]).multiply(-gel).multiply(np + nm));
             
-            // colIdx + [1;0;0]
             if(n1 > 0) {
+                // colIdx + [1;0;0]
                 idx = myIdxMap[nz+1][np][nm];
                 
                 zDot[idx].add(t1.set(z[i]).multiply(lgab).multiply((nz+1)*(nm-np)));
@@ -91,23 +90,33 @@ public class SymmetricODEs implements DynaComplexODEs {
                 zDot[idx].add(t1.set(z[i]).multiply(-w).multiply(-(nz + 1)));
             }
             
-            // colIdx + [-1;0;0]
             if(nz > 0) {
+                // colIdx + [-1;0;0]
                 idx = myIdxMap[nz-1][np][nm];
                 
                 zDot[idx].add(t1.set(z[i]).multiply(lgab).multiply((n1+1)*(nm-np)));
                 zDot[idx].add(t1.set(z[i]).multiply(lfab).multiply(-n1*nm - n1*np - nm - np));
+
+                // colIdx + [-1;1;0]
+                idx = myIdxMap[nz-1][np+1][nm];
+                
+                zDot[idx].add(t1.set(z[i]).multiply(lomega).multiply(-2*(np+1)));
+
+                // colIdx + [-1;0;1]
+                idx = myIdxMap[nz-1][np][nm+1];
+                
+                zDot[idx].add(t1.set(z[i]).multiply(lomega).multiply(2*(nm+1)));
             }
             
-            // colIdx + [-1;1;1]
             if(nz > 0 && n1 > 0) {
+                // colIdx + [-1;1;1]
                 idx = myIdxMap[nz-1][np+1][nm+1];
                 
                 zDot[idx].add(t1.set(z[i]).multiply(lfab).multiply(-4*(np+1)*(nm+1)));
             }
             
-            // colIdx + [-2;1;1]
             if(nz > 1) {
+                // colIdx + [-2;1;1]
                 idx = myIdxMap[nz-2][np+1][nm+1];
                 
                 zDot[idx].add(t1.set(z[i]).multiply(lfab).multiply(-4*(np+1)*(nm+1)));
@@ -123,6 +132,20 @@ public class SymmetricODEs implements DynaComplexODEs {
                 idx = myIdxMap[nz+2][np-1][nm-1];
                 
                 zDot[idx].add(t1.set(z[i]).multiply(lfab).multiply(-(nz+1)*(nz+2)));
+            }
+            
+            if(nm > 0) {
+                // colIdx + [1;0;-1]
+                idx = myIdxMap[nz+1][np][nm-1];
+                
+                zDot[idx].add(t1.set(z[i]).multiply(lomega).multiply(nz+1));
+            }
+            
+            if(np > 0) {
+                // colIdx + [1;-1;0]
+                idx = myIdxMap[nz+1][np-1][nm];
+                
+                zDot[idx].add(t1.set(z[i]).multiply(lomega).multiply(-(nz+1)));
             }
             
             myEval.incIdx(colIdx);

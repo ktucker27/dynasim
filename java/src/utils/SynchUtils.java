@@ -846,7 +846,7 @@ public class SynchUtils {
     }
     
     public static SystemParams getSysParams(CumulantParams params) {
-        return new SystemParams(params.getN(), params.getGamma(), params.getW(), 0.0, 
+        return new SystemParams(params.getN(), params.getGamma(), params.getW(), 1.0, 
                 params.getGel(), params.getDelta(), params.getAlpha().getReal(),
                 params.getAlpha().getReal(), 0.0, params.getAlpha().getImaginary(),
                 params.getD());
