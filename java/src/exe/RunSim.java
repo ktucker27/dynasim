@@ -74,6 +74,7 @@ public class RunSim {
         Options options = new Options();
         options.addOption("n", true, "Number of particles");
         options.addOption("w", true, "Incoherent pumping (specify opt for optimal)");
+        options.addOption("o", true, "Coherent pumping");
         options.addOption("d", true, "Disorder sigma");
         options.addOption("f", true, "Elastic interaction term");
         options.addOption("g", true, "Inelastic interaction term (preface with n to hold ng at the given value)");
@@ -639,6 +640,7 @@ public class RunSim {
     private static void createParams(TreeMap<String, double[]> optMap, SystemParams dparams, ArrayList<SystemParams> params, boolean useLorDetunings) {
         double[] nvals = getValList(optMap, "n", dparams.getN());
         double[] wvals = getValList(optMap, "w", dparams.getW());
+        double[] ovals = getValList(optMap, "o", dparams.getW());
         double[] dvals = getValList(optMap, "d", dparams.getDelta());
         double[] fvals = getValList(optMap, "f", dparams.getAlpha().getReal());
         double[] gvals = getValList(optMap, "g", dparams.getAlpha().getImaginary());
@@ -651,23 +653,25 @@ public class RunSim {
                 if(w < 0) {
                     w = SynchUtils.getWOpt(n);
                 }
-                for(int didx = 0; didx < dvals.length; ++didx) {
-                    double[] d = new double[n];
-                    generateDetunings(dvals[didx], d, useLorDetunings);
-                    for(int fidx = 0; fidx < fvals.length; ++fidx) {
-                        for(int gidx = 0; gidx < gvals.length; ++gidx) {
-                            double g = gvals[gidx];
-                            if(g < 0) {
-                                g = -1.0*g/(double)n;
-                            }
-                            
-                            for(int gelidx = 0; gelidx < gels.length; ++gelidx) {
-                                SystemParams newparams = new SystemParams(n, dparams.getGamma(),
-                                                                              w, dvals[didx],
-                                                                              new DynaComplex(fvals[fidx], g), d);
-                                newparams.setGel(gels[gelidx]);
-                                
-                                params.add(newparams);
+                for(int oidx = 0; oidx < ovals.length; ++oidx) {
+                    double o = ovals[oidx];
+                    for(int didx = 0; didx < dvals.length; ++didx) {
+                        double[] d = new double[n];
+                        generateDetunings(dvals[didx], d, useLorDetunings);
+                        for(int fidx = 0; fidx < fvals.length; ++fidx) {
+                            for(int gidx = 0; gidx < gvals.length; ++gidx) {
+                                double g = gvals[gidx];
+                                if(g < 0) {
+                                    g = -1.0*g/(double)n;
+                                }
+
+                                for(int gelidx = 0; gelidx < gels.length; ++gelidx) {
+                                    SystemParams newparams = new SystemParams(n, dparams.getGamma(),
+                                            w, o, gels[gelidx], dvals[didx],
+                                            fvals[fidx], fvals[fidx], 0, g, d);
+
+                                    params.add(newparams);
+                                }
                             }
                         }
                     }
