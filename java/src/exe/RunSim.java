@@ -76,8 +76,10 @@ public class RunSim {
         options.addOption("w", true, "Incoherent pumping (specify opt for optimal)");
         options.addOption("o", true, "Coherent pumping");
         options.addOption("d", true, "Disorder sigma");
-        options.addOption("f", true, "Elastic interaction term");
-        options.addOption("g", true, "Inelastic interaction term (preface with n to hold ng at the given value)");
+        options.addOption("f", true, "Inelastic interaction term");
+        options.addOption("faa", true, "Onsite inelastic interaction term (overwrites f if present)");
+        options.addOption("g", true, "Elastic interaction term (preface with n to hold ng at the given value)");
+        options.addOption("gaa", true, "Onsite elastic interaction term (overwrites default 0 if present)");
         options.addOption("gel", true, "Single particle spontaneous emission term");
         options.addOption("t", false, "Output results versus time");
         options.addOption("zd", false, "Output collective z distribution when running MASTER");
@@ -640,11 +642,21 @@ public class RunSim {
     private static void createParams(TreeMap<String, double[]> optMap, SystemParams dparams, ArrayList<SystemParams> params, boolean useLorDetunings) {
         double[] nvals = getValList(optMap, "n", dparams.getN());
         double[] wvals = getValList(optMap, "w", dparams.getW());
-        double[] ovals = getValList(optMap, "o", dparams.getW());
+        double[] ovals = getValList(optMap, "o", dparams.getOmega());
         double[] dvals = getValList(optMap, "d", dparams.getDelta());
         double[] fvals = getValList(optMap, "f", dparams.getAlpha().getReal());
+        double[] faavals = getValList(optMap, "faa", dparams.getFaa());
         double[] gvals = getValList(optMap, "g", dparams.getAlpha().getImaginary());
+        double[] gaavals = getValList(optMap, "gaa", dparams.getGaa());
         double[] gels = getValList(optMap, "gel", dparams.getGel());
+        
+        if(optMap.containsKey("faa") && faavals.length != fvals.length) {
+            throw new UnsupportedOperationException("Number of f and faa vals must be the same");
+        }
+        
+        if(optMap.containsKey("gaa") && gaavals.length != gvals.length) {
+            throw new UnsupportedOperationException("Number of g and gaa vals must be the same");
+        }
         
         for(int nidx = 0; nidx < nvals.length; ++nidx) {
             int n = (int)nvals[nidx];
@@ -659,16 +671,25 @@ public class RunSim {
                         double[] d = new double[n];
                         generateDetunings(dvals[didx], d, useLorDetunings);
                         for(int fidx = 0; fidx < fvals.length; ++fidx) {
+                            double faa = fvals[fidx];
+                            if(optMap.containsKey("faa")) {
+                                faa = faavals[fidx];
+                            }
                             for(int gidx = 0; gidx < gvals.length; ++gidx) {
                                 double g = gvals[gidx];
                                 if(g < 0) {
                                     g = -1.0*g/(double)n;
                                 }
+                                
+                                double gaa = 0;
+                                if(optMap.containsKey("gaa")) {
+                                    gaa = gaavals[gidx];
+                                }
 
                                 for(int gelidx = 0; gelidx < gels.length; ++gelidx) {
                                     SystemParams newparams = new SystemParams(n, dparams.getGamma(),
                                             w, o, gels[gelidx], dvals[didx],
-                                            fvals[fidx], fvals[fidx], 0, g, d);
+                                            faa, fvals[fidx], gaa, g, d);
 
                                     params.add(newparams);
                                 }
