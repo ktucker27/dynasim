@@ -5,7 +5,7 @@ G = zeros(size(wvec,1), 1);
 for i=1:size(wvec)
     disp(['w = ', num2str(wvec(i))]);
     [d,~] = even_lor(n, delta);
-    L = full(master_matrix(n, wvec(i), d, f, g, gamma));
+    L = full(master_matrix(n, wvec(i), 0, d, f, f, 0, g, gamma, 0));
     [~,~,v] = svd(L);
     
     if rank(L) ~= size(L,1) - 1
@@ -15,6 +15,8 @@ for i=1:size(wvec)
     rho = wind(v(:,size(L,1)));
     rho = rho/trace(rho);
     
-    G(i,1) = real(comp_corr(rho));
-    %G(i,1) = real(comp_sz(rho));
+    spsm = real(comp_corr(rho));
+    sz = real(comp_sz(rho));
+    
+    G(i,1) = (1/n^2)*(n*(n-1)*spsm + (n/2)*(1 + sz));
 end
