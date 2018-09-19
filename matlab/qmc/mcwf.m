@@ -1,6 +1,6 @@
 function [tau, rho, cdfs, outcomes, szs, es, ess] = mcwf(n, w, o, faa, fab, chi, gamma, gel, c, t0, dt, t, num_trajectories)
 
-dim = size(c,1);
+% Assumes we are starting with J = n/2
 
 [sp, sm, sz] = get_ops(n);
 
@@ -11,37 +11,38 @@ dl = gamma*gel; % ?
 oms = chi;
 
 dur = t - t0;
-num_times = ceil(dur/dt);
+num_times = ceil(dur/dt) + 1;
 tau = zeros(num_times,1);
-rho = zeros(dim, dim, num_times);
-cdfs = zeros(4,num_times-1);
-outcomes = zeros(num_times-1,1);
+%rho = zeros(dim, dim, num_times);
+rho = 0;
+cdfs = zeros(4,num_times-1,num_trajectories);
+outcomes = zeros(num_times-1,num_trajectories);
 es = zeros(3, num_times);
 ess = zeros(3, 3, num_times);
 
 % Update the density operator
 tau(1,1) = t0;
 
-idx1 = 1;
-for ji = n/2:-1:-n/2
-    jstart = idx1;
-    for M1 = ji:-1:-ji
-        idx2 = jstart;
-        for M2 = ji:-1:-ji
-            rho(idx1, idx2, 1) = rho(idx1, idx2, 1) + c(idx1,1)*c(idx2,1)';
-            idx2 = idx2 + 1;
-        end
-        idx1 = idx1 + 1;
-    end
-end
+% idx1 = 1;
+% for ji = n/2:-1:-n/2
+%     jstart = idx1;
+%     for M1 = ji:-1:-ji
+%         idx2 = jstart;
+%         for M2 = ji:-1:-ji
+%             rho(idx1, idx2, 1) = rho(idx1, idx2, 1) + c(idx1,1)*c(idx2,1)';
+%             idx2 = idx2 + 1;
+%         end
+%         idx1 = idx1 + 1;
+%     end
+% end
 
 szs = zeros(num_times,1);
-szs(1,1) = trace(rho(:,:,1)*sz);
+szs(1,1) = c'*sz(:,:,1)*c;
 
 [es, ess] = update_evs(c, sp, sm, sz, es, ess, 1);
 
 J = zeros(num_trajectories,1);
-cs = zeros(dim, num_trajectories);
+cs = zeros(n + 1, num_trajectories);
 for i = 1:num_trajectories
     cs(:,i) = c;
     J(i,1) = n/2;
@@ -64,80 +65,60 @@ for ti = 2:num_times
         % Determine the jump
         cdf = get_cdf(cs(:,i), n, Jt, gc, gl, dt);
         outcome = roll_dice(cdf);
-                
-        if i == 1
-            cdfs(:,ti-1) = cdf;
-            outcomes(ti-1,1) = outcome;
-        end
+        
+        cdfs(:,ti-1,i) = cdf;
+        outcomes(ti-1,i) = outcome;
         
         % Update the state coefficients
-        newc = zeros(dim,1);
-        
-        idx = 1;
-        for ji = n/2:-1:Jt+1
-            idx = idx + 2*ji + 1;
-        end
+        newc = zeros(n+1,1);
         
         if outcome == 1
             % Collective decay
             for M = Jt:-1:-Jt + 1
+                midx = n/2 - M + 1;
                 [~, ajmm] = get_ajm(Jt,M);
-                newc(idx + 1,1) = sqrt(dt*gc)*ajmm*cs(idx,i);
-                idx = idx + 1;
+                newc(midx + 1,1) = sqrt(dt*gc)*ajmm*cs(midx,i);
             end
         elseif outcome == 2
             % Individual decay, s = 0
             for M = Jt:-1:-Jt + 1
+                midx = n/2 - M + 1;
                 [~, ajmm] = get_ajm(Jt, M);
                 [p0, ~, ~] = get_pjms(n, Jt, M, ajmm);
-                newc(idx + 1,1) = sqrt(dt*gl)*p0*cs(idx,i);
-                idx = idx + 1;
+                newc(midx + 1,1) = sqrt(dt*gl)*p0*cs(midx,i);
             end
         elseif outcome == 3
             % Individual decay, s = -1
             s = -1;
-            newidx = 1;
-            for ji = n/2:-1:(Jt + s) + 1
-                newidx = newidx + 2*ji + 1;
-            end
             
             for M = Jt:-1:-Jt+2
+                midx = n/2 - M + 1;
                 [~, ajmm] = get_ajm(Jt, M);
                 [~, pm, ~] = get_pjms(n, Jt, M, ajmm);
-                newc(newidx,1) = sqrt(dt*gl)*pm*cs(idx,i);
-                idx = idx + 1;
-                newidx = newidx + 1;
+                newc(midx + 1,1) = sqrt(dt*gl)*pm*cs(midx,i);
             end
             
             Jt = Jt + s;
         elseif outcome == 4
             % Individual decay, s = 1
             s = 1;
-            newidx = 1;
-            for ji = n/2:-1:(Jt + s) + 1
-                newidx = newidx + 2*ji + 1;
-            end
-            
-            % Advance the new index to start one less than the original M
-            newidx = newidx + 2;
             
             for M = Jt:-1:-Jt
+                midx = n/2 - M + 1;
                 [~, ajmm] = get_ajm(Jt, M);
                 [~, ~, pp] = get_pjms(n, Jt, M, ajmm);
-                newc(newidx,1) = sqrt(dt*gl)*pp*cs(idx,i);
-                idx = idx + 1;
-                newidx = newidx + 1;
+                newc(midx + 1,1) = sqrt(dt*gl)*pp*cs(midx,i);
             end
             
             Jt = Jt + s;
         else
             % No jump
             for M = Jt:-1:-Jt
+                midx = n/2 - M + 1;
                 [~, ajmm] = get_ajm(Jt, M);
                 omjm = oms*ajmm*ajmm ...
                      - 1i*0.5*(gc*ajmm*ajmm + gl*(n/2 + M) + kl*(n/2 - M) + dl*n);
-                newc(idx,1) = (1 - 1i*omjm*dt)*cs(idx,i);
-                idx = idx + 1;
+                newc(midx,1) = (1 - 1i*omjm*dt)*cs(midx,i);
             end
         end
         cs(:,i) = newc/norm(newc);
@@ -159,8 +140,9 @@ for ti = 2:num_times
 %         end
         
         %szs(ti,1) = szs(ti,1) + trace(rho_traj*sz);
-        szs(ti,1) = szs(ti,1) + cs(:,i)'*sz*cs(:,i);
-        [es, ess] = update_evs(cs(:,i), sp, sm, sz, es, ess, ti);
+        jidx = n/2 - Jt + 1;
+        szs(ti,1) = szs(ti,1) + cs(:,i)'*sz(:,:,jidx)*cs(:,i);
+        [es, ess] = update_evs(cs(:,i), sp(:,:,jidx), sm(:,:,jidx), sz(:,:,jidx), es, ess, ti);
         J(i,1) = Jt;
     end
     
@@ -198,14 +180,9 @@ cdf = zeros(4,1);
 
 dnj = get_dnj(n,J);
 
-% Advance the index to the start of the Dicke manifold corresponding to J
-idx = 1;
-for ji = n/2:-1:J+1
-    idx = idx + 2*ji + 1;
-end
-
 for M = J:-1:-J
-    cjm = c(idx,1);
+    midx = n/2 - M + 1;
+    cjm = c(midx,1);
     [~, ajmm] = get_ajm(J,M);
     
     % Collective decay
@@ -216,8 +193,6 @@ for M = J:-1:-J
     cdf(2,1) = cdf(2,1) + abs(p0*cjm)^2;
     cdf(3,1) = cdf(3,1) + abs(pm*cjm)^2;
     cdf(4,1) = cdf(4,1) + abs(pp*cjm)^2;
-
-    idx = idx + 1;
 end
 
 cdf(1,1) = dt*gc*dnj*cdf(1,1);
@@ -247,18 +222,17 @@ end
 end
 
 function [sp, sm, sz] = get_ops(n)
-dim = (n/2 + 1)^2;
-sp = zeros(dim, dim);
-sm = zeros(dim, dim);
-sz = zeros(dim, dim);
+sp = zeros(n+1, n+1, n/2+1);
+sm = zeros(n+1, n+1, n/2+1);
+sz = zeros(n+1, n+1, n/2+1);
 idx = 1;
 for ji = n/2:-1:0
     mvec = ji:-1:-ji;
     ms = size(mvec,2);
-    sz(idx:idx + ms - 1, idx:idx + ms - 1) = diag(mvec);
-    sp(idx:idx + ms - 1, idx:idx + ms - 1) = circshift(sqrt(diag((n/2 - mvec).*(n/2 + mvec + 1))),-1);
-    sm(idx:idx + ms - 1, idx:idx + ms - 1) = circshift(sqrt(diag((n/2 + mvec).*(n/2 - mvec + 1))),1);
-    idx = idx + ms;
+    sz(idx:idx + ms - 1, idx:idx + ms - 1, idx) = diag(mvec);
+    sp(idx:idx + ms - 1, idx:idx + ms - 1, idx) = circshift(sqrt(diag((ji - mvec).*(ji + mvec + 1))),-1);
+    sm(idx:idx + ms - 1, idx:idx + ms - 1, idx) = circshift(sqrt(diag((ji + mvec).*(ji - mvec + 1))),1);
+    idx = idx + 1;
 end
 end
 
@@ -266,7 +240,7 @@ function [es, ess] = update_evs(c, sp, sm, sz, es, ess, i)
 sx = 0.5*(sp + sm);
 sy = 1i*0.5*(sm - sp);
 
-es(1,i) = es(1,i) + c'*sx*c;
-es(2,i) = es(2,i) + c'*sy*c;
-es(3,i) = es(3,i) + c'*sz*c;
+es(1,i) = es(1,i) + c'*sx(:,:,1)*c;
+es(2,i) = es(2,i) + c'*sy(:,:,1)*c;
+es(3,i) = es(3,i) + c'*sz(:,:,1)*c;
 end
