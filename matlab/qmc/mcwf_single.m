@@ -166,27 +166,3 @@ for i=1:size(cdf,1)
     idx = idx + 1;
 end
 end
-
-function [sp, sm, sz] = get_ops(n)
-dim = (n/2 + 1)^2;
-sp = zeros(dim, dim);
-sm = zeros(dim, dim);
-sz = zeros(dim, dim);
-idx = 1;
-for ji = n/2:-1:0
-    mvec = ji:-1:-ji;
-    ms = size(mvec,2);
-    sz(idx:idx + ms - 1, idx:idx + ms - 1) = diag(mvec);
-    sp(idx:idx + ms - 1, idx:idx + ms - 1) = circshift(sqrt(diag((n/2 - mvec).*(n/2 + mvec + 1))),-1);
-    sm(idx:idx + ms - 1, idx:idx + ms - 1) = circshift(sqrt(diag((n/2 + mvec).*(n/2 - mvec + 1))),1);
-    idx = idx + ms;
-end
-end
-
-function idx = get_dicke_idx(J,M,n)
-idx = 1;
-for ji = n/2:-1:J+1
-    idx = idx + 2*ji + 1;
-end
-idx = idx + J - M;
-end
