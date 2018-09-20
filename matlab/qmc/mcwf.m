@@ -115,10 +115,21 @@ for ti = 2:num_times
             % No jump
             for M = Jt:-1:-Jt
                 midx = n/2 - M + 1;
-                [~, ajmm] = get_ajm(Jt, M);
+                [ajmp, ajmm] = get_ajm(Jt, M);
                 omjm = oms*ajmm*ajmm ...
                      - 1i*0.5*(gc*ajmm*ajmm + gl*(n/2 + M) + kl*(n/2 - M) + dl*n);
-                newc(midx,1) = (1 - 1i*omjm*dt)*cs(midx,i);
+                newc(midx,1) = newc(midx,1) + (1 - 1i*omjm*dt)*cs(midx,i);
+                
+                % Coherent pumping
+                if o > 0
+                    if ajmp > 0
+                        newc(midx-1,1) = newc(midx-1,1) - 1i*0.5*o*ajmp*dt*cs(midx,i);
+                    end
+                    
+                    if ajmm > 0
+                        newc(midx+1,1) = newc(midx+1,1) - 1i*0.5*o*ajmm*dt*cs(midx,i);
+                    end
+                end
             end
         end
         cs(:,i) = newc/norm(newc);
