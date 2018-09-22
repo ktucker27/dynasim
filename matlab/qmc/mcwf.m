@@ -2,7 +2,8 @@ function [tau, rho, cdfs, outcomes, szs, es, ess] = mcwf(n, w, o, faa, fab, chi,
 
 % Assumes we are starting with J = n/2
 
-[sp, sm, sz] = get_ops(n);
+%[sp, sm, sz] = get_ops(n);
+rng(1);
 
 gc = gamma*fab;
 gl = gamma*(faa - fab);
@@ -37,9 +38,10 @@ tau(1,1) = t0;
 % end
 
 szs = zeros(num_times,1);
-szs(1,1) = c'*sz(:,:,1)*c;
 
-[es, ess] = update_evs(c, sp, sm, sz, es, ess, 1);
+[es, ess] = update_evs(c, n/2, es, ess, 1);
+% [es, ess] = update_evs_orig(c, sp, sm, sz, es, ess, 1);
+szs(1,1) = es(3,1);
 
 J = zeros(num_trajectories,1);
 cs = zeros(n + 1, num_trajectories);
@@ -150,16 +152,18 @@ for ti = 2:num_times
 %             end
 %         end
         
+        %jidx = n/2 - Jt + 1;
         %szs(ti,1) = szs(ti,1) + trace(rho_traj*sz);
-        jidx = n/2 - Jt + 1;
-        szs(ti,1) = szs(ti,1) + cs(:,i)'*sz(:,:,jidx)*cs(:,i);
-        [es, ess] = update_evs(cs(:,i), sp(:,:,jidx), sm(:,:,jidx), sz(:,:,jidx), es, ess, ti);
+        %szs(ti,1) = szs(ti,1) + cs(:,i)'*sz(:,:,jidx)*cs(:,i);
+        [es, ess] = update_evs(cs(:,i), Jt, es, ess, ti);
+        %[es, ess] = update_evs_orig(cs(:,i), sp(:,:,jidx), sm(:,:,jidx), sz(:,:,jidx), es, ess, ti);
+        
         J(i,1) = Jt;
     end
     
     % Normalize the density
     %rho(:,:,ti) = rho(:,:,ti)/num_trajectories;
-    szs(ti,1) = real(szs(ti,1)/num_trajectories);
+    szs(ti,1) = real(es(3,ti)/num_trajectories);
     es(:,ti) = es(:,ti)/num_trajectories;
     ess(:,:,ti) = ess(:,:,ti)/num_trajectories;
 end
@@ -247,7 +251,48 @@ for ji = n/2:-1:0
 end
 end
 
-function [es, ess] = update_evs(c, sp, sm, sz, es, ess, i)
+function [es, ess] = update_evs(c, J, es, ess, ti)
+% Compute expected values given the current state c. This is O(N)
+
+n = size(c,1) - 1;
+mvec = (n/2:-1:-n/2)';
+avec = (J - mvec).*(J + mvec + 1);
+jidx = (n/2 - J) + 1;
+mvec(1:jidx-1,1) = 0;
+mvec(end-jidx+2:end,1) = 0;
+avec(1:jidx-1,1) = 0;
+avec(end-jidx+2:end,1) = 0;
+avec = avec(2:end,1);
+plusvec = sqrt(avec);
+plusplusvec = plusvec.*circshift(plusvec, 1);
+plusplusvec = plusplusvec(2:end,1);
+
+es(1,ti) = es(1,ti) + (0.5*(c(1:end-1,1)'*(plusvec.*c(2:end,1)) + c(2:end,1)'*(plusvec.*c(1:end-1,1))));
+es(2,ti) = es(2,ti) + (1i*0.5*(-c(1:end-1,1)'*(plusvec.*c(2:end,1)) + c(2:end,1)'*(plusvec.*c(1:end-1,1))));
+es(3,ti) = es(3,ti) + c'*(mvec.*c);
+
+epp = c(1:end-2,1)'*(plusplusvec.*c(3:end,1));
+emm = c(3:end,1)'*(plusplusvec.*c(1:end-2,1));
+epm = c(1:end-1,1)'*(avec.*c(1:end-1,1));
+emp = c(2:end,1)'*(avec.*c(2:end,1));
+epz = c(1:end-1,1)'*(plusvec.*mvec(2:end,1).*c(2:end,1));
+emz = c(2:end,1)'*(plusvec.*mvec(1:end-1,1).*c(1:end-1,1));
+
+ess(1,1,ti) = ess(1,1,ti) + 0.25*(epp + epm + emp + emm);
+ess(1,2,ti) = ess(1,2,ti) + 1i*0.25*(epm - epp + emm - emp);
+ess(1,3,ti) = ess(1,3,ti) + 0.5*(epz + emz);
+
+ess(2,1,ti) = ess(2,1,ti) + 1i*0.25*(emp - epp + emm - epm);
+ess(2,2,ti) = ess(2,2,ti) + -0.25*(epp - epm - emp + emm);
+ess(2,3,ti) = ess(2,3,ti) + 1i*0.5*(emz - epz);
+
+ess(3,1,ti) = ess(3,1,ti) + 0.5*(epz + emz)';
+ess(3,2,ti) = ess(3,2,ti) - 1i*0.5*(emz - epz)';
+ess(3,3,ti) = ess(3,3,ti) + c'*(mvec.*mvec.*c);
+
+end
+
+function [es, ess] = update_evs_orig(c, sp, sm, sz, es, ess, i)
 sx = 0.5*(sp + sm);
 sy = 1i*0.5*(sm - sp);
 
