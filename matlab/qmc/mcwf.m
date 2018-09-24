@@ -1,4 +1,38 @@
-function [tau, rho, cdfs, outcomes, szs, es, ess] = mcwf(n, w, o, faa, fab, chi, gamma, gel, c, t0, dt, t, num_trajectories)
+function [tau, cdfs, outcomes, es, ess] = mcwf(n, w, o, faa, fab, chi, gamma, gel, c, t0, dt, t, num_trajectories)
+
+%--------------------------------------------------------------------------
+% mcwf: Simulate a system of spin-1/2 particles using the Monte Carlo wave
+%       function method. Can simulate elastic interactions, collective
+%       decay, individual decay, and coherent pumping (TODO - incoherent
+%       pumping and dephasing). Returns information on distributions,
+%       outcomes, and expected values of collective spin operators
+%
+% INPUT: n - Number of particles
+%        w - Incoherent pumping rate (TODO)
+%        o - Coherent pumping rate
+%        faa - On-site collective decay rate is gamma*faa
+%        fab - Overall collective decay rate is gamma*fab, so that
+%              spontaneous emission rate gamma_s = gamma*(faa - fab)
+%        chi - Elastic interaction rate (multiplied by J^+J^- in the
+%              Hamiltonian)
+%        gamma - Multiplied by f terms to get collective decay rate (see
+%                above)
+%        gel - Dephasing rate is gamma*gel (TODO)
+%        c - Initial state in the J = N/2 Dicke manifold (N+1 x 1 vector)
+%        t0 - Initial time
+%        dt - Time spacing (usually .001 or .0001)
+%        t - Final time
+%        num_trajectories - Number of quantum trajectories to simulate
+%
+% OUTPUT: tau - Vector of times
+%         cdfs - cdfs(:,i,j) is the CDF at time i for trajectory j
+%         outcomes - outcomes(i,j) is the jump taken at time i by
+%                    trajectory j
+%         es - Expected values of collective spins. es(:,i) is the
+%         collective Bloch vector at time index i
+%         ess - Second order expected values. ess(i,j,k) is the expected
+%         value <J^i J^j> at time index k
+%--------------------------------------------------------------------------
 
 % Assumes we are starting with J = n/2
 
@@ -15,7 +49,6 @@ dur = t - t0;
 num_times = ceil(dur/dt) + 1;
 tau = zeros(num_times,1);
 %rho = zeros(dim, dim, num_times);
-rho = 0;
 cdfs = zeros(4,num_times-1,num_trajectories);
 outcomes = zeros(num_times-1,num_trajectories);
 es = zeros(3, num_times);
@@ -37,11 +70,8 @@ tau(1,1) = t0;
 %     end
 % end
 
-szs = zeros(num_times,1);
-
 [es, ess] = update_evs(c, n/2, es, ess, 1);
 % [es, ess] = update_evs_orig(c, sp, sm, sz, es, ess, 1);
-szs(1,1) = es(3,1);
 
 J = zeros(num_trajectories,1);
 cs = zeros(n + 1, num_trajectories);
@@ -58,8 +88,8 @@ for ti = 2:num_times
         disp(['t = ', num2str(tau(ti,1))]);
     end
     
-    % Iterate over the trajectories updating each one and computing the
-    % density matrix for this time point
+    % Iterate over the trajectories updating each one and updating the
+    % expected values for this time point
     for i = 1:num_trajectories
         % Update the trajectory
         Jt = J(i,1);
@@ -161,9 +191,8 @@ for ti = 2:num_times
         J(i,1) = Jt;
     end
     
-    % Normalize the density
+    % Normalize the expected values
     %rho(:,:,ti) = rho(:,:,ti)/num_trajectories;
-    szs(ti,1) = real(es(3,ti)/num_trajectories);
     es(:,ti) = es(:,ti)/num_trajectories;
     ess(:,:,ti) = ess(:,:,ti)/num_trajectories;
 end
