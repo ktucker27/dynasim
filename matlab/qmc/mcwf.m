@@ -1,6 +1,5 @@
 function [tau, cdfs, outcomes, es, ess] = mcwf(n, w, o, faa, fab, chi, gamma, gel, c, t0, dt, t, num_trajectories)
 
-%--------------------------------------------------------------------------
 % mcwf: Simulate a system of spin-1/2 particles using the Monte Carlo wave
 %       function method. Can simulate elastic interactions, collective
 %       decay, individual decay, and coherent pumping (TODO - incoherent
@@ -32,7 +31,6 @@ function [tau, cdfs, outcomes, es, ess] = mcwf(n, w, o, faa, fab, chi, gamma, ge
 %         collective Bloch vector at time index i
 %         ess - Second order expected values. ess(i,j,k) is the expected
 %         value <J^i J^j> at time index k
-%--------------------------------------------------------------------------
 
 % Assumes we are starting with J = n/2
 
