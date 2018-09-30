@@ -134,10 +134,27 @@ public class SystemParams implements Comparable<SystemParams> {
     }
     
     public String getFilename() {
-        String filename = String.format("N%d_D%.1f_g%.1f_w%.2f_f%.1f", n, delta, gab, w, fab).replace('.', 'p');
+        String pumpStr = String.format("o%.2f", omega).replace('.','p');;
+//        if(omega != 0.0) {
+//            pumpStr = String.format("o%.2f", omega).replace('.','p');
+//        } else {
+//            pumpStr = String.format("w%.2f", w).replace('.','p');            
+//        }
+        
+        String filename = String.format("N%d_D%.1f_g%.1f_%s_f%.1f", n, delta, gab, pumpStr, fab).replace('.', 'p');
+        
         if(gel != 0) {
-            filename += String.format("_gel%.2f", gel).replace('.','p');
+            filename += String.format("_gel%.3f", gel).replace('.','p');
         }
+        
+        if(faa != fab) {
+            filename += String.format("_faa%.2f", faa).replace('.','p');
+        }
+        
+        if(gaa != 0) {
+            filename += String.format("_gaa%.2f", gaa).replace('.','p');
+        }
+        
         filename += ".txt";
         return filename;
     }
