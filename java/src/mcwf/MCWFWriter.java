@@ -17,6 +17,9 @@ public class MCWFWriter {
         int numTimes = agg.getNumTimes();
         double numTraj = agg.getNumTrajectories();
         
+        // Print the header
+        myWriter.print(agg.getNumTrajectories() + "\n");
+        
         for(int timeIdx = 0; timeIdx < numTimes; ++timeIdx) {
             ExpectedSpinValues evs = agg.getEvs(timeIdx);
             

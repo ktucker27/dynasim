@@ -159,6 +159,23 @@ public class SystemParams implements Comparable<SystemParams> {
         return filename;
     }
     
+    public String getMcwfFilename() {
+        String pumpStr = String.format("o%.2f", omega).replace('.','p');;
+        
+        String filename = String.format("N%d_chi%.1f_%s_f%.1f", n, 2*gab, pumpStr, fab).replace('.', 'p');
+        
+        if(gel != 0) {
+            filename += String.format("_gel%.3f", gel).replace('.','p');
+        }
+        
+        if(faa != fab) {
+            filename += String.format("_gs%.2f", gamma*(faa - fab)).replace('.','p');
+        }
+        
+        filename += ".txt";
+        return filename;
+    }
+    
     public String toString() {
         String out = "N = " + n + "\n";
         out += "W = " + w + "\n";

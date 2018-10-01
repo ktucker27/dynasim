@@ -128,7 +128,8 @@ public class MCWF {
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
         
         // Write results
-        MCWFWriter writer = new MCWFWriter(outdir + "/mcwf_test.csv");
+        String outfile = outdir + "/mcwf" + String.format("_traj1-%d_", numTrajectories) + params.getMcwfFilename();
+        MCWFWriter writer = new MCWFWriter(outfile);
         writer.write(integrator.getAggregator());
     }
 
