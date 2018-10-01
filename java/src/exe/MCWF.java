@@ -1,7 +1,17 @@
 package exe;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.util.Iterator;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import mcwf.MCWFIntegrator;
 import mcwf.MCWFWriter;
@@ -10,23 +20,84 @@ import utils.DynaComplex;
 
 public class MCWF {
 
-    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        // Set simulation parameters
-        int numTrajectories = 500;
-        int numThreads = 4;
+    private static void printUsage(Options options) {
+        System.out.println("java -jar MCWF.jar outdir [options]\n");
+
+        System.out.println("Options (all are required unless otherwise noted):");
         
-        int n = 20;
-        double gaa = 2.0;
-        double gab = 2.0;
-        double o = 10.0;
+        Iterator<Option> iter = options.getOptions().iterator();
+        while(iter.hasNext()) {
+            Option opt = iter.next();
+            System.out.printf("%5s: %s\n", opt.getOpt(), opt.getDescription());
+        }
+    }
+    
+    private static Options setupOptions() {
+        Options options = new Options();
+        options.addRequiredOption("n", "n", true, "Number of particles");
+        options.addRequiredOption("o", "o", true, "Coherent pumping");
+        options.addRequiredOption("f", "f", true, "Inelastic interaction term");
+        options.addRequiredOption("faa", "faa", true, "Onsite inelastic interaction term (ind. decay term is (faa - f))");
+        options.addRequiredOption("chi", "chi", true, "Elastic interaction term");
+        options.addRequiredOption("gel", "gel", true, "Single particle dephasing term");
+        options.addRequiredOption("dt", "dt", true, "Time spacing");
+        options.addRequiredOption("tmax", "tmax", true, "Maximum simulation time");
+        options.addRequiredOption("nt", "nt", true, "Number of threads to use for integration");
+        options.addRequiredOption("traj", "traj", true, "Number of trajectories");
+        
+        return options;
+    }
+    
+    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException, ParseException {
+        // Parse command line options
+        Options options = setupOptions();
+
+        if(args.length == 0) {
+            printUsage(options);
+            return;
+        }
+        
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd;
+        try {
+            cmd = parser.parse(options, args);
+        } catch(MissingOptionException ex) {
+            System.out.println("Please specify the following command line options:");
+            Iterator<?> iter = ex.getMissingOptions().iterator();
+            while(iter.hasNext()) {
+                System.out.println(iter.next());
+            }
+            return;
+        }
+        
+        // Get the output directory
+        String outdir = "";
+        if(cmd.getArgList().size() > 0) {
+            outdir = cmd.getArgList().get(0);
+        } else {
+            System.err.println("Must provide an output directory as an argument");
+            return;
+        }
+        
+        File fdir = new File(outdir);
+        fdir.mkdirs();
+        
+        // Set simulation parameters
+        int numTrajectories = Integer.parseInt(cmd.getOptionValue("traj"));
+        int numThreads = Integer.parseInt(cmd.getOptionValue("nt"));
+        
+        int n = Integer.parseInt(cmd.getOptionValue("n"));
+        double gaa = 2.0*Double.parseDouble(cmd.getOptionValue("chi"));
+        double gab = gaa;
+        double o = Double.parseDouble(cmd.getOptionValue("o"));
         double w = 0.0;
-        double faa = 2.0;
-        double fab = 1.0;
-        double gel = 0.0;
+        double faa = Double.parseDouble(cmd.getOptionValue("faa"));
+        double fab = Double.parseDouble(cmd.getOptionValue("f"));
+        double gel = Double.parseDouble(cmd.getOptionValue("gel"));
         double gamma = 1.0;
         
-        double dt = 1.0e-4;
-        double tf = 1.0;
+        double dt = Double.parseDouble(cmd.getOptionValue("dt"));
+        double tf = Double.parseDouble(cmd.getOptionValue("tmax"));
         int numTimes = (int)Math.ceil(tf/dt + 1);
         
         long timeout = 7*24*3600; // One week
@@ -57,7 +128,7 @@ public class MCWF {
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
         
         // Write results
-        MCWFWriter writer = new MCWFWriter("/Users/tuckerkj/output/mcwf_test.csv");
+        MCWFWriter writer = new MCWFWriter(outdir + "/mcwf_test.csv");
         writer.write(integrator.getAggregator());
     }
 
