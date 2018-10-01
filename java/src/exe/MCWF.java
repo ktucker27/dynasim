@@ -12,16 +12,16 @@ public class MCWF {
 
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         // Set simulation parameters
-        int numTrajectories = 1;
-        int numThreads = 1;
+        int numTrajectories = 500;
+        int numThreads = 4;
         
-        int n = 4;
+        int n = 20;
         double gaa = 2.0;
         double gab = 2.0;
         double o = 10.0;
         double w = 0.0;
-        double faa = 0.0;
-        double fab = 0.0;
+        double faa = 2.0;
+        double fab = 1.0;
         double gel = 0.0;
         double gamma = 1.0;
         
@@ -53,12 +53,12 @@ public class MCWF {
         integrator.start();
         integrator.waitForFinished(timeout);
 
+        long endTime = System.nanoTime();
+        System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
+        
         // Write results
         MCWFWriter writer = new MCWFWriter("/Users/tuckerkj/output/mcwf_test.csv");
         writer.write(integrator.getAggregator());
-        
-        long endTime = System.nanoTime();
-        System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
     }
 
 }

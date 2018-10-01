@@ -61,7 +61,7 @@ public class QuantumTrajectory implements Runnable {
             myEvs[i] = new ExpectedSpinValues();
         }
         
-        myRng = new Random(1);
+        myRng = new Random();
         
         t1 = new DynaComplex(0);
         t2 = new DynaComplex(0);
@@ -103,7 +103,7 @@ public class QuantumTrajectory implements Runnable {
             switch(outcome) {
             case 0:
                 // Collective decay
-                for(int m = myJ; m >= -myJ; --m) {
+                for(int m = myJ; m >= -myJ + 1; --m) {
                     midx = myN/2 - m;
                     ajmm = getAjmm(myJ, m);
                     myNewState[midx + 1].set(myState[midx]).multiply(ajmm*Math.sqrt(myTimeDelta*gc));
@@ -318,7 +318,7 @@ public class QuantumTrajectory implements Runnable {
             return 0.0;
         }
         
-        return Math.sqrt((2+n)/(4*j*(j+1)))*ajmm;
+        return Math.sqrt((2+n)/(double)(4*j*(j+1)))*ajmm;
     }
     
     private double getPjmm(int n, int j, int m) {
@@ -326,11 +326,11 @@ public class QuantumTrajectory implements Runnable {
             return 0.0;
         }
         
-        return -Math.sqrt((n + 2*j + 2)*(j + m)*(j + m - 1)/(4*j*(2*j + 1)));
+        return -Math.sqrt((n + 2*j + 2)*(j + m)*(j + m - 1)/(double)(4*j*(2*j + 1)));
     }
     
     private double getPjmp(int n, int j, int m) {
-        return Math.sqrt((n - 2*j)*(j - m + 1)*(j - m + 2)/(4*(j + 1)*(2*j + 1)));
+        return Math.sqrt((n - 2*j)*(j - m + 1)*(j - m + 2)/(double)(4*(j + 1)*(2*j + 1)));
     }
     
 //    private static double factorial(int n) {
