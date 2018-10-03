@@ -1,5 +1,19 @@
 function [t, es, ess, num_traj] = proc_mcwf_output(rootdir)
 
+% proc_mcwf_output: Aggregates and organizes results coming out of
+%                   the MCWF Java executable
+%
+% INPUT: rootdir - Can be a directory of files to aggregate, or a
+%                  single file to process
+%
+% OUTPUT: t - Vector of times
+%         es - Expected values of collective spins. es(:,i) is the
+%              collective Bloch vector at time index i
+%         ess - Second order expected values. ess(i,j,k) is the expected
+%               value <J^i J^j> at time index k
+%         num_traj - Total number of trajectories found in the aggregated
+%                    files
+
 if ~isfolder(rootdir)
     b = split(rootdir, '/');
     files.name = b{size(b,1),1};
