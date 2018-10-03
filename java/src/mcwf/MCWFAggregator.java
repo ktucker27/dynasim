@@ -47,8 +47,8 @@ public class MCWFAggregator {
             ++myNumTrajectories;
             
             QuantumTrajectory traj = trajectories[idx];
-            if(myNumTimes != traj.getNumTimes() ||
-               myTimeDelta != traj.getTimeDelta()) {
+            if(myNumTimes != traj.getNumEvTimes() ||
+               myTimeDelta != traj.getEvTimeDelta()) {
                 throw new UnsupportedOperationException("Trajectory does not align with time grid");
             }
             

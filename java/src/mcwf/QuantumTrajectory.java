@@ -9,6 +9,7 @@ import utils.ExpectedSpinValues;
 public class QuantumTrajectory implements Runnable {
     // Simulation parameters
     private int myNumTimes;
+    private int myNumEvSteps; // Number of time steps between expected value calculations
     private double myTimeDelta;
     private SystemParams myParams;
     private int myN;
@@ -32,8 +33,9 @@ public class QuantumTrajectory implements Runnable {
     // Constant parameters
     private final int NUM_OUTCOMES = 5;
     
-    public QuantumTrajectory(int numTimes, double timeDelta, SystemParams params, DynaComplex[] initialState) {
+    public QuantumTrajectory(int numTimes, int numEvSteps, double timeDelta, SystemParams params, DynaComplex[] initialState) {
         myNumTimes = numTimes;
+        myNumEvSteps = numEvSteps;
         myTimeDelta = timeDelta;
         myParams = new SystemParams(params);
         myN = params.getN();
@@ -56,8 +58,8 @@ public class QuantumTrajectory implements Runnable {
         //        Dicke manifold
         setJ(params.getN()/2);
         
-        myEvs = new ExpectedSpinValues[numTimes];
-        for(int i = 0; i < numTimes; ++i) {
+        myEvs = new ExpectedSpinValues[(numTimes-1)/numEvSteps + 1];
+        for(int i = 0; i < (numTimes-1)/numEvSteps + 1; ++i) {
             myEvs[i] = new ExpectedSpinValues();
         }
         
@@ -67,12 +69,12 @@ public class QuantumTrajectory implements Runnable {
         t2 = new DynaComplex(0);
     }
     
-    public int getNumTimes() {
-        return myNumTimes;
+    public int getNumEvTimes() {
+        return myEvs.length;
     }
     
-    public double getTimeDelta() {
-        return myTimeDelta;
+    public double getEvTimeDelta() {
+        return myTimeDelta*myNumEvSteps;
     }
     
     public ExpectedSpinValues getEvs(int idx) {
@@ -186,7 +188,9 @@ public class QuantumTrajectory implements Runnable {
             }
             
             // Calculate the expected values
-            calcEvs(myEvs[timeIdx]);
+            if(timeIdx % myNumEvSteps == 0) {
+                calcEvs(myEvs[timeIdx/myNumEvSteps]);
+            }
         }
     }
 

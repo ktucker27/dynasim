@@ -24,7 +24,7 @@ public class MCWFIntegrator {
     private QuantumTrajectory[] myTrajectories;
     private MCWFAggregator myAgg;
     
-    public MCWFIntegrator(int numTrajectories, int numTimes, double timeDelta, SystemParams params, DynaComplex[] initialState, int numThreads) {
+    public MCWFIntegrator(int numTrajectories, int numTimes, double timeDelta, double evDelta, SystemParams params, DynaComplex[] initialState, int numThreads) {
         // Parameter validation
         if(params.getN() % 2 != 0) {
             throw new UnsupportedOperationException("MCWFIntegrator requires an even number of particles");
@@ -36,6 +36,11 @@ public class MCWFIntegrator {
         
         if(initialState.length != params.getN() + 1) {
             throw new UnsupportedOperationException("Initial state has length " + initialState.length + ". Size " + (params.getN() + 1) + " expected");
+        }
+        
+        int numEvSteps = (int)(evDelta/timeDelta);
+        if(evDelta < timeDelta || Math.abs((evDelta/timeDelta) - numEvSteps) > 1.0e-10) {
+            throw new UnsupportedOperationException("Expected value time delta must be an integer multiple of the time step");
         }
 
         myNumTrajectories = numTrajectories;
@@ -49,10 +54,10 @@ public class MCWFIntegrator {
         myTrajectories = new QuantumTrajectory[numTrajectories];
         
         for(int i = 0; i < numTrajectories; ++i) {
-            myTrajectories[i] = new QuantumTrajectory(numTimes, timeDelta, params, initialState);
+            myTrajectories[i] = new QuantumTrajectory(numTimes, numEvSteps, timeDelta, params, initialState);
         }
         
-        myAgg = new MCWFAggregator(numTimes, timeDelta);
+        myAgg = new MCWFAggregator((numTimes-1)/numEvSteps + 1, evDelta);
     }
     
     public MCWFAggregator getAggregator() {

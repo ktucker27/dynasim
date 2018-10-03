@@ -45,6 +45,7 @@ public class MCWF {
         options.addRequiredOption("tmax", "tmax", true, "Maximum simulation time");
         options.addRequiredOption("nt", "nt", true, "Number of threads to use for integration");
         options.addRequiredOption("traj", "traj", true, "Number of trajectories");
+        options.addOption("evt", true, "Time between expected value evaluations (optional, defaults to dt)");
         
         return options;
     }
@@ -102,6 +103,11 @@ public class MCWF {
         double tf = Double.parseDouble(cmd.getOptionValue("tmax"));
         int numTimes = (int)Math.ceil(tf/dt + 1);
         
+        double evDelta = dt;
+        if(cmd.hasOption("evt")) {
+            evDelta = Double.parseDouble(cmd.getOptionValue("evt"));
+        }
+        
         long timeout = 7*24*3600; // One week
         
         double[] d = new double[n];
@@ -119,7 +125,7 @@ public class MCWF {
         initialState[n].set(1,0);
         
         // Create the integrator
-        MCWFIntegrator integrator = new MCWFIntegrator(numTrajectories, numTimes, dt, params, initialState, numThreads);
+        MCWFIntegrator integrator = new MCWFIntegrator(numTrajectories, numTimes, dt, evDelta, params, initialState, numThreads);
         
         // Integrate
         long startTime = System.nanoTime();

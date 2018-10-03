@@ -162,7 +162,7 @@ public class SystemParams implements Comparable<SystemParams> {
     public String getMcwfFilename() {
         String pumpStr = String.format("o%.2f", omega).replace('.','p');;
         
-        String filename = String.format("N%d_chi%.1f_%s_f%.1f", n, 2*gab, pumpStr, fab).replace('.', 'p');
+        String filename = String.format("N%d_chi%.1f_%s_f%.1f", n, gab/2, pumpStr, fab).replace('.', 'p');
         
         if(gel != 0) {
             filename += String.format("_gel%.3f", gel).replace('.','p');
