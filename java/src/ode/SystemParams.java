@@ -172,7 +172,6 @@ public class SystemParams implements Comparable<SystemParams> {
             filename += String.format("_gs%.2f", gamma*(faa - fab)).replace('.','p');
         }
         
-        filename += ".txt";
         return filename;
     }
     

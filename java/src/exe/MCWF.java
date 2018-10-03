@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -39,7 +40,7 @@ public class MCWF {
         options.addRequiredOption("f", "f", true, "Inelastic interaction term");
         options.addRequiredOption("faa", "faa", true, "Onsite inelastic interaction term (ind. decay term is (faa - f))");
         options.addRequiredOption("chi", "chi", true, "Elastic interaction term");
-        options.addRequiredOption("gel", "gel", true, "Single particle dephasing term");
+        //options.addRequiredOption("gel", "gel", true, "Single particle dephasing term");
         options.addRequiredOption("dt", "dt", true, "Time spacing");
         options.addRequiredOption("tmax", "tmax", true, "Maximum simulation time");
         options.addRequiredOption("nt", "nt", true, "Number of threads to use for integration");
@@ -93,7 +94,8 @@ public class MCWF {
         double w = 0.0;
         double faa = Double.parseDouble(cmd.getOptionValue("faa"));
         double fab = Double.parseDouble(cmd.getOptionValue("f"));
-        double gel = Double.parseDouble(cmd.getOptionValue("gel"));
+        //double gel = Double.parseDouble(cmd.getOptionValue("gel"));
+        double gel = 0.0;
         double gamma = 1.0;
         
         double dt = Double.parseDouble(cmd.getOptionValue("dt"));
@@ -128,7 +130,7 @@ public class MCWF {
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
         
         // Write results
-        String outfile = outdir + "/mcwf" + String.format("_traj1-%d_", numTrajectories) + params.getMcwfFilename();
+        String outfile = outdir + "/mcwf" + String.format("_traj1-%d_", numTrajectories) + params.getMcwfFilename() + "_" + UUID.randomUUID().toString() + ".txt";
         MCWFWriter writer = new MCWFWriter(outfile);
         writer.write(integrator.getAggregator());
     }

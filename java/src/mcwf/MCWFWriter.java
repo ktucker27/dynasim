@@ -15,7 +15,6 @@ public class MCWFWriter {
     
     public void write(MCWFAggregator agg) {
         int numTimes = agg.getNumTimes();
-        double numTraj = agg.getNumTrajectories();
         
         // Print the header
         myWriter.print(agg.getNumTrajectories() + "\n");
@@ -26,13 +25,13 @@ public class MCWFWriter {
             myWriter.print(agg.getTime(timeIdx));
             
             for(int i = 0; i < 3; ++i) {
-                myWriter.print(", " + evs.getEs(i)/numTraj);
+                myWriter.print(", " + evs.getEs(i));
             }
             
             for(int i = 0; i < 3; ++i) {
                 for(int j = 0; j < 3; ++j) {
-                    myWriter.print(", " + evs.getEss(i, j).getReal()/numTraj);
-                    myWriter.print(", " + evs.getEss(i, j).getImaginary()/numTraj);
+                    myWriter.print(", " + evs.getEss(i, j).getReal());
+                    myWriter.print(", " + evs.getEss(i, j).getImaginary());
                 }
             }
             myWriter.print("\n");
