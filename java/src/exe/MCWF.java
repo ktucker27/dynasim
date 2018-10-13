@@ -14,7 +14,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import mcwf.MCWFIntegrator;
+import mcwf.MCWFThreadPoolIntegrator;
 import mcwf.MCWFWriter;
 import ode.SystemParams;
 import utils.DynaComplex;
@@ -125,7 +125,7 @@ public class MCWF {
         initialState[n].set(1,0);
         
         // Create the integrator
-        MCWFIntegrator integrator = new MCWFIntegrator(numTrajectories, numTimes, dt, evDelta, params, initialState, numThreads);
+        MCWFThreadPoolIntegrator integrator = new MCWFThreadPoolIntegrator(numTrajectories, numTimes, dt, evDelta, params, initialState, numThreads);
         
         // Integrate
         long startTime = System.nanoTime();

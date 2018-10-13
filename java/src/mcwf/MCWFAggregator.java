@@ -15,6 +15,8 @@ public class MCWFAggregator {
     // Output data indexed by time
     private ExpectedSpinValues[] myEvs;
     
+    private final double TIME_TOL = 1e-10;
+    
     public MCWFAggregator(int numTimes, double timeDelta) {
         myNumTrajectories = 0;
         myNumTimes = numTimes;
@@ -49,10 +51,13 @@ public class MCWFAggregator {
             QuantumTrajectory traj = trajectories[idx];
             if(myNumTimes != traj.getNumEvTimes() ||
                myTimeDelta != traj.getEvTimeDelta()) {
-                throw new UnsupportedOperationException("Trajectory does not align with time grid");
+                throw new UnsupportedOperationException("MCWFAggregator: Trajectory does not align with time grid");
             }
             
             for(int timeIdx = 0; timeIdx < myNumTimes; ++timeIdx) {
+                if(Math.abs(traj.getEvs(timeIdx).getTime() - timeIdx*myTimeDelta) > TIME_TOL) {
+                    throw new UnsupportedOperationException("MCWFAggregator: Expected value time " + traj.getEvs(timeIdx).getTime() + " does not match expected time " + timeIdx*myTimeDelta);
+                }
                 myEvs[timeIdx].addEq(traj.getEvs(timeIdx));
             }
         }

@@ -1,6 +1,7 @@
 package utils;
 
 public class ExpectedSpinValues {
+    private double myTime;
     private double[] myEs;
     private DynaComplex[][] myEss;
     
@@ -8,6 +9,8 @@ public class ExpectedSpinValues {
      * Initializes all expected values to zero
      */
     public ExpectedSpinValues() {
+        myTime = 0.0;
+        
         myEs = new double[3];
         
         myEss = new DynaComplex[3][3];
@@ -17,6 +20,14 @@ public class ExpectedSpinValues {
                 myEss[i][j] = new DynaComplex(0,0);
             }
         }
+    }
+    
+    public void setTime(double time) {
+        myTime = time;
+    }
+    
+    public double getTime() {
+        return myTime;
     }
 
     public void setEs(int i, double val) {

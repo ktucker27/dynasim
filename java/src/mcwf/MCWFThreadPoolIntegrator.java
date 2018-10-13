@@ -13,18 +13,16 @@ import utils.DynaComplex;
  * integrator that simulates quantum trajectories in parallel and
  * organizes output
  */
-public class MCWFIntegrator {
+public class MCWFThreadPoolIntegrator {
 
     private int myNumTrajectories;
-    private int myNumFinished;
-    private double myTimeDelta;
-    private int myNumTimes;
-    private SystemParams myParams;
+    //private int myNumFinished;
     private ExecutorService myThreadPool;
     private QuantumTrajectory[] myTrajectories;
+    private Runnable[] myIntegrators;
     private MCWFAggregator myAgg;
     
-    public MCWFIntegrator(int numTrajectories, int numTimes, double timeDelta, double evDelta, SystemParams params, DynaComplex[] initialState, int numThreads) {
+    public MCWFThreadPoolIntegrator(int numTrajectories, int numTimes, double timeDelta, double evDelta, SystemParams params, DynaComplex[] initialState, int numThreads) {
         // Parameter validation
         if(params.getN() % 2 != 0) {
             throw new UnsupportedOperationException("MCWFIntegrator requires an even number of particles");
@@ -44,17 +42,17 @@ public class MCWFIntegrator {
         }
 
         myNumTrajectories = numTrajectories;
-        myNumFinished = 0;
-        myNumTimes = numTimes;
-        myTimeDelta = timeDelta;
-        myParams = new SystemParams(params);
+        //myNumFinished = 0;
         
         myThreadPool = Executors.newFixedThreadPool(numThreads);
         
         myTrajectories = new QuantumTrajectory[numTrajectories];
+        myIntegrators = new Runnable[numTrajectories];
         
         for(int i = 0; i < numTrajectories; ++i) {
             myTrajectories[i] = new QuantumTrajectory(numTimes, numEvSteps, timeDelta, params, initialState);
+            //myIntegrators[i] = new MCWFFirstOrderIntegrator(myTrajectories[i]);
+            myIntegrators[i] = new MCWFDelayTimeIntegrator(myTrajectories[i]);
         }
         
         myAgg = new MCWFAggregator((numTimes-1)/numEvSteps + 1, evDelta);
@@ -70,7 +68,7 @@ public class MCWFIntegrator {
      */
     public void start() {
         for(int trajIdx = 0; trajIdx < myNumTrajectories; ++trajIdx) {
-            myThreadPool.execute(myTrajectories[trajIdx]);
+            myThreadPool.execute(myIntegrators[trajIdx]);
         }
     }
     
