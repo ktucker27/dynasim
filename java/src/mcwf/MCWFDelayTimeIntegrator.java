@@ -10,14 +10,14 @@ public class MCWFDelayTimeIntegrator implements Runnable {
     private QuantumTrajectory myTrajectory;
     private AbstractIntegrator myIntegrator;
     
-    private final double TIME_TOL = 1e-10;
+    private final double TIME_TOL = 1.0e-10;
     
     public MCWFDelayTimeIntegrator(QuantumTrajectory trajectory) {
         myTrajectory = trajectory;
-        //myIntegrator = new AdamsMoultonIntegrator(2, h*1.0e-6, h, 1.0e-3, 1.0e-6);
+        //myIntegrator = new AdamsMoultonIntegrator(2, trajectory.getTimeDelta()*1.0e-6, trajectory.getTimeDelta(), 1.0e-3, 1.0e-5);
         myIntegrator = new ClassicalRungeKuttaIntegrator(trajectory.getTimeDelta());
-        myIntegrator.addEventHandler(trajectory.getNoJumpEventHandler(), myTrajectory.getEvTimeDelta()/10, 1.0e-12, 1000);
-        myIntegrator.addEventHandler(trajectory.getNoJumpStopHandler(), myTrajectory.getTimeDelta()/100, 1.0e-12, 1000);
+        myIntegrator.addEventHandler(trajectory.getNoJumpEventHandler(), myTrajectory.getEvTimeDelta()/2, 1.0e-12, 1000);
+        myIntegrator.addEventHandler(trajectory.getNoJumpStopHandler(), myTrajectory.getTimeDelta()/2, 1.0e-12, 1000);
     }
     
     @Override
@@ -40,10 +40,12 @@ public class MCWFDelayTimeIntegrator implements Runnable {
             time = myTrajectory.getTime();
             
             // If we're not done, then it's time for a jump
-            if(Math.abs(time - (finalTime - myTrajectory.getEvTimeDelta())) < TIME_TOL) {
+            if(Math.abs(time - finalTime) <= myTrajectory.getEvTimeDelta() + TIME_TOL) {
                 // We've reached the end of the integration, so calculate the final time
                 myTrajectory.normalize();
-                myTrajectory.calcEvs(finalTime);
+                if(time < finalTime - TIME_TOL) {
+                    myTrajectory.calcEvs(finalTime);
+                }
                 time = finalTime;
             } else if(time < finalTime) {
                 myTrajectory.getCdf(cdf);
@@ -68,7 +70,6 @@ public class MCWFDelayTimeIntegrator implements Runnable {
                 }
                 
                 myTrajectory.performJump(outcome);
-                time = myTrajectory.getTime();
             }
         }
     }

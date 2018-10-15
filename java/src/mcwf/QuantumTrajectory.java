@@ -65,9 +65,9 @@ public class QuantumTrajectory {
         
         @Override
         public EventHandler.Action eventOccurred(double t, double[] y, boolean increasing) {
-            if(Math.abs(t - myT0) < TIME_TOL) {
-                return EventHandler.Action.CONTINUE;
-            }
+//            if(Math.abs(t - myT0) < TIME_TOL) {
+//                return EventHandler.Action.CONTINUE;
+//            }
             
             // Set and normalize the state
             DynaComplexODEAdapter.toComplex(y, myState);
@@ -78,7 +78,7 @@ public class QuantumTrajectory {
             
             double newStateNorm = Math.sqrt(newStateNormSq);
             for(int i = 0; i < myState.length; ++i) {
-                myState[i].set(myState[i]).multiply(1.0/newStateNorm);
+                myState[i].multiply(1.0/newStateNorm);
             }
             
             // Update the time
@@ -119,6 +119,8 @@ public class QuantumTrajectory {
             DynaComplexODEAdapter.toComplex(y, myState);
             
             normalize();
+            
+            myTime = t;
             
             myEps = myRng.nextDouble();
             
@@ -339,9 +341,6 @@ public class QuantumTrajectory {
         for(int i = 0; i < myState.length; ++i) {
             myState[i].set(myNewState[i]).multiply(1.0/newStateNorm);
         }
-        
-        // Update the time
-        myTime += myTimeDelta;
     }
     
     public void getCdf(double[] cdf) {
@@ -394,7 +393,7 @@ public class QuantumTrajectory {
      */
     public void calcEvs(double time) {
         if(Math.abs(time - myEvIdx*getEvTimeDelta()) > TIME_TOL) {
-            throw new UnsupportedOperationException("Time discrepancy detected in QuantumTrajectory - time: " + time + " expected: " + (myEvIdx*getEvTimeDelta()));
+            throw new UnsupportedOperationException("Time discrepancy detected in QuantumTrajectory - time: " + time + " expected: " + (myEvIdx*getEvTimeDelta()) + " traj time: " + myTime);
         }
         
         ExpectedSpinValues evs = myEvs[myEvIdx++];
