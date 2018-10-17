@@ -2,7 +2,10 @@ package mcwf;
 
 import java.util.Random;
 
+import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.events.EventHandler;
+import org.apache.commons.math3.ode.sampling.StepHandler;
+import org.apache.commons.math3.ode.sampling.StepInterpolator;
 
 import ode.DynaComplexODEAdapter;
 import ode.DynaComplexODEs;
@@ -44,30 +47,62 @@ public class QuantumTrajectory {
     // Tolerance used to double check times
     private final double TIME_TOL = 1.0e-10;
     
+    private class NoJumpStepHandler implements StepHandler {
+        private double myFinalTime;
+        
+        @Override
+        public void init(double t0, double[] y, double tf) {
+            myFinalTime = tf;
+        }
+
+        @Override
+        public void handleStep(StepInterpolator interpolator, boolean isLast) throws MaxCountExceededException {
+            // On the last step, set the state
+            if(isLast) {
+                double[] y = interpolator.getInterpolatedState();
+                double t = interpolator.getInterpolatedTime();
+                
+                // Set and normalize the state
+                DynaComplexODEAdapter.toComplex(y, myState);
+
+                normalize();
+
+                myTime = t;
+                
+                // If we're at the final time and still awaiting an expected value
+                // calculation, do it now
+                if(Math.abs(t - myFinalTime) < TIME_TOL && myEvIdx == myEvs.length - 1) {
+                    calcEvs(t);
+                }
+            }
+        }
+
+    }
+    
     private class NoJumpEventHandler implements EventHandler {
         private double myTimeDelta;
-        private double myT0;
         
         public NoJumpEventHandler(double timeDelta) {
             myTimeDelta = timeDelta;
-            myT0 = 0;
         }
         
         @Override
         public void init(double t0, double[] y0, double t) {
-            myT0 = t0;
-            DynaComplexODEAdapter.toComplex(y0, myState);
-            myTime = t0;
-            if(Math.abs(g(t0, null)) < TIME_TOL) {
+            // Check to see if we need to compute expected values at the start
+            if(Math.abs(g(t0, null)) < TIME_TOL && 
+               (myEvIdx == 0 || (myEvIdx > 0 && Math.abs(t0 - myEvs[myEvIdx-1].getTime()) > TIME_TOL))) {
+                DynaComplexODEAdapter.toComplex(y0, myState);
+                myTime = t0;
                 calcEvs(t0);
             }
         }
         
         @Override
         public EventHandler.Action eventOccurred(double t, double[] y, boolean increasing) {
-//            if(Math.abs(t - myT0) < TIME_TOL) {
-//                return EventHandler.Action.CONTINUE;
-//            }
+            // If we are getting a redundant event at an already processed time point, continue
+            if(myEvIdx > 0 && Math.abs(t - myEvs[myEvIdx-1].getTime()) < TIME_TOL) {
+                return EventHandler.Action.CONTINUE;
+            }
             
             // Set and normalize the state
             DynaComplexODEAdapter.toComplex(y, myState);
@@ -115,13 +150,6 @@ public class QuantumTrajectory {
         
         @Override
         public EventHandler.Action eventOccurred(double t, double[] y, boolean increasing) {
-            // Set and normalize the state
-            DynaComplexODEAdapter.toComplex(y, myState);
-            
-            normalize();
-            
-            myTime = t;
-            
             myEps = myRng.nextDouble();
             
             // Stop
@@ -237,6 +265,10 @@ public class QuantumTrajectory {
     
     public DynaComplexODEs getNoJumpODEs() {
         return myNoJumpODEs;
+    }
+    
+    public StepHandler getNoJumpStepHandler() {
+        return new NoJumpStepHandler();
     }
     
     public EventHandler getNoJumpEventHandler() {

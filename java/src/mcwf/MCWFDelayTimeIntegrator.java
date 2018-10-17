@@ -16,6 +16,7 @@ public class MCWFDelayTimeIntegrator implements Runnable {
         myTrajectory = trajectory;
         //myIntegrator = new AdamsMoultonIntegrator(2, trajectory.getTimeDelta()*1.0e-6, trajectory.getTimeDelta(), 1.0e-3, 1.0e-5);
         myIntegrator = new ClassicalRungeKuttaIntegrator(trajectory.getTimeDelta());
+        myIntegrator.addStepHandler(trajectory.getNoJumpStepHandler());
         myIntegrator.addEventHandler(trajectory.getNoJumpEventHandler(), myTrajectory.getEvTimeDelta()/2, 1.0e-12, 1000);
         myIntegrator.addEventHandler(trajectory.getNoJumpStopHandler(), myTrajectory.getTimeDelta()/2, 1.0e-12, 1000);
     }
@@ -40,12 +41,7 @@ public class MCWFDelayTimeIntegrator implements Runnable {
             time = myTrajectory.getTime();
             
             // If we're not done, then it's time for a jump
-            if(Math.abs(time - finalTime) <= myTrajectory.getEvTimeDelta() + TIME_TOL) {
-                // We've reached the end of the integration, so calculate the final time
-                myTrajectory.normalize();
-                if(time < finalTime - TIME_TOL) {
-                    myTrajectory.calcEvs(finalTime);
-                }
+            if(Math.abs(time - finalTime) < TIME_TOL) {
                 time = finalTime;
             } else if(time < finalTime) {
                 myTrajectory.getCdf(cdf);
@@ -57,7 +53,6 @@ public class MCWFDelayTimeIntegrator implements Runnable {
                 }
                 
                 int outcome = myTrajectory.rollDice(cdf);
-                //System.out.println(time + "," + outcome);
                 
                 // We should never see a no jump outcome
                 if(outcome == myTrajectory.getNumOutcomes() - 1) {
