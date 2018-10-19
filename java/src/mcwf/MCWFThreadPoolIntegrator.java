@@ -22,7 +22,7 @@ public class MCWFThreadPoolIntegrator {
     private Runnable[] myIntegrators;
     private MCWFAggregator myAgg;
     
-    public MCWFThreadPoolIntegrator(int numTrajectories, int numTimes, double timeDelta, double evDelta, SystemParams params, DynaComplex[] initialState, int numThreads) {
+    public MCWFThreadPoolIntegrator(int numTrajectories, int numTimes, double timeDelta, double evDelta, SystemParams params, DynaComplex[] initialState, int numThreads, boolean debug) {
         // Parameter validation
         if(params.getN() % 2 != 0) {
             throw new UnsupportedOperationException("MCWFIntegrator requires an even number of particles");
@@ -50,7 +50,7 @@ public class MCWFThreadPoolIntegrator {
         myIntegrators = new Runnable[numTrajectories];
         
         for(int i = 0; i < numTrajectories; ++i) {
-            myTrajectories[i] = new QuantumTrajectory(numTimes, numEvSteps, timeDelta, params, initialState);
+            myTrajectories[i] = new QuantumTrajectory(numTimes, numEvSteps, timeDelta, params, initialState, debug);
             //myIntegrators[i] = new MCWFFirstOrderIntegrator(myTrajectories[i]);
             myIntegrators[i] = new MCWFDelayTimeIntegrator(myTrajectories[i]);
         }

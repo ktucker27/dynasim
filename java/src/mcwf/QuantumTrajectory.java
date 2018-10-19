@@ -47,6 +47,9 @@ public class QuantumTrajectory {
     // Tolerance used to double check times
     private final double TIME_TOL = 1.0e-10;
     
+    // Object to track detailed trajectory info for debug purposes
+    TrajectoryStats myStats;
+    
     private class NoJumpStepHandler implements StepHandler {
         private double myFinalTime;
         
@@ -73,6 +76,11 @@ public class QuantumTrajectory {
                 // calculation, do it now
                 if(Math.abs(t - myFinalTime) < TIME_TOL && myEvIdx == myEvs.length - 1) {
                     calcEvs(t);
+                }
+                
+                // Record the stop time
+                if(myStats != null) {
+                    myStats.recordStopTime(t);
                 }
             }
         }
@@ -172,7 +180,7 @@ public class QuantumTrajectory {
         }
     }
     
-    public QuantumTrajectory(int numTimes, int numEvSteps, double timeDelta, SystemParams params, DynaComplex[] initialState) {
+    public QuantumTrajectory(int numTimes, int numEvSteps, double timeDelta, SystemParams params, DynaComplex[] initialState, boolean collectStats) {
         myNumTimes = numTimes;
         myNumEvSteps = numEvSteps;
         myEvIdx = 0;
@@ -209,6 +217,11 @@ public class QuantumTrajectory {
         
         t1 = new DynaComplex(0);
         t2 = new DynaComplex(0);
+        
+        myStats = null;
+        if(collectStats) {
+            myStats = new TrajectoryStats();
+        }
     }
     
     public int getNumTimes() {
@@ -277,6 +290,10 @@ public class QuantumTrajectory {
     
     public EventHandler getNoJumpStopHandler() {
         return new NoJumpStopHandler();
+    }
+    
+    public TrajectoryStats getStats() {
+        return myStats;
     }
     
     public void performJump(int outcome) {
@@ -372,6 +389,11 @@ public class QuantumTrajectory {
         double newStateNorm = Math.sqrt(newStateNormSq);
         for(int i = 0; i < myState.length; ++i) {
             myState[i].set(myNewState[i]).multiply(1.0/newStateNorm);
+        }
+        
+        // Record the jump
+        if(myStats != null) {
+            myStats.recordJump(myTime, outcome);
         }
     }
     

@@ -46,6 +46,7 @@ public class MCWF {
         options.addRequiredOption("nt", "nt", true, "Number of threads to use for integration");
         options.addRequiredOption("traj", "traj", true, "Number of trajectories");
         options.addOption("evt", true, "Time between expected value evaluations (optional, defaults to dt)");
+        options.addOption("debug", false, "Enable debug features");
         
         return options;
     }
@@ -108,6 +109,8 @@ public class MCWF {
             evDelta = Double.parseDouble(cmd.getOptionValue("evt"));
         }
         
+        boolean debug = cmd.hasOption("debug");
+        
         long timeout = 7*24*3600; // One week
         
         double[] d = new double[n];
@@ -125,7 +128,7 @@ public class MCWF {
         initialState[n].set(1,0);
         
         // Create the integrator
-        MCWFThreadPoolIntegrator integrator = new MCWFThreadPoolIntegrator(numTrajectories, numTimes, dt, evDelta, params, initialState, numThreads);
+        MCWFThreadPoolIntegrator integrator = new MCWFThreadPoolIntegrator(numTrajectories, numTimes, dt, evDelta, params, initialState, numThreads, debug);
         
         // Integrate
         long startTime = System.nanoTime();
