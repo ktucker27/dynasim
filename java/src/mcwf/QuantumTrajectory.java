@@ -266,6 +266,10 @@ public class QuantumTrajectory {
             newStateNormSq += Math.pow(myState[i].mod(), 2);
         }
         
+        if(newStateNormSq == 0 || Double.isNaN(newStateNormSq)) {
+            throw new UnsupportedOperationException("Found bad new state norm in normalize: " + newStateNormSq);
+        }
+        
         double newStateNorm = Math.sqrt(newStateNormSq);
         for(int i = 0; i < myState.length; ++i) {
             myState[i].multiply(1.0/newStateNorm);
@@ -386,6 +390,10 @@ public class QuantumTrajectory {
             newStateNormSq += Math.pow(myNewState[i].mod(), 2);
         }
         
+        if(newStateNormSq == 0 || Double.isNaN(newStateNormSq)) {
+            throw new UnsupportedOperationException("Found bad new state norm with jump: " + newStateNormSq);
+        }
+        
         double newStateNorm = Math.sqrt(newStateNormSq);
         for(int i = 0; i < myState.length; ++i) {
             myState[i].set(myNewState[i]).multiply(1.0/newStateNorm);
@@ -425,9 +433,17 @@ public class QuantumTrajectory {
         cdf[2] *= myTimeDelta*gl;
         cdf[3] *= myTimeDelta*gl;
         
+        if(Double.isNaN(cdf[0])) {
+            throw new UnsupportedOperationException("Found NaN in CDF");
+        }
+        
         // Go from probabilities to CDF
         for(int i = 1; i < cdf.length; ++i) {
             cdf[i] += cdf[i-1];
+            
+            if(Double.isNaN(cdf[i])) {
+                throw new UnsupportedOperationException("Found NaN in CDF");
+            }
         }
     }
     
@@ -524,11 +540,11 @@ public class QuantumTrajectory {
     //}
 
     private double getAjmm(int j, int m) {
-        return Math.sqrt((j+m)*(j-m+1));
+        return Math.sqrt((double)(j+m)*(double)(j-m+1));
     }
 
     private double getAjmp(int j, int m) {
-        return Math.sqrt((j-m)*(j+m+1));
+        return Math.sqrt((double)(j-m)*(double)(j+m+1));
     }
 
     private double getPjm0(int n, int j, int m, double ajmm) {
@@ -536,7 +552,7 @@ public class QuantumTrajectory {
             return 0.0;
         }
 
-        return Math.sqrt((2+n)/(double)(4*j*(j+1)))*ajmm;
+        return Math.sqrt((2+n)/(4*(double)j*(double)(j+1)))*ajmm;
     }
 
     private double getPjmm(int n, int j, int m) {
@@ -544,11 +560,11 @@ public class QuantumTrajectory {
             return 0.0;
         }
 
-        return -Math.sqrt((n + 2*j + 2)*(j + m)*(j + m - 1)/(double)(4*j*(2*j + 1)));
+        return -Math.sqrt((double)(n + 2*j + 2)*(double)(j + m)*(double)(j + m - 1)/(4*(double)j*(double)(2*j + 1)));
     }
 
     private double getPjmp(int n, int j, int m) {
-        return Math.sqrt((n - 2*j)*(j - m + 1)*(j - m + 2)/(double)(4*(j + 1)*(2*j + 1)));
+        return Math.sqrt((double)(n - 2*j)*(double)(j - m + 1)*(double)(j - m + 2)/(4*(double)(j + 1)*(double)(2*j + 1)));
     }
 
     //private static double factorial(int n) {
