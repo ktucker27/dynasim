@@ -141,6 +141,8 @@ public class SymmEval implements SystemEval {
         
         int d = getDimension();
         int[] colIdx = {0,0,0};
+        DynaComplex t1 = new DynaComplex(0);
+        DynaComplex imag = new DynaComplex(0,1);
         for(int i = 0; i < d; ++i) {
             if(zenith == Math.PI) {
                 // Spin down in z-direction
@@ -165,6 +167,53 @@ public class SymmEval implements SystemEval {
                 if(colIdx[0] == 0) {
                     y0[2*i] = (1/Math.pow(2.0, n));
                     y0[2*i+1] = 0.0;
+                } else {
+                    y0[2*i] = 0.0;
+                    y0[2*i+1] = 0.0;
+                }
+            } else if(zenith == Math.PI/2.0 && phase == Math.PI) {
+                // Spin down in the x-direction
+                if(colIdx[0] == 0) {
+                    y0[2*i] = (1/Math.pow(2.0, n))*Math.pow(-1, colIdx[1] + colIdx[2]);
+                    y0[2*i+1] = 0.0;
+                } else {
+                    y0[2*i] = 0.0;
+                    y0[2*i+1] = 0.0;
+                }
+            } else if(zenith == Math.PI/2.0 && phase == Math.PI/2) {
+                // Spin up in the y-direction
+                if(colIdx[0] == 0) {
+                    t1.set(1,0);
+                    for(int j = 0; j < colIdx[1]; ++j) {
+                        t1.multiply(imag).multiply(-1);
+                    }
+
+                    for(int j = 0; j < colIdx[2]; ++j) {
+                        t1.multiply(imag);
+                    }
+                    t1.multiply(1.0/Math.pow(2.0, n));
+                    
+                    y0[2*i] = t1.getReal();
+                    y0[2*i+1] = t1.getImaginary();
+                } else {
+                    y0[2*i] = 0.0;
+                    y0[2*i+1] = 0.0;
+                }
+            } else if(zenith == Math.PI/2.0 && phase == 3.0*Math.PI/2) {
+                // Spin up in the y-direction
+                if(colIdx[0] == 0) {
+                    t1.set(1,0);
+                    for(int j = 0; j < colIdx[1]; ++j) {
+                        t1.multiply(imag);
+                    }
+
+                    for(int j = 0; j < colIdx[2]; ++j) {
+                        t1.multiply(imag).multiply(-1);
+                    }
+                    t1.multiply(1.0/Math.pow(2.0, n));
+                    
+                    y0[2*i] = t1.getReal();
+                    y0[2*i+1] = t1.getImaginary();
                 } else {
                     y0[2*i] = 0.0;
                     y0[2*i+1] = 0.0;
