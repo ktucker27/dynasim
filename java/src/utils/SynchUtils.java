@@ -778,7 +778,8 @@ public class SynchUtils {
     {
         IntegratorRequest request = getCorrRequest(params, y, filename, type);
         
-        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .0001, 1.0e-3, 1.0e-2);
+        AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, 1.0e-18, .0001, 1.0e-5, 1.0e-5);
+        //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(.0001);
         for(int i = 0; i < request.numStepHandlers(); ++i) {
             integrator.addStepHandler(request.getStepHandler(i));
         }

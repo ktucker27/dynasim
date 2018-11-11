@@ -140,8 +140,8 @@ public class RunSim {
         Simulator sim = Simulator.MEAN_FIELD;
         String outdir = "/Users/kristophertucker/output/temp/";
         int n = 2;
-        double h = 0.001;
-        double hc = 0.0001;
+        double h = 1.0e-4;
+        double hc = 1.0e-4;
         double gamma = 1.0;
         double f = 0.0;
         double g = 0.0;
@@ -475,7 +475,8 @@ public class RunSim {
             double[] y = null;
             if(numThreads == 1) {
                 // We are running single threaded, so simply integrate now
-                AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-6, h, 1.0e-3, 1.0e-2);
+                AdamsMoultonIntegrator integrator = new AdamsMoultonIntegrator(2, h*1.0e-6, h, 1.0e-5, 1.0e-5);
+                //ClassicalRungeKuttaIntegrator integrator = new ClassicalRungeKuttaIntegrator(h);
                 integrator.addStepHandler(recorder);
 
                 if(writeHandler != null) {
