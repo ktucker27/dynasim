@@ -3,6 +3,7 @@ package exe;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -47,6 +48,8 @@ public class MCWF {
         options.addRequiredOption("traj", "traj", true, "Number of trajectories");
         options.addOption("evt", true, "Time between expected value evaluations (optional, defaults to dt)");
         options.addOption("debug", false, "Enable debug features");
+        options.addOption("upx", false, "Use spin-up in the X direction as the initial condition");
+        options.addOption("dnx", false, "Use spin-down in the X direction as the initial condition");
         
         return options;
     }
@@ -121,11 +124,81 @@ public class MCWF {
         SystemParams params = new SystemParams(n, gamma, w, o, gel, 0, faa, fab, gaa, gab, d);
         
         // Define the initial condition
+        // TODO - Enable arbitrary Bloch sphere initial conditions
         DynaComplex[] initialState = new DynaComplex[n+1];
-        for(int i = 0; i < n+1; ++i) {
-            initialState[i] = new DynaComplex(0,0);
+        if(cmd.hasOption("upx")) {
+            initialState[0] = new DynaComplex(Math.sqrt(1.0/Math.pow(2.0, n)), 0);
+            initialState[n] = new DynaComplex(Math.sqrt(1.0/Math.pow(2.0, n)), 0);
+            initialState[1] = new DynaComplex((1.0/getAjmp(n/2, n/2 - 1))*((n/2)*initialState[0].getReal()), 0);
+            int m = n/2 - 2;
+            for(int i = 2; i < n; ++i) {
+                initialState[i] = new DynaComplex((1.0/getAjmp(n/2,m))*((n/2)*initialState[i-1].getReal() - getAjmp(n/2, m+1)*initialState[i-2].getReal()), 0);
+                --m;
+            }
+            
+//            for(int i = 0; i < n+1; ++i) {
+//                System.out.println(initialState[i]);
+//            }
+        } else if(cmd.hasOption("dnx")) {
+            BigDecimal[] ic = new BigDecimal[n+1];
+            BigDecimal bd2 = new BigDecimal(Math.sqrt(2.0));
+            ic[0] = new BigDecimal("-1.0");
+            for(int i = 0; i < n; ++i) {
+                ic[0] = ic[0].divide(bd2, 2000, BigDecimal.ROUND_HALF_UP);
+            }
+            ic[n] = ic[0];
+            
+            ic[1] = new BigDecimal((1.0/getAjmp(n/2, n/2 - 1))*(-n/2));
+            ic[1] = ic[1].multiply(ic[0]);
+            ic[n-1] = ic[1];
+            
+            int m = n/2 - 2;
+            for(int i = 2; i <= n/2; ++i) {
+                BigDecimal bdt1 = new BigDecimal(-getAjmp(n/2, m+1));
+                bdt1 = bdt1.multiply(ic[i-2]);
+                
+                BigDecimal bdt2 = new BigDecimal(-n/2);
+                bdt2 = bdt2.multiply(ic[i-1]);
+                
+                bdt2 = bdt1.add(bdt2);
+                
+                ic[i] = new BigDecimal(1.0/getAjmp(n/2,m));
+                ic[i] = ic[i].multiply(bdt2);
+                
+                if(i < n/2) {
+                    ic[n-i] = ic[i];
+                }
+                
+                --m;
+            }
+            
+            for(int i = 0; i <= n; ++i) {
+                initialState[i] = new DynaComplex(ic[i].doubleValue(), 0);
+            }
+            
+//            initialState[0] = new DynaComplex(-Math.sqrt(1.0/Math.pow(2.0, n)), 0);
+//            initialState[n] = new DynaComplex(-Math.sqrt(1.0/Math.pow(2.0, n)), 0);
+//            initialState[1] = new DynaComplex((1.0/getAjmp(n/2, n/2 - 1))*((-n/2)*initialState[0].getReal()), 0);
+//            initialState[n-1] = new DynaComplex((1.0/getAjmp(n/2, n/2 - 1))*((-n/2)*initialState[0].getReal()), 0);
+//            int m = n/2 - 2;
+//            for(int i = 2; i <= n/2; ++i) {
+//                initialState[i] = new DynaComplex((1.0/getAjmp(n/2,m))*((-n/2)*initialState[i-1].getReal() - getAjmp(n/2, m+1)*initialState[i-2].getReal()), 0);
+//                if(i < n/2) {
+//                    initialState[n-i] = new DynaComplex((1.0/getAjmp(n/2,m))*((-n/2)*initialState[i-1].getReal() - getAjmp(n/2, m+1)*initialState[i-2].getReal()), 0);
+//                }
+//                --m;
+//            }
+            
+//            for(int i = 0; i < n+1; ++i) {
+//                System.out.println(initialState[i].getReal());
+//            }
+//            return;
+        } else {
+            for(int i = 0; i < n+1; ++i) {
+                initialState[i] = new DynaComplex(0,0);
+            }
+            initialState[n].set(1,0);
         }
-        initialState[n].set(1,0);
         
         // Create the integrator
         MCWFThreadPoolIntegrator integrator = new MCWFThreadPoolIntegrator(numTrajectories, numTimes, dt, evDelta, params, initialState, numThreads, debug);
@@ -144,4 +217,7 @@ public class MCWF {
         writer.write(integrator.getAggregator());
     }
 
+    private static double getAjmp(int j, int m) {
+        return 0.5*Math.sqrt((double)(j-m)*(double)(j+m+1));
+    }
 }
