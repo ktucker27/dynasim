@@ -13,7 +13,8 @@ public class MCWFAggregator {
     private double myTimeDelta;
     
     // Output data indexed by time
-    private ExpectedSpinValues[] myEvs;
+    private ExpectedSpinValues[] mySumEvs;
+    private ExpectedSpinValues[] mySumSqEvs;
     
     private final double TIME_TOL = 1e-10;
     
@@ -22,9 +23,11 @@ public class MCWFAggregator {
         myNumTimes = numTimes;
         myTimeDelta = timeDelta;
         
-        myEvs = new ExpectedSpinValues[numTimes];
+        mySumEvs = new ExpectedSpinValues[numTimes];
+        mySumSqEvs = new ExpectedSpinValues[numTimes];
         for(int i = 0; i < numTimes; ++i) {
-            myEvs[i] = new ExpectedSpinValues();
+            mySumEvs[i] = new ExpectedSpinValues();
+            mySumSqEvs[i] = new ExpectedSpinValues();
         }
     }
     
@@ -40,8 +43,12 @@ public class MCWFAggregator {
         return idx*myTimeDelta;
     }
     
-    public ExpectedSpinValues getEvs(int idx) {
-        return myEvs[idx];
+    public ExpectedSpinValues getSumEvs(int idx) {
+        return mySumEvs[idx];
+    }
+    
+    public ExpectedSpinValues getSumSqEvs(int idx) {
+        return mySumSqEvs[idx];
     }
     
     public void aggregate(QuantumTrajectory[] trajectories, int startIdx, int endIdx) {
@@ -58,7 +65,8 @@ public class MCWFAggregator {
                 if(Math.abs(traj.getEvs(timeIdx).getTime() - timeIdx*myTimeDelta) > TIME_TOL) {
                     throw new UnsupportedOperationException("MCWFAggregator: Expected value time " + traj.getEvs(timeIdx).getTime() + " does not match expected time " + timeIdx*myTimeDelta);
                 }
-                myEvs[timeIdx].addEq(traj.getEvs(timeIdx));
+                mySumEvs[timeIdx].addEq(traj.getEvs(timeIdx));
+                mySumSqEvs[timeIdx].addSqEq(traj.getEvs(timeIdx));
             }
         }
     }

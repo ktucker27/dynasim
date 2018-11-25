@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -17,11 +18,14 @@ import org.apache.commons.cli.ParseException;
 
 import mcwf.MCWFThreadPoolIntegrator;
 import mcwf.MCWFWriter;
+import mcwf.QuantumTrajectory;
 import ode.SystemParams;
 import utils.DynaComplex;
 
 public class MCWF {
 
+    private static final int MAX_VALIDATION_MSGS = 10;
+    
     private static void printUsage(Options options) {
         System.out.println("java -jar MCWF.jar outdir [options]\n");
 
@@ -206,10 +210,45 @@ public class MCWF {
         // Integrate
         long startTime = System.nanoTime();
         integrator.start();
-        integrator.waitForFinished(timeout);
+        boolean success = integrator.waitForFinished(timeout);
 
         long endTime = System.nanoTime();
         System.out.println("Run time: " + (endTime - startTime)/1.0e9 + " seconds");
+        
+        if(!success) {
+            System.err.println("Received failure from integrator");
+            return;
+        }
+        
+        // Perform validation
+        if(debug) {
+            QuantumTrajectory[] trajectories = integrator.getTrajectories();
+            ArrayList<String> msgs = new ArrayList<String>();
+            int numFailed = 0;
+            for(int i = 0; i < trajectories.length; ++i) {
+                msgs.clear();
+                if(!trajectories[i].getStats().validate(msgs)) {
+                    if(numFailed < MAX_VALIDATION_MSGS) {
+                        System.err.println("Trajectory " + i + " failed validation. Messages:");
+                        for(int j = 0; j < msgs.size(); ++j) {
+                            System.err.println(msgs.get(j));
+                        }
+                    }
+                    ++numFailed;
+
+                    if(numFailed == MAX_VALIDATION_MSGS) {
+                        System.err.println("Supressing further validation error output");
+                    }
+                }
+            }
+
+            if(numFailed == 0) {
+                System.out.println("Validation OK");
+            } else {
+                System.err.println(numFailed + " trajectories failed validation");
+                return;
+            }
+        }
         
         // Write results
         String outfile = outdir + "/mcwf" + String.format("_traj1-%d_", numTrajectories) + params.getMcwfFilename() + "_" + UUID.randomUUID().toString() + ".txt";

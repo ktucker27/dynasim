@@ -87,6 +87,10 @@ public class DynaComplex {
         return Math.sqrt(x*x + y*y);
     }
     
+    public double modSq() {
+        return x*x + y*y;
+    }
+    
     public String toString() {
         return x + "+" + y + "i";
     }

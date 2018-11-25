@@ -1,4 +1,4 @@
-function [t, es, ess, num_traj] = proc_mcwf_output(rootdir)
+function [t, es, ess, num_traj, esSe, essSe] = proc_mcwf_output(rootdir)
 
 % proc_mcwf_output: Aggregates and organizes results coming out of
 %                   the MCWF Java executable
@@ -13,6 +13,8 @@ function [t, es, ess, num_traj] = proc_mcwf_output(rootdir)
 %               value <J^i J^j> at time index k
 %         num_traj - Total number of trajectories found in the aggregated
 %                    files
+%         esSe - Statistical error of the first order expectations
+%         essSe - Statistical error of the second order expectations
 
 if ~isfolder(rootdir)
     b = split(rootdir, '/');
@@ -53,4 +55,16 @@ end
 
 % Normalize and unpack the aggregated data
 agg_data = agg_data/num_traj;
-[~, es, ess] = unpack_symm(agg_data);
+[~, es, ess, es2, ess2] = unpack_symm(agg_data);
+esSe = sqrt(es2 - es.^2)/sqrt(num_traj);
+essSe = sqrt(real(ess2) - real(ess).^2)/sqrt(num_traj) + ...
+     1i*sqrt(imag(ess2) - imag(ess).^2)/sqrt(num_traj);
+ 
+ if min(min(es2 - es.^2)) < 0
+     disp('WARNING: Found negative estimated variance in first order expectations');
+ end
+ 
+ if min(min(min(real(ess2) - real(ess).^2))) < 0 || ...
+    min(min(min(imag(ess2) - imag(ess).^2))) < 0
+    disp('WARNING: Found negative estimated variance in second order expectations');
+ end

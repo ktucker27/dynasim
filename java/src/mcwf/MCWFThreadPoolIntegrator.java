@@ -62,6 +62,10 @@ public class MCWFThreadPoolIntegrator {
         return myAgg;
     }
     
+    public QuantumTrajectory[] getTrajectories() {
+        return myTrajectories;
+    }
+
     /**
      * Creates trajectories and executes them by passing them to the thread pool.
      * Trajectories are stored so their results can be aggregated and output later

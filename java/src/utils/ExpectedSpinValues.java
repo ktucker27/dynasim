@@ -50,4 +50,15 @@ public class ExpectedSpinValues {
             }
         }
     }
+    
+    public void addSqEq(ExpectedSpinValues rhs) {
+        for(int i = 0; i < 3; ++i) {
+            myEs[i] += rhs.myEs[i]*rhs.myEs[i];
+            for(int j = 0; j < 3; ++j) {
+                //myEss[i][j].add(rhs.myEss[i][j].modSq());
+                myEss[i][j].set(myEss[i][j].getReal() + rhs.myEss[i][j].getReal()*rhs.myEss[i][j].getReal(),
+                                myEss[i][j].getImaginary() + rhs.myEss[i][j].getImaginary()*rhs.myEss[i][j].getImaginary());
+            }
+        }
+    }
 }

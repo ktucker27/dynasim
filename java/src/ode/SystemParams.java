@@ -135,9 +135,7 @@ public class SystemParams implements Comparable<SystemParams> {
     
     public String getFilename() {
         String pumpStr = String.format("o%.2f", omega).replace('.','p');;
-        if(omega != 0.0) {
-            pumpStr = String.format("o%.2f", omega).replace('.','p');
-        } else {
+        if(w != 0.0) {
             pumpStr = String.format("w%.2f", w).replace('.','p');            
         }
         
@@ -160,7 +158,7 @@ public class SystemParams implements Comparable<SystemParams> {
     }
     
     public String getMcwfFilename() {
-        String pumpStr = String.format("o%.2f", omega).replace('.','p');;
+        String pumpStr = String.format("o%.2f", omega).replace('.','p');
         
         String filename = String.format("N%d_chi%.1f_%s_f%.1f", n, gab/2, pumpStr, fab).replace('.', 'p');
         
