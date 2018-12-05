@@ -1,8 +1,9 @@
-function [sq2, vars, norms] = get_squeezing(n, es, ess)
+function [sq2, vars, norms, nps] = get_squeezing(n, es, ess)
 
 sq2 = zeros(size(es,2),1);
 vars = zeros(size(es,2),1);
 norms = zeros(size(es,2),1);
+nps = zeros(3,size(es,2));
 for i=1:size(es,2)
     bvn = es(:,i)/norm(es(:,i),2);
     theta = acos(bvn(3));
@@ -34,6 +35,11 @@ for i=1:size(es,2)
     end
     
     np = n1*cos(phi) + n2*sin(phi);
+    if(i == 1 || norm(np - nps(:,i-1)) < 0.5)
+        nps(:,i) = np;
+    else
+        nps(:,i) = -np;
+    end
     enpnp = prod_ev(np, np, ess(:,:,i));
     
 %     ips = zeros(floor(2*pi*100 + 1),2);

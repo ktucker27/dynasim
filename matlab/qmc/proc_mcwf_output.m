@@ -55,6 +55,9 @@ end
 
 % Normalize and unpack the aggregated data
 agg_data = agg_data/num_traj;
+agg_data(:,1) = t;
+%csvwrite('/Users/tuckerkj/output/20181112/test/agg.csv', agg_data);
+%dlmwrite('/Users/tuckerkj/output/20181112/test/agg.csv', agg_data, 'delimiter', ',', 'precision', 12);
 [~, es, ess, es2, ess2] = unpack_symm(agg_data);
 esSe = sqrt(es2 - es.^2)/sqrt(num_traj);
 essSe = sqrt(real(ess2) - real(ess).^2)/sqrt(num_traj) + ...

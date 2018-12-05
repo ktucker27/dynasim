@@ -27,9 +27,9 @@ for i=1:size(A,1)
     n = A(i,1);
     nvec(oidx,1) = n;
     
-    if n == 100
-        tau = (0:.001:5)';
-    end
+%     if n == 100
+%         tau = (0:.001:5)';
+%     end
 
     B = dlmread(filepaths{A(i,3)});
     [es, ess] = unpack_symm_interp(B, tau);
