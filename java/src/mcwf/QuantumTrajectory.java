@@ -24,7 +24,7 @@ public class QuantumTrajectory {
     private double gc, gl, kl, dl, oms;
     //private double myDnj;
     
-    // State indexed in [0, N+1]
+    // State indexed in [0, N+1)
     private double myTime;
     private DynaComplex[] myState, myNewState;
     private int myJ;
@@ -256,8 +256,23 @@ public class QuantumTrajectory {
         return myTime;
     }
     
+    public int getJ() {
+        return myJ;
+    }
+    
     public DynaComplex[] getState() {
         return myState;
+    }
+    
+    public void setState(DynaComplex[] state, int jval) {
+        if(state.length != myState.length) {
+            throw new UnsupportedOperationException("State provided to setState of incorrect dimension " + state.length + ". Expected: " + myState.length);
+        }
+        
+        for(int i = 0; i < state.length; ++i) {
+            myState[i].set(state[i]);
+        }
+        myJ = jval;
     }
     
     public void normalize() {

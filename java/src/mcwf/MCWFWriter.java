@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
+import utils.DynaComplex;
 import utils.ExpectedSpinValues;
 
 public class MCWFWriter {
@@ -91,6 +92,23 @@ public class MCWFWriter {
             writer.print(agg.getTime(timeIdx));
             
             writer.print(", " + agg.getSumJs(timeIdx));
+            
+            writer.print("\n");
+        }
+        
+        writer.close();
+    }
+    
+    public void writeAllStates(QuantumTrajectory[] trajectories, String filename) throws FileNotFoundException, UnsupportedEncodingException {
+        PrintWriter writer = new PrintWriter(filename, "UTF-8");
+        
+        for(int trajIdx = 0; trajIdx < trajectories.length; ++trajIdx) {
+            writer.print(trajectories[trajIdx].getJ());
+            
+            DynaComplex[] state = trajectories[trajIdx].getState();
+            for(int valIdx = 0; valIdx < state.length; ++valIdx) {
+                writer.print(", " + state[valIdx].getReal() + ", " + state[valIdx].getImaginary());
+            }
             
             writer.print("\n");
         }

@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
@@ -54,6 +55,8 @@ public class MCWF {
         options.addOption("debug", false, "Enable debug features");
         options.addOption("upx", false, "Use spin-up in the X direction as the initial condition");
         options.addOption("dnx", false, "Use spin-down in the X direction as the initial condition");
+        options.addOption("wf", false, "Write final trajectory states to a file");
+        options.addOption("icf", true, "Read initial trajectory states from a file");
         
         return options;
     }
@@ -207,6 +210,11 @@ public class MCWF {
         // Create the integrator
         MCWFThreadPoolIntegrator integrator = new MCWFThreadPoolIntegrator(numTrajectories, numTimes, dt, evDelta, params, initialState, numThreads, debug);
         
+        if(cmd.hasOption("icf")) {
+            // Override initial conditions from a file
+            setICsFromFile(integrator.getTrajectories(), cmd.getOptionValue("icf"));
+        }
+        
         // Integrate
         long startTime = System.nanoTime();
         integrator.start();
@@ -267,9 +275,48 @@ public class MCWF {
             String statefile = dbgdir + "/state_" + uuidStr + ".txt";
             writer.writeState(integrator.getAggregator(), statefile);
         }
+        
+        // Write final states if requested
+        if(cmd.hasOption("wf")) {
+            String finalfile = outdir + "/final_" + uuidStr + ".txt";
+            writer.writeAllStates(integrator.getTrajectories(), finalfile);
+        }
     }
 
     private static double getAjmp(int j, int m) {
         return 0.5*Math.sqrt((double)(j-m)*(double)(j+m+1));
+    }
+    
+    private static void setICsFromFile(QuantumTrajectory[] trajectories, String filename) throws FileNotFoundException {
+        DynaComplex[] newState = new DynaComplex[trajectories[0].getState().length];
+        for(int i = 0; i < newState.length; ++i) {
+            newState[i] = new DynaComplex(0,0);
+        }
+        
+        int trajIdx = 0;
+        Scanner fileReader = new Scanner(new File(filename));
+        while(fileReader.hasNextLine()) {
+            QuantumTrajectory traj = trajectories[trajIdx];
+            
+            String line = fileReader.nextLine();
+            String[] lineVec = line.split(",");
+            if(lineVec.length != traj.getState().length*2 + 1) {
+                fileReader.close();
+                throw new UnsupportedOperationException("Initial state " + trajIdx + " contained incorrect number of elements " + lineVec.length + ". Expected: " + traj.getState().length*2 + 1);
+            }
+
+            int jval = Integer.parseInt(lineVec[0]);
+            for(int i = 0; i < newState.length; ++i) {
+                newState[i].set(Double.parseDouble(lineVec[2*i + 1]), Double.parseDouble(lineVec[2*i + 2]));
+            }
+            traj.setState(newState, jval);
+            
+            ++trajIdx;
+        }
+        fileReader.close();
+        
+        if(trajIdx != trajectories.length) {
+            throw new UnsupportedOperationException("Initial condition file had incorrect number of trajectories");
+        }
     }
 }
