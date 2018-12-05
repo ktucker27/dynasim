@@ -246,14 +246,27 @@ public class MCWF {
                 System.out.println("Validation OK");
             } else {
                 System.err.println(numFailed + " trajectories failed validation");
-                return;
             }
         }
         
         // Write results
-        String outfile = outdir + "/mcwf" + String.format("_traj1-%d_", numTrajectories) + params.getMcwfFilename() + "_" + UUID.randomUUID().toString() + ".txt";
-        MCWFWriter writer = new MCWFWriter(outfile);
-        writer.write(integrator.getAggregator());
+        String uuidStr = UUID.randomUUID().toString();
+        String outfile = outdir + "/mcwf" + String.format("_traj1-%d_", numTrajectories) + params.getMcwfFilename() + "_" + uuidStr + ".txt";
+        MCWFWriter writer = new MCWFWriter();
+        writer.write(integrator.getAggregator(), outfile);
+        
+        // Write debug info
+        if(debug) {
+            String dbgdir = outdir + "/debug";
+            File dfdir = new File(dbgdir);
+            dfdir.mkdirs();
+            
+            String jumpfile = dbgdir + "/jumps_" + uuidStr + ".txt";
+            writer.writeJumps(integrator.getAggregator(), jumpfile);
+            
+            String statefile = dbgdir + "/state_" + uuidStr + ".txt";
+            writer.writeState(integrator.getAggregator(), statefile);
+        }
     }
 
     private static double getAjmp(int j, int m) {

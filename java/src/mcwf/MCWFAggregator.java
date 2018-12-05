@@ -16,6 +16,10 @@ public class MCWFAggregator {
     private ExpectedSpinValues[] mySumEvs;
     private ExpectedSpinValues[] mySumSqEvs;
     
+    // Optional aggregated stats
+    private int[][] myNumJumps;
+    private int[] mySumJs;
+    
     private final double TIME_TOL = 1e-10;
     
     public MCWFAggregator(int numTimes, double timeDelta) {
@@ -29,6 +33,9 @@ public class MCWFAggregator {
             mySumEvs[i] = new ExpectedSpinValues();
             mySumSqEvs[i] = new ExpectedSpinValues();
         }
+        
+        myNumJumps = null;
+        mySumJs = null;
     }
     
     public int getNumTrajectories() {
@@ -51,6 +58,14 @@ public class MCWFAggregator {
         return mySumSqEvs[idx];
     }
     
+    public int[] getJumps(int idx) {
+        return myNumJumps[idx];
+    }
+    
+    public int getSumJs(int idx) {
+        return mySumJs[idx];
+    }
+    
     public void aggregate(QuantumTrajectory[] trajectories, int startIdx, int endIdx) {
         for(int idx = startIdx; idx <= endIdx; ++idx) {
             ++myNumTrajectories;
@@ -68,6 +83,40 @@ public class MCWFAggregator {
                 mySumEvs[timeIdx].addEq(traj.getEvs(timeIdx));
                 mySumSqEvs[timeIdx].addSqEq(traj.getEvs(timeIdx));
             }
+            
+            // Aggregate optional stats
+            if(traj.getStats() != null) {
+                aggregateStats(traj);
+            }
+        }
+    }
+    
+    private void aggregateStats(QuantumTrajectory traj) {
+        // Initialize the appropriate structures if this is the first trajectory seen
+        if(myNumJumps == null) {
+            myNumJumps = new int[myNumTimes][traj.getNumOutcomes()-1];
+            mySumJs = new int[myNumTimes];
+            
+            for(int timeIdx = 0; timeIdx < myNumTimes; ++timeIdx) {
+                for(int jumpIdx = 0; jumpIdx < traj.getNumOutcomes() - 1; ++jumpIdx) {
+                    myNumJumps[timeIdx][jumpIdx] = 0;
+                }
+                mySumJs[timeIdx] = 0;
+            }
+        }
+        
+        TrajectoryStats stats = traj.getStats();
+        int numJumps = stats.getNumJumps();
+        for(int jumpIdx = 0; jumpIdx < numJumps; ++jumpIdx) {
+            double jumpTime = stats.getJumpTime(jumpIdx);
+            int outcome = stats.getJumpOutcome(jumpIdx);
+            
+            int jumpTimeIdx = (int)(jumpTime/myTimeDelta);
+            ++myNumJumps[jumpTimeIdx][outcome];
+        }
+        
+        for(int timeIdx = 0; timeIdx < myNumTimes; ++timeIdx) {
+            mySumJs[timeIdx] += stats.getJ(timeIdx);
         }
     }
 }

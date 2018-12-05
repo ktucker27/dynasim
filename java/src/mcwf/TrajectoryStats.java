@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class TrajectoryStats {
     ArrayList<Double> myStopTimes;
     ArrayList<Jump> myJumps;
+    int[] myJs;
 
     private static final double TIME_TOL = 1.0e-10;
     
@@ -26,9 +27,13 @@ public class TrajectoryStats {
         }
     }
     
-    public TrajectoryStats() {
+    public TrajectoryStats(int numTimes) {
         myStopTimes = new ArrayList<Double>();
         myJumps = new ArrayList<Jump>();
+        myJs = new int[numTimes];
+        for(int i = 0; i < numTimes; ++i) {
+            myJs[i] = 0;
+        }
     }
     
     public void recordStopTime(double time) {
@@ -59,6 +64,14 @@ public class TrajectoryStats {
         return myJumps.get(idx).getOutcome();
     }
     
+    public void setJ(int timeIdx, int jval) {
+        myJs[timeIdx] = jval;
+    }
+    
+    public int getJ(int idx) {
+        return myJs[idx];
+    }
+    
     /**
      * Performs a number of consistency checks on the stats for this trajectory
      * 
@@ -67,11 +80,11 @@ public class TrajectoryStats {
      */
     public boolean validate(ArrayList<String> msgs) {
         boolean valid = true;
-        if(myStopTimes.size() != myJumps.size()) {
+        if(myStopTimes.size() - 1 != myJumps.size()) {
             msgs.add(String.format("Number of stop times %d not equal to number of jumps %d", myStopTimes.size(), myJumps.size()));
             valid = false;
         } else {
-            for(int i = 0; i < myStopTimes.size(); ++i) {
+            for(int i = 0; i < myStopTimes.size() - 1; ++i) {
                 if(Math.abs(myStopTimes.get(i) - getJumpTime(i)) > TIME_TOL) {
                     msgs.add(String.format("Stop time %d: %g different from jump time: %g", i, myStopTimes.get(i), getJumpTime(i)));
                     valid = false;

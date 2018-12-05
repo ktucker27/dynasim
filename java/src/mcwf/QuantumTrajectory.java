@@ -220,7 +220,7 @@ public class QuantumTrajectory {
         
         myStats = null;
         if(collectStats) {
-            myStats = new TrajectoryStats();
+            myStats = new TrajectoryStats(myEvs.length);
         }
     }
     
@@ -527,6 +527,11 @@ public class QuantumTrajectory {
         evs.getEss(2, 0).set(evs.getEss(0, 2)).conjugate();
         evs.getEss(2, 1).set(evs.getEss(1, 2)).conjugate();
         evs.getEss(2, 2).set(exp_zz, 0);
+        
+        // Record state information
+        if(myStats != null) {
+            myStats.setJ(myEvIdx - 1, myJ);
+        }
     }
     
     private void setJ(int newj) {
