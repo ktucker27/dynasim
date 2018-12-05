@@ -55,7 +55,7 @@ public class MCWF {
         options.addOption("debug", false, "Enable debug features");
         options.addOption("upx", false, "Use spin-up in the X direction as the initial condition");
         options.addOption("dnx", false, "Use spin-down in the X direction as the initial condition");
-        options.addOption("wf", false, "Write final trajectory states to a file");
+        options.addOption("wf", true, "Write final trajectory states to a file. 'def' puts it in the default output directory location with prefix 'final'");
         options.addOption("icf", true, "Read initial trajectory states from a file");
         
         return options;
@@ -278,7 +278,13 @@ public class MCWF {
         
         // Write final states if requested
         if(cmd.hasOption("wf")) {
-            String finalfile = outdir + "/final_" + uuidStr + ".txt";
+            String finalfile;
+            if(cmd.getOptionValue("wf").equals("def")) {
+                finalfile = outdir + "/final_" + uuidStr + ".txt";
+            } else {
+                finalfile = cmd.getOptionValue("wf");
+            }
+            
             writer.writeAllStates(integrator.getTrajectories(), finalfile);
         }
     }
