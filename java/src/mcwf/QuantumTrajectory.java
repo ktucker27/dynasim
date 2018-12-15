@@ -272,7 +272,7 @@ public class QuantumTrajectory {
         for(int i = 0; i < state.length; ++i) {
             myState[i].set(state[i]);
         }
-        myJ = jval;
+        setJ(jval);
     }
     
     public void normalize() {
