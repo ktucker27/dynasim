@@ -1,4 +1,4 @@
-function [t, es, ess, num_traj, esSe, essSe] = proc_mcwf_output(rootdir)
+function [t, es, ess, num_traj, esSe, essSe, jumps, state] = proc_mcwf_output(rootdir, proc_dbg)
 
 % proc_mcwf_output: Aggregates and organizes results coming out of
 %                   the MCWF Java executable
@@ -25,49 +25,38 @@ else
     files = dir([rootdir, '/*mcwf*.txt']);
 end
 
-num_traj = 0;
-for i=1:size(files)
-    filepath = [files(i,1).folder, '/', files(i,1).name];
-    
-    disp(['Processing: ', files(i,1).name]);
-    
-    % Get header information
-    header = dlmread(filepath, ',', [0 0 0 0]);
-    num_traj = num_traj + header(1,1);
-    
-    % Process the data
-    % TODO - Is there a way to do this with only one file read?
-    data = dlmread(filepath, ',', 1, 0);
-    
-    % Grab or validate the time vector
-    if i == 1
-        t = data(:,1);
-        agg_data = zeros(size(data));
-    else
-        if norm(t - data(:,1)) ~= 0
-            disp(['ERROR - Times in file ', files(i,1).name, ' do not align']);
-            return;
-        end
-    end
-    
-    agg_data = agg_data + data;
-end
+[t, agg_data, num_traj] = aggregate_data(files);
 
-% Normalize and unpack the aggregated data
-agg_data = agg_data/num_traj;
-agg_data(:,1) = t;
-%csvwrite('/Users/tuckerkj/output/20181112/test/agg.csv', agg_data);
 %dlmwrite('/Users/tuckerkj/output/20181112/test/agg.csv', agg_data, 'delimiter', ',', 'precision', 12);
+
 [~, es, ess, es2, ess2] = unpack_symm(agg_data);
+
+% Calculate statistical error
 esSe = sqrt(es2 - es.^2)/sqrt(num_traj);
 essSe = sqrt(real(ess2) - real(ess).^2)/sqrt(num_traj) + ...
      1i*sqrt(imag(ess2) - imag(ess).^2)/sqrt(num_traj);
  
- if min(min(es2 - es.^2)) < 0
-     disp('WARNING: Found negative estimated variance in first order expectations');
- end
- 
- if min(min(min(real(ess2) - real(ess).^2))) < 0 || ...
-    min(min(min(imag(ess2) - imag(ess).^2))) < 0
-    disp('WARNING: Found negative estimated variance in second order expectations');
- end
+% Process debug directory if found
+dbgdir = [rootdir, '/debug'];
+jumps = 0;
+state = 0;
+if nargin > 1 && proc_dbg ~= 0 && isfolder(dbgdir)
+    disp('Found debug directory, aggregating results...');
+    [t2, jumps, state, num_traj2] = proc_mcwf_debug(dbgdir);
+    if max(abs(t - t2)) ~= 0
+        disp('WARNING: Difference found between output and debug times');
+    end
+    
+    if num_traj ~= num_traj2
+        disp('WARNING: Difference found between output and debug number of trajectories');
+    end
+end
+
+if min(min(es2 - es.^2)) < -1.0e-7
+    disp(['WARNING: Found negative estimated variance in first order expectations: ', num2str(min(min(es2 - es.^2)))]);
+end
+
+if min(min(min(real(ess2) - real(ess).^2))) < -1.0e-7 || ...
+        min(min(min(imag(ess2) - imag(ess).^2))) < -1.0e-7
+    disp(['WARNING: Found negative estimated variance in second order expectations: ', num2str(min(min(min(real(ess2) - real(ess).^2)))), ' + i', num2str(min(min(min(imag(ess2) - imag(ess).^2))))]);
+end

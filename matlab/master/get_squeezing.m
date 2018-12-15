@@ -35,7 +35,7 @@ for i=1:size(es,2)
     end
     
     np = n1*cos(phi) + n2*sin(phi);
-    if(i == 1 || norm(np - nps(:,i-1)) < 0.5)
+    if(i == 1 || norm(np - nps(:,i-1)) < 0.8)
         nps(:,i) = np;
     else
         nps(:,i) = -np;
