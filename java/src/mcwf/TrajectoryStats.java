@@ -1,13 +1,22 @@
 package mcwf;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import utils.DynaComplex;
+import utils.HusimiDist;
 
 public class TrajectoryStats {
     ArrayList<Double> myStopTimes;
     ArrayList<Jump> myJumps;
+    HashMap<Double, HusimiDist> myHusimis;
     int[] myJs;
 
     private static final double TIME_TOL = 1.0e-10;
+    private static final int NUM_THETA = 180;
+    private static final int NUM_PHI = 360;
     
     private class Jump {
         private double myTime;
@@ -30,6 +39,10 @@ public class TrajectoryStats {
     public TrajectoryStats(int numTimes) {
         myStopTimes = new ArrayList<Double>();
         myJumps = new ArrayList<Jump>();
+        
+        myHusimis = new HashMap<Double, HusimiDist>();
+        myHusimis.put(1.0, new HusimiDist(NUM_THETA, NUM_PHI));
+        
         myJs = new int[numTimes];
         for(int i = 0; i < numTimes; ++i) {
             myJs[i] = 0;
@@ -64,12 +77,26 @@ public class TrajectoryStats {
         return myJumps.get(idx).getOutcome();
     }
     
-    public void setJ(int timeIdx, int jval) {
-        myJs[timeIdx] = jval;
-    }
-    
     public int getJ(int idx) {
         return myJs[idx];
+    }
+    
+    public Map<Double, HusimiDist> getHusimis() {
+        return myHusimis;
+    }
+    
+    public void recordState(int timeIdx, double time, DynaComplex[] state, int jval) {
+        myJs[timeIdx] = jval;
+        
+        if(myHusimis.size() > 0) {
+            Iterator<Map.Entry<Double, HusimiDist>> iter = myHusimis.entrySet().iterator();
+            while(iter.hasNext()) {
+                Map.Entry<Double, HusimiDist> entry = iter.next();
+                if(Math.abs(entry.getKey() - time) < TIME_TOL) {
+                    entry.getValue().calc(state, jval);
+                }
+            }
+        }
     }
     
     /**

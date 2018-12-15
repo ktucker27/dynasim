@@ -545,7 +545,7 @@ public class QuantumTrajectory {
         
         // Record state information
         if(myStats != null) {
-            myStats.setJ(myEvIdx - 1, myJ);
+            myStats.recordState(myEvIdx - 1, time, myState, myJ);
         }
     }
     

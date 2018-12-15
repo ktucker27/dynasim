@@ -1,6 +1,11 @@
 package mcwf;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import utils.ExpectedSpinValues;
+import utils.HusimiDist;
 
 /**
  * Class that computes and stores aggregate expected values by time coming out of
@@ -19,6 +24,7 @@ public class MCWFAggregator {
     // Optional aggregated stats
     private int[][] myNumJumps;
     private int[] mySumJs;
+    HashMap<Double, HusimiDist> myHusimis;
     
     private final double TIME_TOL = 1e-10;
     
@@ -36,6 +42,7 @@ public class MCWFAggregator {
         
         myNumJumps = null;
         mySumJs = null;
+        myHusimis = null;
     }
     
     public int getNumTrajectories() {
@@ -66,6 +73,10 @@ public class MCWFAggregator {
         return mySumJs[idx];
     }
     
+    public Map<Double, HusimiDist> getHusimis() {
+        return myHusimis;
+    }
+    
     public void aggregate(QuantumTrajectory[] trajectories, int startIdx, int endIdx) {
         for(int idx = startIdx; idx <= endIdx; ++idx) {
             ++myNumTrajectories;
@@ -93,7 +104,11 @@ public class MCWFAggregator {
     
     private void aggregateStats(QuantumTrajectory traj) {
         // Initialize the appropriate structures if this is the first trajectory seen
+        TrajectoryStats stats = traj.getStats();
+        boolean first = false;
         if(myNumJumps == null) {
+            first = true;
+            
             myNumJumps = new int[myNumTimes][traj.getNumOutcomes()-1];
             mySumJs = new int[myNumTimes];
             
@@ -103,9 +118,17 @@ public class MCWFAggregator {
                 }
                 mySumJs[timeIdx] = 0;
             }
+            
+            myHusimis = new HashMap<Double, HusimiDist>();
+            Map<Double, HusimiDist> husimis = stats.getHusimis();
+            Iterator<Map.Entry<Double, HusimiDist>> iter = husimis.entrySet().iterator();
+            while(iter.hasNext()) {
+                Map.Entry<Double, HusimiDist> entry = iter.next();
+                myHusimis.put(entry.getKey(), new HusimiDist(entry.getValue()));
+            }
         }
         
-        TrajectoryStats stats = traj.getStats();
+        // Aggregate number of jumps
         int numJumps = stats.getNumJumps();
         for(int jumpIdx = 0; jumpIdx < numJumps; ++jumpIdx) {
             double jumpTime = stats.getJumpTime(jumpIdx);
@@ -115,8 +138,27 @@ public class MCWFAggregator {
             ++myNumJumps[jumpTimeIdx][outcome];
         }
         
+        // Aggregate J values
         for(int timeIdx = 0; timeIdx < myNumTimes; ++timeIdx) {
             mySumJs[timeIdx] += stats.getJ(timeIdx);
+        }
+        
+        // Aggregate Husimi distributions
+        if(!first) {
+            Map<Double, HusimiDist> husimis = stats.getHusimis();
+            if(myHusimis.size() != husimis.size()) {
+                throw new UnsupportedOperationException("Found trajectory with inconsistent number of Husimi distributions");
+            }
+            
+            Iterator<Map.Entry<Double, HusimiDist>> iter = husimis.entrySet().iterator();
+            while(iter.hasNext()) {
+                Map.Entry<Double, HusimiDist> entry = iter.next();
+                HusimiDist dist = myHusimis.get(entry.getKey());
+                if(dist == null) {
+                    throw new UnsupportedOperationException("Found Husimi distribution at inconsistent time");
+                }
+                dist.addEq(entry.getValue());
+            }
         }
     }
 }

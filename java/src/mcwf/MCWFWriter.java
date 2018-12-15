@@ -3,9 +3,12 @@ package mcwf;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.Iterator;
+import java.util.Map;
 
 import utils.DynaComplex;
 import utils.ExpectedSpinValues;
+import utils.HusimiDist;
 
 public class MCWFWriter {
     
@@ -114,5 +117,35 @@ public class MCWFWriter {
         }
         
         writer.close();
+    }
+    
+    public void writeHusimi(MCWFAggregator agg, String outdir) throws FileNotFoundException, UnsupportedEncodingException {
+        Map<Double, HusimiDist> husimis = agg.getHusimis();
+        Iterator<Map.Entry<Double, HusimiDist>> iter = husimis.entrySet().iterator();
+        while(iter.hasNext()) {
+            Map.Entry<Double, HusimiDist> entry = iter.next();
+            String timeStr = String.format("%.2f", entry.getKey()).replace('.', 'p');
+            String filename = outdir + "/husimi_" + timeStr + ".txt";
+            PrintWriter writer = new PrintWriter(filename, "UTF-8");
+            writer.print(agg.getNumTrajectories() + "\n");
+            writeHusimi(entry.getValue(), writer);
+            writer.close();
+        }
+    }
+    
+    public void writeHusimi(HusimiDist dist, PrintWriter writer) {
+        if(dist.isZero()) {
+            writer.print("0\n");
+            return;
+        }
+        
+        final double[][] vals = dist.getVals();
+        for(int i = 0; i < dist.getNumTheta(); ++i) {
+            for(int j = 0; j < dist.getNumPhi(); ++j) {
+                if(j != 0) writer.print(", ");
+                writer.print(vals[i][j]);
+            }
+            writer.print("\n");
+        }
     }
 }
