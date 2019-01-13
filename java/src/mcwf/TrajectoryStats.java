@@ -41,7 +41,9 @@ public class TrajectoryStats {
         myJumps = new ArrayList<Jump>();
         
         myHusimis = new HashMap<Double, HusimiDist>();
-        myHusimis.put(1.0, new HusimiDist(NUM_THETA, NUM_PHI));
+//        myHusimis.put(0.0, new HusimiDist(NUM_THETA, NUM_PHI));
+//        myHusimis.put(0.24, new HusimiDist(NUM_THETA, NUM_PHI));
+//        myHusimis.put(0.35, new HusimiDist(NUM_THETA, NUM_PHI));
         
         myJs = new int[numTimes];
         for(int i = 0; i < numTimes; ++i) {

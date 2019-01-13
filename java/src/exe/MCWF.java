@@ -275,7 +275,7 @@ public class MCWF {
             String statefile = dbgdir + "/state_" + uuidStr + ".txt";
             writer.writeState(integrator.getAggregator(), statefile);
             
-            writer.writeHusimi(integrator.getAggregator(), dbgdir);
+            writer.writeHusimi(integrator.getAggregator(), dbgdir, uuidStr);
         }
         
         // Write final states if requested

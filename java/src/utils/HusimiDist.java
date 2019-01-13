@@ -65,10 +65,10 @@ public class HusimiDist {
         int n = state.length - 1;
         
         // TODO - Is the distribution zero for less than maximal total spin?
-        if(jval != n/2) {
-            myIsZero = true;
-            return;
-        }
+//        if(jval != n/2) {
+//            myIsZero = true;
+//            return;
+//        }
         
         DynaComplex ip = new DynaComplex(0,0);
         DynaComplex t1 = new DynaComplex(0,0);
@@ -83,13 +83,13 @@ public class HusimiDist {
                 
                 // Compute the inner product between the state and the CSS
                 ip.set(0,0);
-                for(int i = 0; i < state.length; ++i) {
-                    double ct2pow = Math.pow(ct2, n - i);
+                for(int i = n/2 - jval; i < 2*jval; ++i) {
+                    double ct2pow = Math.pow(ct2, 2*jval - i);
                     double st2pow = Math.pow(st2, i);
                     
                     t1.set(Math.cos(i*phi), -Math.sin(i*phi));
-                    CombinatoricsUtils.checkBinomial(n, i);
-                    t2.set(ct2pow, 0).multiply(st2pow).multiply(t1).multiply(Math.sqrt(CombinatoricsUtils.binomialCoefficientDouble(n, i)));
+                    CombinatoricsUtils.checkBinomial(2*jval, i);
+                    t2.set(ct2pow, 0).multiply(st2pow).multiply(t1).multiply(Math.sqrt(CombinatoricsUtils.binomialCoefficientDouble(2*jval, i)));
                     ip.add(t1.set(state[i]).multiply(t2));
                 }
                 myVals[thetaIdx][phiIdx] = ip.modSq();

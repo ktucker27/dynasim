@@ -119,13 +119,13 @@ public class MCWFWriter {
         writer.close();
     }
     
-    public void writeHusimi(MCWFAggregator agg, String outdir) throws FileNotFoundException, UnsupportedEncodingException {
+    public void writeHusimi(MCWFAggregator agg, String outdir, String uuidStr) throws FileNotFoundException, UnsupportedEncodingException {
         Map<Double, HusimiDist> husimis = agg.getHusimis();
         Iterator<Map.Entry<Double, HusimiDist>> iter = husimis.entrySet().iterator();
         while(iter.hasNext()) {
             Map.Entry<Double, HusimiDist> entry = iter.next();
             String timeStr = String.format("%.2f", entry.getKey()).replace('.', 'p');
-            String filename = outdir + "/husimi_" + timeStr + ".txt";
+            String filename = outdir + "/husimi_" + timeStr + "_" + uuidStr + ".txt";
             PrintWriter writer = new PrintWriter(filename, "UTF-8");
             writer.print(agg.getNumTrajectories() + "\n");
             writeHusimi(entry.getValue(), writer);
