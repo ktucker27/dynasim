@@ -1,10 +1,12 @@
-function [t, es, ess, num_traj, esSe, essSe, jumps, state] = proc_mcwf_output(rootdir, proc_dbg)
+function [t, es, ess, num_traj, esSe, essSe, jumps, state] = proc_mcwf_output(rootdir, proc_dbg, quiet)
 
 % proc_mcwf_output: Aggregates and organizes results coming out of
 %                   the MCWF Java executable
 %
-% INPUT: rootdir - Can be a directory of files to aggregate, or a
-%                  single file to process
+% INPUT: rootdir  - Can be a directory of files to aggregate, or a
+%                   single file to process
+%        proc_dbg - Process debug output if nonzero
+%           quiet - Supress command line output if nonzero
 %
 % OUTPUT: t - Vector of times
 %         es - Expected values of collective spins. es(:,i) is the
@@ -16,6 +18,10 @@ function [t, es, ess, num_traj, esSe, essSe, jumps, state] = proc_mcwf_output(ro
 %         esSe - Statistical error of the first order expectations
 %         essSe - Statistical error of the second order expectations
 
+if nargin < 3
+    quiet = 0;
+end
+
 if ~isfolder(rootdir)
     b = split(rootdir, '/');
     files.name = b{size(b,1),1};
@@ -25,7 +31,7 @@ else
     files = dir([rootdir, '/*mcwf*.txt']);
 end
 
-[t, agg_data, num_traj] = aggregate_data(files);
+[t, agg_data, num_traj] = aggregate_data(files, quiet);
 
 %dlmwrite('/Users/tuckerkj/output/20181112/test/agg.csv', agg_data, 'delimiter', ',', 'precision', 12);
 
@@ -41,8 +47,10 @@ dbgdir = [rootdir, '/debug'];
 jumps = 0;
 state = 0;
 if nargin > 1 && proc_dbg ~= 0 && isfolder(dbgdir)
-    disp('Found debug directory, aggregating results...');
-    [t2, jumps, state, num_traj2] = proc_mcwf_debug(dbgdir);
+    if ~quiet
+        disp('Found debug directory, aggregating results...');
+    end
+    [t2, jumps, state, num_traj2] = proc_mcwf_debug(dbgdir, quiet);
     if max(abs(t - t2)) ~= 0
         disp('WARNING: Difference found between output and debug times');
     end

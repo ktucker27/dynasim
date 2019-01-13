@@ -1,10 +1,12 @@
-function [t, agg_data, num_traj] = aggregate_data(files)
+function [t, agg_data, num_traj] = aggregate_data(files, quiet)
 
 num_traj = 0;
 for i=1:size(files)
     filepath = [files(i,1).folder, '/', files(i,1).name];
     
-    disp(['Processing: ', files(i,1).name]);
+    if ~quiet
+        disp(['Processing: ', files(i,1).name]);
+    end
     
     % Get header information
     header = dlmread(filepath, ',', [0 0 0 0]);
