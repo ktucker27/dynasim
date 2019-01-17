@@ -78,7 +78,7 @@ public class SymmetricODEs implements DynaComplexODEs {
             zDot[i].add(t1.set(z[i]).multiply(lfab).multiply(0.5*(nm - np)*n1 + 0.5*nz*(nm + 1 + 3*(np + 1)) 
                     + 0.5*(n1 + 1)*(np - nm) + 0.5*(nz+1)*(np + 3*nm)));
             zDot[i].add(t1.set(z[i]).multiply(-w).multiply(nz + 0.5*(np + nm)));
-            zDot[i].add(t1.set(z[i]).multiply(-gel).multiply(np + nm));
+            zDot[i].add(t1.set(z[i]).multiply(-gel/2).multiply(np + nm));
             
             if(n1 > 0) {
                 // colIdx + [1;0;0]
