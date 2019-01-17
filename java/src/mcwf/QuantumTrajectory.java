@@ -42,7 +42,7 @@ public class QuantumTrajectory {
     DynaComplex t1, t2;
     
     // Constant parameters
-    private final int NUM_OUTCOMES = 5;
+    private final int NUM_OUTCOMES = 8;
     
     // Tolerance used to double check times
     private final double TIME_TOL = 1.0e-10;
@@ -191,7 +191,7 @@ public class QuantumTrajectory {
         gc = params.getGamma()*params.getFab();
         gl = params.getGamma()*(params.getFaa() - params.getFab());
         kl = 0.0; // TODO - Incoherent pumping
-        dl = 0.0; // TODO - Dephasing
+        dl = params.getGel();
         oms = params.getGab()/2.0;
         //myDnj = 1.0;
 
@@ -366,13 +366,44 @@ public class QuantumTrajectory {
             
             break;
         case 4:
+            // Dephasing, s = 0
+        case 5:
+            // Dephasing, s = -1
+        case 6:
+            // Dephasing, s = 1
+            s = 0;
+            if(outcome == 5) {
+                s = -1;
+            } else if(outcome == 6) {
+                s = 1;
+            }
+            
+            for(int m = myJ + s; m >= -(myJ + s); --m) {
+                if(Math.abs(m) > myJ) continue;
+                
+                midx = myN/2 - m;
+                if(outcome == 4) {
+                    pval = getPjmz0(myN, myJ, m);
+                } else if(outcome == 5) {
+                    pval = getPjmzm(myN, myJ, m);
+                } else if(outcome == 6) {
+                    pval = getPjmzp(myN, myJ, m);
+                }
+                
+                myNewState[midx].set(myState[midx]).multiply(pval*Math.sqrt(myTimeDelta*dl));
+            }
+            
+            setJ(myJ + s);
+            
+            break;
+        case 7:
             // No jump
             for(int m = myJ; m >= -myJ; --m) {
                 midx = myN/2 - m;
                 ajmm = getAjmm(myJ, m);
                 ajmp = getAjmp(myJ, m);
                 t1.set(oms*ajmm*ajmm,
-                       -0.5*(gc*ajmm*ajmm + gl*(myN/2 + m) + kl*(myN/2 - m) + dl*myN));
+                       -0.5*(gc*ajmm*ajmm + gl*(myN/2 + m) + kl*(myN/2 - m) + dl*myN/4));
                 t2.set(0, -1);
                 t1.multiply(t2).multiply(myTimeDelta).add(1.0);
                 myNewState[midx].add(t2.set(myState[midx]).multiply(t1));
@@ -441,12 +472,24 @@ public class QuantumTrajectory {
             cdf[1] += Math.abs(p0*p0)*absCjmSq;
             cdf[2] += Math.abs(pm*pm)*absCjmSq;
             cdf[3] += Math.abs(pp*pp)*absCjmSq;
+            
+            // Dephasing
+            double pz0 = getPjmz0(myN, myJ, m);
+            double pzm = getPjmzm(myN, myJ, m);
+            double pzp = getPjmzp(myN, myJ, m);
+            
+            cdf[4] += Math.abs(pz0*pz0)*absCjmSq;
+            cdf[5] += Math.abs(pzm*pzm)*absCjmSq;
+            cdf[6] += Math.abs(pzp*pzp)*absCjmSq;
         }
         
         cdf[0] *= myTimeDelta*gc;
         cdf[1] *= myTimeDelta*gl;
         cdf[2] *= myTimeDelta*gl;
         cdf[3] *= myTimeDelta*gl;
+        cdf[4] *= myTimeDelta*dl;
+        cdf[5] *= myTimeDelta*dl;
+        cdf[6] *= myTimeDelta*dl;
         
         if(Double.isNaN(cdf[0])) {
             throw new UnsupportedOperationException("Found NaN in CDF");
@@ -586,12 +629,24 @@ public class QuantumTrajectory {
     private double getPjmp(int n, int j, int m) {
         return Math.sqrt((double)(n - 2*j)*(double)(j - m + 1)*(double)(j - m + 2)/(4*(double)(j + 1)*(double)(2*j + 1)));
     }
+    
+    private double getPjmz0(int n, int j, int m) {
+        if(j == 0) {
+            return 0.0;
+        }
 
-    //private static double factorial(int n) {
-    //  double ans = 1;
-    //  for(int i = n; i >= 1; --i) {
-    //      ans = ans*i;
-    //  }
-    //  return ans;
-    //}
+        return Math.sqrt((2+n)/(4*(double)j*(double)(j+1)))*m;
+    }
+
+    private double getPjmzm(int n, int j, int m) {
+        if(j == 0) {
+            return 0.0;
+        }
+
+        return Math.sqrt((double)(n + 2*j + 2)*(double)(j - m)*(double)(j + m)/(4*(double)j*(double)(2*j + 1)));
+    }
+
+    private double getPjmzp(int n, int j, int m) {
+        return Math.sqrt((double)(n - 2*j)*(double)(j - m + 1)*(double)(j + 1 + m)/(4*(double)(j + 1)*(double)(2*j + 1)));
+    }
 }

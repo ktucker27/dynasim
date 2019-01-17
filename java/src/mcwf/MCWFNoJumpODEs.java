@@ -15,6 +15,7 @@ public class MCWFNoJumpODEs implements DynaComplexODEs {
     private double omega;
     private double gammaC;
     private double gammaS;
+    private double gammaEl;
     
     private DynaComplex t1, t2;
 
@@ -27,6 +28,7 @@ public class MCWFNoJumpODEs implements DynaComplexODEs {
         omega = params.getOmega();
         gammaC = params.getGamma()*params.getFab();
         gammaS = params.getGamma()*(params.getFaa() - params.getFab());
+        gammaEl = params.getGel();
         
         t1 = new DynaComplex(0,0);
         t2 = new DynaComplex(0,0);
@@ -49,7 +51,7 @@ public class MCWFNoJumpODEs implements DynaComplexODEs {
                 double ajmm = getAjmm(myJ, m);
                 double ajmp = getAjmp(myJ, m);
                 t1.set(chi*ajmm*ajmm,
-                       -0.5*(gammaC*ajmm*ajmm + gammaS*(myN/2 + m))); // + kl*(myN/2 - m) + dl*myN));
+                       -0.5*(gammaC*ajmm*ajmm + gammaS*(myN/2 + m) + gammaEl*myN/4)); // + kl*(myN/2 - m) ));
                 t2.set(0, -1);
                 t1.multiply(t2);
                 zDot[midx].add(t2.set(z[midx]).multiply(t1));

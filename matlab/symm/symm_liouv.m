@@ -111,7 +111,7 @@ end
 
 %L = -1i*gamma*gaa/2*Lgaa -1i*gamma*gab/2*Lgab - gamma*fab/2*Lf - w*Lw;
 L = -1i*gamma*gaa/2*Lgaa -1i*gamma*gab/2*Lgab - 1i*o/2*(Sp + Sm - Spr - Smr) ...
-       -gamma*fab/2*(Sp*Sm + Smr*Spr - 2*Sm*Spr) - gamma*(faa - fab)*Lfaa - w*Lw - gel*Lel;
+       -gamma*fab/2*(Sp*Sm + Smr*Spr - 2*Sm*Spr) - gamma*(faa - fab)*Lfaa - w*Lw - gel/2*Lel;
 end
 
 function b = idx_equals(idx1, idx2)
