@@ -7,7 +7,7 @@ function reports = proc_results(rootdir, do_plots)
 %        do_plots - Will produce plots of spin squeezing for all results
 %                   if provided and non-zero
 %
-% OUTPUT: 
+% OUTPUT: TODO
 
 PLOT_ROWS = 2;
 PLOT_COLS = 3;

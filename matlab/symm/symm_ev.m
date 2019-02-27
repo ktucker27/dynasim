@@ -1,4 +1,4 @@
-function [es, ess, epp] = symm_ev(n, L, c, t0, dt, t)
+function [es, ess, epp, cf] = symm_ev(n, L, c, t0, dt, t)
 
 del = expm(dt*L);
 
@@ -51,6 +51,9 @@ for i=1:numt
     
     c = del*c;
 end
+
+cf = c;
+
 end
 
 function idx = get_idx(idx_vec, n)

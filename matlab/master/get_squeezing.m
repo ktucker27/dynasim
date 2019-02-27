@@ -7,7 +7,9 @@ nps = zeros(3,size(es,2));
 for i=1:size(es,2)
     bvn = es(:,i)/norm(es(:,i),2);
     theta = acos(bvn(3));
-    if bvn(2) > 0
+    if abs(sin(theta)) < 1e-10
+        phi = 0; % TODO - Is this right?
+    elseif bvn(2) > 0
         phi = acos(bvn(1)/sin(theta));
     else
         phi = 2*pi - acos(bvn(1)/sin(theta));
