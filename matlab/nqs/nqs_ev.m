@@ -10,7 +10,7 @@ function ev = nqs_ev(oloc, wave, a, b, w, num_samps, num_steps)
 ev = 0;
 for i=1:num_samps
     sz = nqs_sample(wave, a, b, w, num_steps);
-    ev = ev + feval(oloc, a, b, w, sz);
+    ev = ev + feval(oloc, wave, a, b, w, sz);
 end
 
 ev = ev/num_samps;

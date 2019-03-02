@@ -22,7 +22,7 @@ for i=1:n
     end
     
     szflip(i) = -1*szflip(i);
-    s1 = s1 + feval(wave, a, theta, szflip);
+    s1 = s1 + feval(wave, a, b + w*szflip, szflip);
 end
 
 eloc = (-h*s1 - s2)/psi_sz;
