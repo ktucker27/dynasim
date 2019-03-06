@@ -23,10 +23,13 @@ for i=1:n
     if i > 1
         s2 = s2 + sz(i)*sz(i-1)*psi_sz;
         szflip(i-1) = -1*szflip(i-1);
+    else
+        % Periodic boundary conditions
+        s2 = s2 + sz(i)*sz(n)*psi_sz;
     end
     
     szflip(i) = -1*szflip(i);
-    s1 = s1 + feval(wave, a, b + w*szflip, szflip);
+    s1 = s1 + feval(wave, a, theta - 2*w(:,i)*sz(i), szflip);
 end
 
 eloc = (-h*s1 - s2)/psi_sz;
