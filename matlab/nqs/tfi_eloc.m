@@ -1,5 +1,9 @@
-function eloc = tfi_eloc(h, wave, a, b, w, sz)
+function eloc = tfi_eloc(wave, a, b, w, sz, h)
 % tfi_eloc Local Hamiltonian for the transverse-field Ising model
+
+if nargin < 5
+    h = 1;
+end
 
 n = size(sz,1);
 
