@@ -21,6 +21,14 @@ sz = ones(n,1);
 % Initialize theta
 theta = b + w*sz;
 
+% Walk to a state with nonzero probability
+while wave(a, theta, sz) == 0
+    flip_idx = ceil(n*rand());
+    sz(flip_idx) = -1*sz(flip_idx);
+    
+    theta = theta - 2*w(:,flip_idx)*sz(flip_idx);
+end
+
 % Perform a random walk on the spins according to Metropolis-Hastings,
 % where the simple transitions are taken to be a single spin flip with
 % equal probability

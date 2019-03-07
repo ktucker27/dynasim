@@ -54,15 +54,15 @@ for i=1:num_iterations
     %update = -eta*(Skk\Fk);
     update = -eta*minresqlp(Skk,Fk);
     
+    if isnan(norm(update))
+        disp(['Received NaN at i = ', num2str(i)]);
+        break;
+    end
+    
     % Update parameters according to gradient descent
     a = a + update(1:n,1);
     b = b + update(n+1:n+m,1);
     w = w + reshape(update(n+m+1:end,1),[m,n]);
-    
-    if isnan(norm(a))
-        disp(['Received NaN at i = ', num2str(i)]);
-        break;
-    end
 end
 end
 
