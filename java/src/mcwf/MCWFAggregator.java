@@ -83,8 +83,8 @@ public class MCWFAggregator {
             
             QuantumTrajectory traj = trajectories[idx];
             if(myNumTimes != traj.getNumEvTimes() ||
-               myTimeDelta != traj.getEvTimeDelta()) {
-                throw new UnsupportedOperationException("MCWFAggregator: Trajectory does not align with time grid");
+               Math.abs(myTimeDelta - traj.getEvTimeDelta()) > TIME_TOL) {
+                throw new UnsupportedOperationException("MCWFAggregator: Trajectory does not align with time grid " + myNumTimes + " " + traj.getNumEvTimes() + " " + myTimeDelta + " " + traj.getEvTimeDelta());
             }
             
             for(int timeIdx = 0; timeIdx < myNumTimes; ++timeIdx) {

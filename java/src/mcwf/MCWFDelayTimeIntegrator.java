@@ -14,7 +14,8 @@ public class MCWFDelayTimeIntegrator implements Runnable {
     
     public MCWFDelayTimeIntegrator(QuantumTrajectory trajectory) {
         myTrajectory = trajectory;
-        //myIntegrator = new AdamsMoultonIntegrator(2, trajectory.getTimeDelta()*1.0e-6, trajectory.getTimeDelta(), 1.0e-3, 1.0e-5);
+        //myIntegrator = new GraggBulirschStoerIntegrator(trajectory.getTimeDelta()*1.0e-6, trajectory.getTimeDelta(), 1.0e-10, 1.0e-10);
+        //myIntegrator = new AdamsMoultonIntegrator(2, trajectory.getTimeDelta()*1.0e-6, trajectory.getTimeDelta(), 1.0e-10, 1.0e-10);
         myIntegrator = new ClassicalRungeKuttaIntegrator(trajectory.getTimeDelta());
         myIntegrator.addStepHandler(trajectory.getNoJumpStepHandler());
         myIntegrator.addEventHandler(trajectory.getNoJumpEventHandler(), myTrajectory.getEvTimeDelta()/2, 1.0e-12, 1000);
