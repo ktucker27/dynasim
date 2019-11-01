@@ -21,7 +21,7 @@ if ~strcmp(rootdir(1,size(rootdir,2)), '/')
     rootdir = [rootdir, '/'];
 end
 
-runTypes = {'symm'; 'mcwf'};
+runTypes = {'symm'; 'mcwf'; 'piqs'};
 fun = @(name)(strcmp(name, '.'));
 
 % Populate results directory map
@@ -78,6 +78,8 @@ for resIdx = 1:size(reskeys, 2)
             results(fileIdx) = proc_symm(fileInfo.folder);
         elseif fileInfo.type == 'mcwf'
             results(fileIdx) = proc_mcwf(fileInfo.folder);
+        elseif fileInfo.type == 'piqs'
+            results(fileIdx) = proc_piqs(fileInfo.folder);
         else
             disp(['ERROR: Unknown file type ', fileInfo.type]);
             return;
@@ -165,6 +167,27 @@ if n == 0
 end
 
 [results.t, results.es, results.ess, ~] = proc_mcwf_output(resdir, 0, 1);
+results.sq2 = get_squeezing(n, results.es, results.ess);
+results.init = 1;
+end
+
+function results = proc_piqs(resdir)
+results.init = 0;
+results.t = [];
+results.sq2 = [];
+files = dir([resdir, '/piqs_*.txt']);
+if size(files, 1) ~= 1
+    disp(['ERROR: Found incorrect number of symm files: ', num2str(size(files,1))]);
+    return;
+end
+
+n = extract_n(files(1).folder);
+if n == 0
+    return;
+end
+
+C = dlmread([files(1).folder, '/', files(1).name]);
+[results.t, results.es, results.ess] = unpack_symm(C);
 results.sq2 = get_squeezing(n, results.es, results.ess);
 results.init = 1;
 end
