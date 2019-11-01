@@ -1,17 +1,30 @@
-function [minval, finalval, mintime, dur, sstime] = get_min_sq2(t, sq2, sq2ss)
+function [minval, finalval, mintime, dur, sstime] = get_min_sq2(t, sq2, sq2ss, tmin)
 
 % [~,idx] = max(10*log10(real(sq2)));
 %idx = 1;
-idx = binary_search(t,.003);
+if nargin <= 3
+    tmin = 0.003;
+end
+
+% Choose a minimum
+% [pks, locs] = findpeaks(-10*log10(real(sq2)), t, 'MinPeakProminence', 0.001);
+% idx = 1;
+% minval = 1;
+% minidx = 1;
+% for i=1:size(pks,1)
+%     % Grab the first loc beyond tmin
+%     if locs(i) >= tmin
+%         minval = -pks(1);
+%         minidx = binary_search(t,locs(1,1));
+%         break;
+%     end
+% end
+
+% Choose minimum after tmin
+idx = binary_search(t,tmin);
 [minval,minidx] = min(10*log10(real(sq2(idx:end))));
 idx = minidx + idx - 1;
 
-% [pks, locs] = findpeaks(real(-sq2), t, 'MinPeakProminence', 0.001);
-% if size(pks,1) <= 1
-%     idx = size(sq2,1);
-% else
-%     idx = binary_search(t,locs(end,1));
-% end
 % minval = 10*log10(real(sq2(idx)));
 finalval = 10*log10(real(sq2(end,1)));
 if minval > finalval
@@ -33,7 +46,7 @@ else
 end
 
 % Calculate time to steady state
-if nargin > 2
+if nargin > 2 && sq2ss ~= 0
     ssidx = find(abs(sq2 - sq2ss)/sq2ss > 0.005, 1, 'last');
     if size(ssidx,1) == 0
         disp('WARNING: Did not reach steady-state');
