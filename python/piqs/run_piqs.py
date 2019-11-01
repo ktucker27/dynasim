@@ -40,8 +40,8 @@ def parse_args():
     parser.add_argument("-gs", help="Individual atom decay rate (default 0)", action="store", required=False, default=0)
     parser.add_argument("-gel", help="Dephasing rate (default 0)", action="store", required=False, default=0)
     parser.add_argument("-tmax", help="Simulation time", action="store", required=True)
-    parser.add_argument("-it", help="Initial CSS theta (default = pi/2)", action="store", required=False, default=math.pi*0.5)
-    parser.add_argument("-ip", help="Initial CSS phi (default = pi)", action="store", required=False, default=math.pi)
+    parser.add_argument("-it", help="Initial CSS theta in degrees (default = 90)", action="store", required=False, default=90)
+    parser.add_argument("-ip", help="Initial CSS phi in degrees (default = 180)", action="store", required=False, default=180)
 
     args = parser.parse_args()
 
@@ -52,6 +52,11 @@ def write_results_csv(filepath, t, results):
     all_data = np.vstack((t, results.expect[0], results.expect[1], results.expect[2]))
     for ii in range(3, len(results.expect)):
         all_data = np.vstack((all_data, results.expect[ii].real, results.expect[ii].imag))
+    
+    # Make sure directory exists
+    outdir = os.path.sep + os.path.join(*filepath.split(os.path.sep)[:-1])
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
     
     np.savetxt(filepath, np.transpose(all_data), delimiter=',')
 
@@ -71,7 +76,7 @@ def run_sim(outfile, run_params):
 
     # Set the initial conditions
     #rho0 = ground(run_params.n)
-    rho0 = css(run_params.n, run_params.it, run_params.ip, coordinates='polar')
+    rho0 = css(run_params.n, run_params.it*math.pi/180.0, run_params.ip*math.pi/180.0, coordinates='polar')
 
     # Set the simulation parameters
     # TODO - Make nt configurable
