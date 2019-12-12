@@ -569,7 +569,6 @@ public class QuantumTrajectory {
             exp_zz += absCjmSq*m*m;
         }
         
-        // TODO - Double check!
         evs.setEs(0, t1.set(exp_p).add(exp_m).multiply(0.5).getReal());
         evs.setEs(1, t1.set(exp_m).subtract(exp_p).multiply(-0.5).getImaginary());
         evs.setEs(2, exp_z);
