@@ -5,13 +5,13 @@ filenames = dir([rootdir, '/*cumulant_N*.csv']);
 %pat = '[^_]*symm_N([^_]+)_D[^_]+_g[^_]+_o([^_]+)_f[^_]+_faa[^_]+.txt';
 %pat = '[^_]*symm_N([^_]+)_D[^_]+_g[^_]+_o([^_]+)_f[^_]+_gaa[^_]+.txt';
 %pat = '[^_]*symm_N([^_]+)_D[^_]+_g[^_]+_o([^_]+)_f[^_]+_faa[^_]+_gaa[^_]+.txt';
-pat = '[^_]*cumulant_N[^_]+_D[^_]+_g([^_]+)_o([^_]+)_f[^_]+_faa[^_]+.csv';
+pat = '[^_]*cumulant_N[^_]+_D[^_]+_g[^_]+_o([^_]+)_f[^_]+_faa([^_]+).csv';
 
 A = zeros(size(filenames,1),2);
 for i=1:size(filenames,1)
     t = regexp(filenames(i,1).name, pat, 'tokens');
-    A(i,1) = str2double(strrep(t{1}(1), 'p', '.'));
-    A(i,2) = str2double(strrep(t{1}(2), 'p', '.'));
+    A(i,2) = str2double(strrep(t{1}(1), 'p', '.'));
+    A(i,1) = str2double(strrep(t{1}(2), 'p', '.'));
     A(i,3) = i;
     filepaths{i} = [rootdir, '/', filenames(i,1).name];
 end
@@ -27,6 +27,7 @@ ovec = (mino:delo:maxo)';
 
 % Hardcode f for now
 f = 1;
+g = 0;
 
 % Initialize data by g value
 data = cell(size(gvec,1),1);
@@ -38,7 +39,7 @@ end
 % Populate data
 for i=1:size(A,1)
     gidx = find(gvec == A(i,1));
-    g = A(i,1);
+    %g = A(i,1);
     o = A(i,2);
     
     oc = (n/2)*sqrt(f^2 + g^2);
