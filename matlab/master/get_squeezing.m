@@ -1,6 +1,6 @@
 function [sq2, vars, norms, nps, phis] = get_squeezing(n, es, ess)
 
-tol = 1e-12;
+tol = 1e-10;
 
 sq2 = zeros(size(es,2),1);
 vars = zeros(size(es,2),1);
