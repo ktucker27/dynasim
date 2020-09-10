@@ -1,9 +1,12 @@
-function [sq2, vars, norms, nps] = get_squeezing(n, es, ess)
+function [sq2, vars, norms, nps, phis] = get_squeezing(n, es, ess)
+
+tol = 1e-12;
 
 sq2 = zeros(size(es,2),1);
 vars = zeros(size(es,2),1);
 norms = zeros(size(es,2),1);
 nps = zeros(3,size(es,2));
+phis = zeros(size(es,2),1);
 for i=1:size(es,2)
     bvn = es(:,i)/norm(es(:,i),2);
     theta = acos(bvn(3));
@@ -29,11 +32,38 @@ for i=1:size(es,2)
     a = en1n1 - en2n2;
     b = en1n2 + en2n1;
     
-    phi = 0.5*acos(-a/sqrt(a*a + b*b));
-    if b > 0
-        phi = pi - phi;
-    elseif sqrt(a*a + b*b) == 0
-        phi = 0;
+    if abs(imag(a)) > tol || abs(imag(b)) > tol
+        error('Found complex a or b');
+    end
+    
+    % Paper calculation for phi
+%     phi = 0.5*acos(-a/sqrt(a*a + b*b));
+%     if b > 0
+%         phi = pi - phi;
+%     elseif sqrt(a*a + b*b) == 0
+%         phi = 0;
+%     end
+    
+    % My calculation for phi
+    if a == 0
+        if b < 0
+            phi = -0.5*pi/2;
+        else
+            phi = 0.5*pi/2;
+        end
+    else
+        phi = 0.5*atan(real(b)/real(a));
+    end
+    
+    if -2*a*cos(2*phi) - 2*b*sin(2*phi) < 0
+        phi = phi + pi/2;
+    end
+    
+    %phi = 0;
+    if phi < pi/2
+        phis(i,1) = phi;
+    else
+        phis(i,1) = phi - pi;
     end
     
     np = n1*cos(phi) + n2*sin(phi);
@@ -56,7 +86,7 @@ for i=1:size(es,2)
 %             end
 %         end
 %         
-%         ips(1,2) = enpnp;
+%         %ips(1,2) = enpnp;
 %     end
     
     %sq2(i,1) = (1/(2*enpnp))*(en1n1 + en2n2 - sqrt((en1n1 - en2n2)^2 + (en1n2 + en2n1)^2));
@@ -68,5 +98,6 @@ for i=1:size(es,2)
     sq2(i,1) = n*enpnp/norm(es(:,i),2)^2;
     
     vars(i,1) = enpnp;
+    %vars(i,1) = min(real(ips(:,1)));
     norms(i,1) = (norm(es(:,i),2)^2)/n;
 end
