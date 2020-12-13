@@ -11,15 +11,15 @@ for i=1:size(es,2)
     bvn = es(:,i)/norm(es(:,i),2);
     theta = acos(bvn(3));
     if abs(sin(theta)) < 1e-10
-        phi = 0; % TODO - Is this right?
+        phi0 = 0; % TODO - Is this right?
     elseif bvn(2) > 0
-        phi = acos(bvn(1)/sin(theta));
+        phi0 = acos(bvn(1)/sin(theta));
     else
-        phi = 2*pi - acos(bvn(1)/sin(theta));
+        phi0 = 2*pi - acos(bvn(1)/sin(theta));
     end
     
-    n1 = [-sin(phi);cos(phi);0];
-    n2 = [cos(theta)*cos(phi);cos(theta)*sin(phi);-sin(theta)];
+    n1 = [-sin(phi0);cos(phi0);0];
+    n2 = [cos(theta)*cos(phi0);cos(theta)*sin(phi0);-sin(theta)];
     
     en1n1 = prod_ev(n1, n1, ess(:,:,i));
     en2n2 = prod_ev(n2, n2, ess(:,:,i));
@@ -59,7 +59,6 @@ for i=1:size(es,2)
         phi = phi + pi/2;
     end
     
-    %phi = 0;
     if phi < pi/2
         phis(i,1) = phi;
     else
@@ -74,6 +73,7 @@ for i=1:size(es,2)
     end
     enpnp = prod_ev(np, np, ess(:,:,i));
     
+    % Brute force minimum calculation
 %     ips = zeros(floor(2*pi*100 + 1),2);
 %     if true || i == size(es,2)
 %         idx = 1;
@@ -88,13 +88,8 @@ for i=1:size(es,2)
 %         
 %         %ips(1,2) = enpnp;
 %     end
-    
-    %sq2(i,1) = (1/(2*enpnp))*(en1n1 + en2n2 - sqrt((en1n1 - en2n2)^2 + (en1n2 + en2n1)^2));
-    %sq2(i,1) = (2/n)*(en1n1 + en2n2 - sqrt((en1n1 - en2n2)^2 + (en1n2 + en2n1)^2));
-    %sq2(i,1) = (n/(2*norm(es(:,i),2)^2))*(en1n1 + en2n2 - sqrt((en1n1 - en2n2)^2 + (en1n2 + en2n1)^2));
-    %sq2(i,1) = (n/(2*sum(diag(ess(:,:,i)))))*(en1n1 + en2n2 - sqrt((en1n1 - en2n2)^2 + (en1n2 + en2n1)^2));
+
     %sq2(i,1) = n*min(real(ips(:,1)))/norm(es(:,i),2)^2;
-    %sq2(i,1) = n*min(real(ips(:,1)))/es(1,i)^2;
     sq2(i,1) = n*enpnp/norm(es(:,i),2)^2;
     
     vars(i,1) = enpnp;
