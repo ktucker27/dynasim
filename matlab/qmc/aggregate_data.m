@@ -1,4 +1,4 @@
-function [t, agg_data, num_traj] = aggregate_data(files, quiet)
+function [t, agg_data, num_traj, all_data] = aggregate_data(files, quiet)
 
 num_traj = 0;
 for i=1:size(files)
@@ -20,11 +20,13 @@ for i=1:size(files)
     if i == 1
         t = data(:,1);
         agg_data = zeros(size(data));
+        all_data = data;
     else
         if norm(t - data(:,1)) ~= 0
             disp(['ERROR - Times in file ', files(i,1).name, ' do not align']);
             return;
         end
+        all_data = cat(3, all_data, data);
     end
     
     agg_data = agg_data + data;

@@ -1,4 +1,4 @@
-function [t, es, ess, num_traj, esSe, essSe, jumps, state] = proc_mcwf_output(rootdir, proc_dbg, quiet)
+function [t, es, ess, num_traj, esSe, essSe, jumps, state, all_data] = proc_mcwf_output(rootdir, proc_dbg, quiet)
 
 % proc_mcwf_output: Aggregates and organizes results coming out of
 %                   the MCWF Java executable
@@ -31,7 +31,7 @@ else
     files = dir([rootdir, '/*mcwf*.txt']);
 end
 
-[t, agg_data, num_traj] = aggregate_data(files, quiet);
+[t, agg_data, num_traj, all_data] = aggregate_data(files, quiet);
 
 %dlmwrite('/Users/tuckerkj/output/20181112/test/agg.csv', agg_data, 'delimiter', ',', 'precision', 12);
 
